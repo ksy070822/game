@@ -2333,77 +2333,127 @@ function App() {
       )}
 
       {currentView === 'diagnosis-view' && petData && lastDiagnosis && (
-        <div className="diagnosis-view-container">
-          <button className="back-btn" onClick={() => setCurrentView('mypage')}>← 뒤로</button>
-          <div className="diagnosis-result">
-            <div className="result-header">
-              <h2>✅ 진단서</h2>
-              <p className="result-date">
-                {new Date(lastDiagnosis.created_at || lastDiagnosis.date).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
+        <div className="page-container">
+          {/* Header */}
+          <div className="page-header">
+            <div className="flex size-12 shrink-0 items-center">
+              <button onClick={() => setCurrentView('mypage')} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
+                <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+              </button>
             </div>
-            
-            <div className="result-card">
-              <div className="result-section">
-                <h3>🎯 진단 결과</h3>
-                <p className="diagnosis-text">
-                  <strong>{lastDiagnosis.diagnosis || lastDiagnosis.suspectedConditions?.[0]?.name || '일반 건강 이상'}</strong>
-                </p>
-                <div
-                  className="emergency-badge"
-                  style={{
-                    backgroundColor: getEmergencyColor(lastDiagnosis.riskLevel || lastDiagnosis.emergency),
-                    color: 'white',
-                    padding: '10px 20px',
-                    borderRadius: '25px',
-                    display: 'inline-block',
-                    marginTop: '15px',
-                    fontSize: '14px',
-                    fontWeight: '600'
-                  }}
-                >
-                  {lastDiagnosis.riskLevel === 'Low' || lastDiagnosis.emergency === 'low' ? '🟢 경미' :
-                   lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? '🟡 보통' :
-                   lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? '🔴 응급' : '🟡 보통'}
-                </div>
-              </div>
-              
-              {lastDiagnosis.description && (
-                <div className="result-section">
-                  <h3>📋 상세 설명</h3>
-                  <p className="description-text">{lastDiagnosis.description}</p>
-                </div>
-              )}
-              
-              {lastDiagnosis.actions && lastDiagnosis.actions.length > 0 && (
-                <div className="result-section">
-                  <h3>💊 즉시 조치 사항</h3>
-                  <ul className="action-list">
-                    {lastDiagnosis.actions.map((action, idx) => (
-                      <li key={idx}>
-                        <span className="action-icon">✓</span>
-                        <span>{action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            <h2 className="text-slate-800 text-lg font-bold flex-1 text-center">진단서 상세</h2>
+            <div className="flex size-12 shrink-0 items-center justify-end"></div>
+          </div>
 
-              {lastDiagnosis.hospitalVisit && (
-                <div className="result-section hospital-section">
-                  <h3>🏥 병원 방문 권장</h3>
-                  <div className="hospital-alert">
-                    <p className="hospital-time">
-                      <strong>{lastDiagnosis.hospitalVisitTime || '24시간 내'}</strong> 내 병원 방문을 권장합니다.
+          <div className="px-4 pt-4 pb-24 space-y-4">
+            {/* 진단 날짜 */}
+            <div className="text-center text-sm text-slate-500">
+              {new Date(lastDiagnosis.created_at || lastDiagnosis.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+
+            {/* 반려동물 정보 카드 */}
+            <div className="bg-surface-light rounded-lg p-4 shadow-soft border border-slate-200">
+              <h3 className="flex items-center gap-2 text-slate-900 font-bold mb-3">
+                <span className="material-symbols-outlined text-primary">pets</span>
+                반려동물 정보
+              </h3>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-3xl">
+                  {petData.species === 'dog' ? '🐕' : '🐈'}
+                </div>
+                <div className="flex-1 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-slate-500">이름</span>
+                    <p className="font-medium text-slate-900">{petData.petName || '미상'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">품종</span>
+                    <p className="font-medium text-slate-900">{petData.breed || '미상'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">나이</span>
+                    <p className="font-medium text-slate-900">
+                      {petData.birthDate ? (() => {
+                        const birth = new Date(petData.birthDate);
+                        const today = new Date();
+                        const age = today.getFullYear() - birth.getFullYear();
+                        return `${age}세`;
+                      })() : '미상'}
                     </p>
                   </div>
+                  <div>
+                    <span className="text-slate-500">체중</span>
+                    <p className="font-medium text-slate-900">{petData.weight ? `${petData.weight}kg` : '미상'}</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
+
+            {/* 진단 결과 카드 */}
+            <div className="bg-surface-light rounded-lg p-4 shadow-soft border border-slate-200">
+              <h3 className="flex items-center gap-2 text-slate-900 font-bold mb-3">
+                <span className="material-symbols-outlined text-primary">diagnosis</span>
+                진단 결과
+              </h3>
+              <p className="text-lg font-semibold text-slate-900 mb-2">
+                {lastDiagnosis.diagnosis || lastDiagnosis.suspectedConditions?.[0]?.name || '일반 건강 이상'}
+              </p>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? 'bg-red-100 text-red-600' :
+                lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-green-100 text-green-600'
+              }`}>
+                {lastDiagnosis.riskLevel === 'Low' || lastDiagnosis.emergency === 'low' ? '경미' :
+                 lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? '보통' :
+                 lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? '응급' : '보통'}
+              </span>
+            </div>
+
+            {/* 상세 설명 */}
+            {lastDiagnosis.description && (
+              <div className="bg-surface-light rounded-lg p-4 shadow-soft border border-slate-200">
+                <h3 className="flex items-center gap-2 text-slate-900 font-bold mb-3">
+                  <span className="material-symbols-outlined text-primary">description</span>
+                  상세 설명
+                </h3>
+                <p className="text-slate-700 text-sm leading-relaxed">{lastDiagnosis.description}</p>
+              </div>
+            )}
+
+            {/* 조치 사항 */}
+            {lastDiagnosis.actions && lastDiagnosis.actions.length > 0 && (
+              <div className="bg-surface-light rounded-lg p-4 shadow-soft border border-slate-200">
+                <h3 className="flex items-center gap-2 text-slate-900 font-bold mb-3">
+                  <span className="material-symbols-outlined text-primary">medication</span>
+                  즉시 조치 사항
+                </h3>
+                <ul className="space-y-2">
+                  {lastDiagnosis.actions.map((action, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
+                      <span className="material-symbols-outlined text-green-500 text-base mt-0.5">check_circle</span>
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 병원 방문 권장 */}
+            {lastDiagnosis.hospitalVisit && (
+              <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                <h3 className="flex items-center gap-2 text-orange-800 font-bold mb-2">
+                  <span className="material-symbols-outlined">local_hospital</span>
+                  병원 방문 권장
+                </h3>
+                <p className="text-orange-700 text-sm">
+                  <strong>{lastDiagnosis.hospitalVisitTime || '24시간 내'}</strong> 병원 방문을 권장합니다.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2470,9 +2520,13 @@ function App() {
 
           {/* 기록보기 탭 */}
           {currentTab === 'records' && petData && (
-            <RecordsView 
+            <RecordsView
               petData={petData}
               onBack={() => setCurrentTab('care')}
+              onViewDiagnosis={(diagnosis) => {
+                setLastDiagnosis(diagnosis);
+                setCurrentView('diagnosis-view');
+              }}
             />
           )}
 
@@ -2496,17 +2550,74 @@ function App() {
             />
           )}
 
-          {/* 반려동물이 없을 때 */}
-          {!petData && currentTab && (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-              <div className="text-center">
-                <div className="text-6xl mb-4">🐾</div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">반려동물을 등록해주세요</h2>
+          {/* 반려동물이 없을 때 - care 탭에서만 등록 유도 */}
+          {!petData && currentTab === 'care' && (
+            <div className="page-container">
+              <div className="px-4 pt-8 pb-24">
+                <div className="text-center mb-8">
+                  <div className="text-6xl mb-4">🐾</div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">환영합니다!</h2>
+                  <p className="text-slate-600">반려동물을 등록하고 AI 건강 관리를 시작하세요</p>
+                </div>
+
+                {/* 기능 소개 카드들 */}
+                <div className="space-y-4 mb-8">
+                  <div className="bg-surface-light p-4 rounded-lg shadow-soft border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-primary">smart_toy</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900">AI 증상 진단</h3>
+                        <p className="text-sm text-slate-600">증상을 입력하면 AI가 분석해드려요</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-surface-light p-4 rounded-lg shadow-soft border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-accent">local_hospital</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900">병원 예약</h3>
+                        <p className="text-sm text-slate-600">주변 동물병원 검색 및 예약</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-surface-light p-4 rounded-lg shadow-soft border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-secondary">monitor_heart</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900">건강 기록</h3>
+                        <p className="text-sm text-slate-600">일일 케어 및 건강 상태 추적</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   onClick={() => setCurrentView('registration')}
-                  className="mt-4 bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors"
+                  className="w-full bg-primary text-white px-6 py-4 rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
                 >
                   반려동물 등록하기
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 반려동물 없이 다른 탭 접근 시 */}
+          {!petData && currentTab && currentTab !== 'care' && (
+            <div className="page-container flex items-center justify-center">
+              <div className="text-center p-4">
+                <div className="text-5xl mb-4">🐾</div>
+                <h2 className="text-lg font-bold text-slate-900 mb-2">반려동물을 먼저 등록해주세요</h2>
+                <button
+                  onClick={() => setCurrentView('registration')}
+                  className="mt-4 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                >
+                  등록하러 가기
                 </button>
               </div>
             </div>
@@ -2514,10 +2625,10 @@ function App() {
         </div>
       )}
 
-      {/* 하단 탭 네비게이션 */}
-      {currentTab && petData && !currentView && (
-        <BottomTabNavigation 
-          currentTab={currentTab} 
+      {/* 하단 탭 네비게이션 - 반려동물 없어도 표시 */}
+      {currentTab && !currentView && (
+        <BottomTabNavigation
+          currentTab={currentTab}
           onTabChange={handleTabChange}
         />
       )}

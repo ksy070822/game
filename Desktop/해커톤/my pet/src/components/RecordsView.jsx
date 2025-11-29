@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
 
-export function RecordsView({ petData, onBack }) {
+export function RecordsView({ petData, onBack, onViewDiagnosis }) {
   const [activeTab, setActiveTab] = useState('visits'); // visits, medication, checkup, vaccination
   const [diagnoses, setDiagnoses] = useState([]);
 
@@ -104,7 +104,11 @@ export function RecordsView({ petData, onBack }) {
               </div>
             ) : (
               visitRecords.map(record => (
-                <div key={record.id} className="bg-surface-light rounded-lg p-4 shadow-soft">
+                <div
+                  key={record.id}
+                  onClick={() => onViewDiagnosis && onViewDiagnosis(record)}
+                  className="bg-surface-light rounded-lg p-4 shadow-soft cursor-pointer hover:border-primary/50 border border-transparent transition-all"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="text-slate-500 text-sm mb-1">{formatDateShort(record.date || record.created_at)}</p>
@@ -128,6 +132,10 @@ export function RecordsView({ petData, onBack }) {
                       <strong>진단:</strong> {record.diagnosis}
                     </p>
                   )}
+                  <div className="flex items-center justify-end mt-3 text-primary text-sm font-medium">
+                    <span>상세보기</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward_ios</span>
+                  </div>
                 </div>
               ))
             )}
