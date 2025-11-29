@@ -47,7 +47,7 @@ const saveBookingsToStorage = (bookings) => {
   }
 };
 
-export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClinicMode }) {
+export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClinicMode, onHome }) {
   const [activeTab, setActiveTab] = useState('pets'); // 'pets', 'records', or 'bookings'
   const [pets, setPets] = useState([]);
   const [diagnoses, setDiagnoses] = useState([]);
@@ -174,7 +174,16 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
           </button>
         </div>
         <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">마이페이지</h2>
-        <div className="flex shrink-0 items-center justify-end">
+        <div className="flex shrink-0 items-center justify-end gap-1">
+          {onHome && (
+            <button
+              onClick={onHome}
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-full"
+              title="홈으로"
+            >
+              <span className="material-symbols-outlined text-2xl">home</span>
+            </button>
+          )}
           {onClinicMode && (
             <button
               onClick={onClinicMode}

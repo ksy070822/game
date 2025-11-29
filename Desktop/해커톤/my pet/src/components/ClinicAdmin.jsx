@@ -12,7 +12,7 @@ const CLINIC_RESULTS_KEY = 'petMedical_clinicResults';
  * - 진료 결과 입력
  * - 환자 기록 타임라인
  */
-export function ClinicAdmin({ onBack, onLogout }) {
+export function ClinicAdmin({ onBack, onLogout, onModeSwitch, onHome }) {
   const [activeTab, setActiveTab] = useState('today'); // today, packets, patients, settings
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -93,13 +93,33 @@ export function ClinicAdmin({ onBack, onLogout }) {
             <h1 className="text-lg font-bold">🏥 {clinicInfo.name}</h1>
             <p className="text-xs text-emerald-100">병원 관리자 모드</p>
           </div>
-          <button
-            onClick={onLogout}
-            className="p-2 hover:bg-white/20 rounded-full transition"
-            title="로그아웃"
-          >
-            <span className="material-symbols-outlined">logout</span>
-          </button>
+          <div className="flex items-center gap-1">
+            {onHome && (
+              <button
+                onClick={onHome}
+                className="p-2 hover:bg-white/20 rounded-full transition"
+                title="홈으로"
+              >
+                <span className="material-symbols-outlined">home</span>
+              </button>
+            )}
+            {onModeSwitch && (
+              <button
+                onClick={onModeSwitch}
+                className="p-2 hover:bg-white/20 rounded-full transition"
+                title="보호자 모드로 전환"
+              >
+                <span className="material-symbols-outlined">swap_horiz</span>
+              </button>
+            )}
+            <button
+              onClick={onLogout}
+              className="p-2 hover:bg-white/20 rounded-full transition"
+              title="로그아웃"
+            >
+              <span className="material-symbols-outlined">logout</span>
+            </button>
+          </div>
         </div>
 
         {/* 요약 카드 */}
@@ -632,64 +652,170 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
 
           {/* AI 사전 진단 정보 */}
           {diagnosis && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <h3 className="font-semibold text-amber-800 flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-amber-500">auto_awesome</span>
-                AI 사전 진단 정보
-              </h3>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+              <div className="p-4">
+                <h3 className="font-semibold text-amber-800 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-amber-500">auto_awesome</span>
+                  AI 사전 진단 정보
+                </h3>
 
-              {/* 증상 */}
-              {diagnosis.symptoms && diagnosis.symptoms.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs font-medium text-amber-700 mb-1">보고된 증상</p>
-                  <div className="flex flex-wrap gap-1">
-                    {diagnosis.symptoms.map((s, i) => (
-                      <span key={i} className="px-2 py-1 bg-amber-100 text-amber-800 text-sm rounded-lg">
-                        {s}
-                      </span>
-                    ))}
+                {/* 증상 이미지 */}
+                {diagnosis.image && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">증상 이미지</p>
+                    <img
+                      src={diagnosis.image}
+                      alt="증상 이미지"
+                      className="w-full max-h-48 object-cover rounded-lg border border-amber-200"
+                    />
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* 예비 진단 */}
-              {diagnosis.diagnosis && (
-                <div className="mb-3">
-                  <p className="text-xs font-medium text-amber-700 mb-1">AI 예비 진단</p>
-                  <p className="text-amber-800 font-medium">
-                    {typeof diagnosis.diagnosis === 'string'
-                      ? diagnosis.diagnosis
-                      : diagnosis.diagnosis.primary || JSON.stringify(diagnosis.diagnosis)}
-                  </p>
-                </div>
-              )}
-
-              {/* 긴급도 */}
-              {diagnosis.triageScore && (
-                <div className="mb-3">
-                  <p className="text-xs font-medium text-amber-700 mb-1">긴급도 점수</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-amber-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          diagnosis.triageScore >= 70 ? 'bg-red-500' :
-                          diagnosis.triageScore >= 40 ? 'bg-amber-500' : 'bg-green-500'
-                        }`}
-                        style={{ width: `${diagnosis.triageScore}%` }}
-                      />
+                {/* 증상 */}
+                {diagnosis.symptoms && diagnosis.symptoms.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">보고된 증상</p>
+                    <div className="flex flex-wrap gap-1">
+                      {diagnosis.symptoms.map((s, i) => (
+                        <span key={i} className="px-2 py-1 bg-amber-100 text-amber-800 text-sm rounded-lg">
+                          {s}
+                        </span>
+                      ))}
                     </div>
-                    <span className="text-sm font-bold text-amber-800">{diagnosis.triageScore}점</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* 권장사항 */}
-              {diagnosis.recommendations && (
-                <div>
-                  <p className="text-xs font-medium text-amber-700 mb-1">AI 권장사항</p>
-                  <p className="text-sm text-amber-700">{diagnosis.recommendations}</p>
-                </div>
-              )}
+                {/* 증상 설명 */}
+                {diagnosis.symptom && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">증상 상세 설명</p>
+                    <p className="text-sm text-amber-800 bg-white p-2 rounded-lg border border-amber-200">
+                      {diagnosis.symptom}
+                    </p>
+                  </div>
+                )}
+
+                {/* 증상 시작일 */}
+                {diagnosis.onsetDate && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">증상 시작일</p>
+                    <p className="text-sm text-amber-800">{diagnosis.onsetDate}</p>
+                  </div>
+                )}
+
+                {/* 예비 진단 */}
+                {diagnosis.diagnosis && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">AI 예비 진단</p>
+                    <p className="text-amber-800 font-medium">
+                      {typeof diagnosis.diagnosis === 'string'
+                        ? diagnosis.diagnosis
+                        : diagnosis.diagnosis.primary || JSON.stringify(diagnosis.diagnosis)}
+                    </p>
+                  </div>
+                )}
+
+                {/* 가능성 있는 질환 */}
+                {diagnosis.suspectedConditions && diagnosis.suspectedConditions.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">의심 질환</p>
+                    <div className="space-y-2">
+                      {diagnosis.suspectedConditions.map((condition, i) => (
+                        <div key={i} className="bg-white p-2 rounded-lg border border-amber-200">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-amber-800">{condition.name}</span>
+                            <span className={`text-sm font-bold ${
+                              condition.probability >= 70 ? 'text-red-600' :
+                              condition.probability >= 40 ? 'text-amber-600' : 'text-green-600'
+                            }`}>
+                              {condition.probability}%
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-amber-100 rounded-full mt-1 overflow-hidden">
+                            <div
+                              className={`h-full ${
+                                condition.probability >= 70 ? 'bg-red-500' :
+                                condition.probability >= 40 ? 'bg-amber-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${condition.probability}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 긴급도 */}
+                {(diagnosis.triageScore || diagnosis.riskLevel) && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">긴급도</p>
+                    <div className="flex items-center gap-2">
+                      {diagnosis.triageScore && (
+                        <>
+                          <div className="flex-1 h-2 bg-amber-200 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${
+                                diagnosis.triageScore >= 70 ? 'bg-red-500' :
+                                diagnosis.triageScore >= 40 ? 'bg-amber-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${diagnosis.triageScore}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-bold text-amber-800">{diagnosis.triageScore}점</span>
+                        </>
+                      )}
+                      {diagnosis.riskLevel && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          diagnosis.riskLevel === 'high' || diagnosis.riskLevel === '긴급' ? 'bg-red-100 text-red-700' :
+                          diagnosis.riskLevel === 'medium' || diagnosis.riskLevel === '주의' ? 'bg-amber-100 text-amber-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {diagnosis.riskLevel === 'high' ? '긴급' :
+                           diagnosis.riskLevel === 'medium' ? '주의' :
+                           diagnosis.riskLevel === 'low' ? '양호' : diagnosis.riskLevel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 권장사항 */}
+                {diagnosis.recommendations && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">AI 권장사항</p>
+                    <p className="text-sm text-amber-700">{diagnosis.recommendations}</p>
+                  </div>
+                )}
+
+                {/* 치료 제안 */}
+                {diagnosis.suggestedTreatments && diagnosis.suggestedTreatments.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">치료 제안</p>
+                    <ul className="text-sm text-amber-700 list-disc list-inside space-y-1">
+                      {diagnosis.suggestedTreatments.map((t, i) => (
+                        <li key={i}>{t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 병원 방문 권고 시간 */}
+                {diagnosis.hospitalVisitTime && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-xs font-medium text-red-700 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">warning</span>
+                      병원 방문 권고
+                    </p>
+                    <p className="text-sm font-bold text-red-800">{diagnosis.hospitalVisitTime} 내 방문 권장</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 진단 일시 */}
+              <div className="px-4 py-2 bg-amber-100/50 border-t border-amber-200 text-xs text-amber-600">
+                진단일: {diagnosis.created_at ? new Date(diagnosis.created_at).toLocaleString('ko-KR') : diagnosis.date || '정보 없음'}
+              </div>
             </div>
           )}
 

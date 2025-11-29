@@ -51,6 +51,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
     email: '',
     password: ''
   });
+  const [userMode, setUserMode] = useState('guardian'); // 'guardian' or 'clinic'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -66,8 +67,9 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       );
 
       if (user) {
-        setAuthSession(user);
-        onLogin(user);
+        const sessionData = { ...user, userMode };
+        setAuthSession(sessionData);
+        onLogin(sessionData);
       } else {
         setError('이메일 또는 비밀번호가 올바르지 않습니다.');
       }
@@ -89,6 +91,39 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       {/* 로그인 폼 */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6">
         <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">로그인</h2>
+
+        {/* 모드 선택 */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-slate-700 mb-2 text-center">이용 모드 선택</label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setUserMode('guardian')}
+              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
+                userMode === 'guardian'
+                  ? 'border-sky-500 bg-sky-50 text-sky-700'
+                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
+              }`}
+            >
+              <span className="text-2xl">🐾</span>
+              <span className="font-semibold text-sm">보호자</span>
+              <span className="text-xs opacity-70">반려동물 관리</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserMode('clinic')}
+              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
+                userMode === 'clinic'
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
+              }`}
+            >
+              <span className="text-2xl">🏥</span>
+              <span className="font-semibold text-sm">병원</span>
+              <span className="text-xs opacity-70">환자 예약 관리</span>
+            </button>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

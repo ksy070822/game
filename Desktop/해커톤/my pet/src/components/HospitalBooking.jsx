@@ -11,7 +11,7 @@ const calculateAge = (birthDate) => {
   return `${age}세`;
 };
 
-export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital }) {
+export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome }) {
   const [hospitalPacket, setHospitalPacket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedHospital, setSelectedHospital] = useState(null);
@@ -357,7 +357,13 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
           </button>
         </div>
         <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">병원 찾기</h2>
-        <div className="flex size-12 shrink-0 items-center justify-end"></div>
+        <div className="flex size-12 shrink-0 items-center justify-end">
+          {onHome && (
+            <button onClick={onHome} className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
+              <span className="material-symbols-outlined text-2xl">home</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="px-4 pt-2 pb-40 space-y-6">

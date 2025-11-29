@@ -95,7 +95,7 @@ body {
 }
 
 .header-gradient {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   color: white;
   padding: 40px;
   text-align: center;
@@ -133,8 +133,8 @@ body {
   border-radius: 50%;
   overflow: hidden;
   position: relative;
-  border: 4px solid #14b8a6;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  border: 4px solid #38bdf8;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
 }
 
 .profile-preview img {
@@ -147,7 +147,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
 }
 
 .character-emoji {
@@ -179,7 +179,7 @@ body {
 }
 
 .upload-btn {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   color: white;
   padding: 10px 20px;
   border-radius: 12px;
@@ -191,7 +191,7 @@ body {
 
 .upload-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
 }
 
 .or-text {
@@ -219,13 +219,13 @@ body {
 }
 
 .character-btn:hover {
-  border-color: #14b8a6;
+  border-color: #38bdf8;
   transform: scale(1.05);
 }
 
 .character-btn.active {
-  border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 .char-emoji {
@@ -263,9 +263,9 @@ body {
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #14b8a6;
+  border-color: #38bdf8;
   ring: 2px;
-  ring-color: rgba(20, 184, 166, 0.2);
+  ring-color: rgba(56, 189, 248, 0.2);
 }
 
 .radio-group {
@@ -284,8 +284,8 @@ body {
 }
 
 .radio-item.active {
-  border-color: #14b8a6;
-  background: #f0fdfa;
+  border-color: #38bdf8;
+  background: #f0f9ff;
 }
 
 .radio-item input {
@@ -301,7 +301,7 @@ body {
 .submit-btn {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -3334,12 +3334,12 @@ body {
 }
 
 .btn-primary-lg {
-  background-color: #14b8a6;
+  background-color: #0ea5e9;
   color: #ffffff;
-  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
 }
 .btn-primary-lg:hover {
-  background-color: rgba(20, 184, 166, 0.9);
+  background-color: rgba(14, 165, 233, 0.9);
 }
 
 .btn-secondary-lg {
@@ -3496,19 +3496,19 @@ body {
 .bg-slate-50\/50 { background-color: rgba(248, 250, 252, 0.5); }
 .bg-slate-100 { background-color: #f1f5f9; }
 .bg-slate-200 { background-color: #e2e8f0; }
-.bg-teal-50 { background-color: #f0fdfa; }
-.bg-teal-100 { background-color: #ccfbf1; }
-.bg-teal-600 { background-color: #0d9488; }
+.bg-teal-50 { background-color: #f0f9ff; }
+.bg-teal-100 { background-color: #e0f2fe; }
+.bg-teal-600 { background-color: #0284c7; }
 .bg-red-50 { background-color: #fef2f2; }
 .bg-red-100 { background-color: #fee2e2; }
 .bg-green-50 { background-color: #f0fdf4; }
 .bg-green-100 { background-color: #dcfce7; }
 .bg-yellow-50 { background-color: #fefce8; }
 .bg-orange-100 { background-color: #ffedd5; }
-.bg-primary { background-color: #14b8a6; }
-.bg-primary\/10 { background-color: rgba(20, 184, 166, 0.1); }
-.bg-primary\/20 { background-color: rgba(20, 184, 166, 0.2); }
-.bg-accent\/20 { background-color: rgba(15, 118, 110, 0.2); }
+.bg-primary { background-color: #0ea5e9; }
+.bg-primary\/10 { background-color: rgba(14, 165, 233, 0.1); }
+.bg-primary\/20 { background-color: rgba(14, 165, 233, 0.2); }
+.bg-accent\/20 { background-color: rgba(14, 165, 233, 0.2); }
 
 /* 색상 토큰 - 텍스트 */
 .text-white { color: #ffffff; }
@@ -3533,9 +3533,9 @@ body {
 .text-yellow-600 { color: #ca8a04; }
 .text-yellow-700 { color: #a16207; }
 .text-orange-600 { color: #ea580c; }
-.text-teal-600 { color: #0d9488; }
-.text-primary { color: #14b8a6; }
-.text-accent { color: #0f766e; }
+.text-teal-600 { color: #0284c7; }
+.text-primary { color: #0ea5e9; }
+.text-accent { color: #0284c7; }
 .text-secondary { color: #6366f1; }
 
 /* 테두리 */
@@ -3547,9 +3547,9 @@ body {
 .border-gray-200 { border-color: #e5e7eb; }
 .border-slate-200 { border-color: #e2e8f0; }
 .border-slate-300 { border-color: #cbd5e1; }
-.border-primary\/20 { border-color: rgba(20, 184, 166, 0.2); }
-.border-primary\/50 { border-color: rgba(20, 184, 166, 0.5); }
-.border-accent\/30 { border-color: rgba(15, 118, 110, 0.3); }
+.border-primary\/20 { border-color: rgba(14, 165, 233, 0.2); }
+.border-primary\/50 { border-color: rgba(14, 165, 233, 0.5); }
+.border-accent\/30 { border-color: rgba(14, 165, 233, 0.3); }
 
 /* 텍스트 스타일 */
 .text-center { text-align: center; }
@@ -3611,7 +3611,7 @@ body {
   border: none;
   font-weight: 700;
   font-size: 0.9rem;
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
   color: #ffffff;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
