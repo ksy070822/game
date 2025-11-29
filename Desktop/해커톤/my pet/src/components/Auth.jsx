@@ -1,48 +1,21 @@
 // src/components/Auth.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { authService } from '../services/firebaseAuth';
 
-const AUTH_KEY = 'petMedical_auth';
-const USERS_KEY = 'petMedical_users';
-
-// 로컬 스토리지에서 유저 목록 가져오기
-const getUsersFromStorage = () => {
-  try {
-    const data = localStorage.getItem(USERS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-// 유저 저장
-const saveUserToStorage = (user) => {
-  try {
-    const users = getUsersFromStorage();
-    users.push(user);
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  } catch (error) {
-    console.error('Failed to save user:', error);
-  }
-};
-
-// 현재 로그인 상태 저장
-const setAuthSession = (user) => {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-};
-
-// 현재 로그인 상태 가져오기
-export const getAuthSession = () => {
-  try {
-    const data = localStorage.getItem(AUTH_KEY);
-    return data ? JSON.parse(data) : null;
-  } catch {
-    return null;
-  }
-};
+// Firebase 인증 상태 변경 리스너 export
+export const onAuthStateChange = authService.onAuthStateChange;
 
 // 로그아웃
-export const clearAuthSession = () => {
-  localStorage.removeItem(AUTH_KEY);
+export const clearAuthSession = authService.logout;
+
+// 현재 세션 (호환성 유지 - 실제로는 Firebase auth 사용)
+export const getAuthSession = () => {
+  const user = authService.getCurrentUser();
+  return user ? {
+    uid: user.uid,
+    email: user.email,
+    displayName: user.displayName
+  } : null;
 };
 
 // 로그인 화면
@@ -55,26 +28,36 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const users = getUsersFromStorage();
-      const user = users.find(
-        u => u.email === formData.email && u.password === formData.password
-      );
+    const result = await authService.login(formData.email, formData.password);
 
-      if (user) {
-        const sessionData = { ...user, userMode };
-        setAuthSession(sessionData);
-        onLogin(sessionData);
-      } else {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
-      }
-      setLoading(false);
-    }, 500);
+    if (result.success) {
+      // 사용자 모드 업데이트
+      await authService.updateUserMode(result.user.uid, userMode);
+      onLogin({ ...result.user, userMode });
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  // 구글 로그인
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    const result = await authService.loginWithGoogle(userMode);
+
+    if (result.success) {
+      onLogin({ ...result.user, userMode });
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
   };
 
   return (
@@ -183,7 +166,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           </button>
         </div>
 
-        {/* 소셜 로그인 (UI만) */}
+        {/* 소셜 로그인 */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -194,16 +177,37 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <button className="flex items-center justify-center py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+          <div className="mt-4 space-y-3">
+            {/* 구글 로그인 버튼 */}
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+            >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              <span className="font-medium text-slate-700">Google로 계속하기</span>
             </button>
-            <button className="flex items-center justify-center py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-[#FEE500]">
-              <span className="text-lg">💬</span>
-            </button>
-            <button className="flex items-center justify-center py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-[#03C75A]">
-              <span className="text-white font-bold text-sm">N</span>
-            </button>
+
+            {/* 카카오/네이버는 추후 구현 */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg bg-[#FEE500] hover:opacity-90 transition-opacity opacity-50 cursor-not-allowed"
+                disabled
+                title="준비 중"
+              >
+                <span className="text-lg">💬</span>
+                <span className="text-sm font-medium text-slate-800">카카오</span>
+              </button>
+              <button
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg bg-[#03C75A] hover:opacity-90 transition-opacity opacity-50 cursor-not-allowed"
+                disabled
+                title="준비 중"
+              >
+                <span className="text-white font-bold text-sm">N</span>
+                <span className="text-sm font-medium text-white">네이버</span>
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 text-center">카카오/네이버 로그인은 준비 중입니다</p>
           </div>
         </div>
 
@@ -240,6 +244,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState(null);
 
   const validateStep1 = () => {
     if (!formData.name || formData.name.length < 2) {
@@ -258,14 +263,6 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
       setError('비밀번호가 일치하지 않습니다.');
       return false;
     }
-
-    // 이메일 중복 체크
-    const users = getUsersFromStorage();
-    if (users.some(u => u.email === formData.email)) {
-      setError('이미 사용 중인 이메일입니다.');
-      return false;
-    }
-
     return true;
   };
 
@@ -276,29 +273,29 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.agreeTerms || !formData.agreePrivacy) {
       setError('필수 약관에 동의해주세요.');
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const newUser = {
-        id: 'user_' + Date.now(),
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        agreeMarketing: formData.agreeMarketing,
-        createdAt: new Date().toISOString()
-      };
+    setError('');
 
-      saveUserToStorage(newUser);
-      setAuthSession(newUser);
+    // Firebase로 회원가입
+    const result = await authService.register(
+      formData.email,
+      formData.password,
+      formData.name
+    );
+
+    if (result.success) {
+      setRegisteredUser(result.user);
       setStep(3);
-      setLoading(false);
-    }, 500);
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
   };
 
   return (
@@ -493,9 +490,16 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? '처리 중...' : '가입하기'}
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    처리 중...
+                  </>
+                ) : (
+                  '가입하기'
+                )}
               </button>
             </div>
           </div>
@@ -512,7 +516,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
               이제 반려동물을 등록하고 서비스를 이용해보세요.
             </p>
             <button
-              onClick={() => onRegister(getAuthSession())}
+              onClick={() => onRegister(registeredUser)}
               className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors"
             >
               시작하기
