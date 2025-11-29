@@ -182,7 +182,7 @@ const DUMMY_VACCINATIONS = [
   }
 ];
 
-export function RecordsView({ petData, onBack, onViewDiagnosis }) {
+export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR }) {
   const [activeTab, setActiveTab] = useState('visits'); // visits, medication, checkup, vaccination
   const [diagnoses, setDiagnoses] = useState([]);
   const [useDummyData, setUseDummyData] = useState(true); // 더미데이터 사용 플래그
@@ -284,7 +284,16 @@ export function RecordsView({ petData, onBack, onViewDiagnosis }) {
           </button>
         </div>
         <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">의료기록</h2>
-        <div className="flex size-12 shrink-0 items-center justify-end">
+        <div className="flex shrink-0 items-center justify-end gap-1">
+          {onOCR && (
+            <button
+              onClick={onOCR}
+              className="p-2 text-sky-600 hover:bg-sky-50 rounded-full"
+              title="문서 스캔"
+            >
+              <span className="material-symbols-outlined text-2xl">document_scanner</span>
+            </button>
+          )}
           <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
             <span className="material-symbols-outlined text-2xl">refresh</span>
           </button>

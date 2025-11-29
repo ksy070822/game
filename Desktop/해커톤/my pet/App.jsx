@@ -24,6 +24,8 @@ import { loadDailyLog, saveDailyLog, getTodayKey } from './src/lib/careLogs'
 import DiagnosisReport from './src/components/DiagnosisReport'
 import { initializeDummyData, DUMMY_PETS, DUMMY_MEDICAL_RECORDS } from './src/lib/dummyData'
 import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from './src/components/Auth'
+import { OCRUpload } from './src/components/OCRUpload'
+import { ClinicAdmin } from './src/components/ClinicAdmin'
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -732,7 +734,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         
         {/* 디지털 트윈 아바타 - 귀여운 캐릭터 */}
         <AnimatedContainer animation="scale-up" delay={0.1}>
-          <div className="bg-gradient-to-br from-violet-50 via-sky-50 to-teal-50 rounded-2xl p-6 shadow-lg mb-4 border border-white/50 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-sky-50 via-sky-100/50 to-blue-50 rounded-2xl p-6 shadow-lg mb-4 border border-sky-100 relative overflow-hidden">
             {/* 배경 장식 */}
             <div className="absolute top-2 right-2 text-2xl opacity-30 animate-bounce">✨</div>
             <div className="absolute bottom-2 left-2 text-xl opacity-20">🐾</div>
@@ -795,14 +797,14 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         {/* 빠른 액션 버튼들 (작게) */}
         <div className="flex gap-3 mb-6">
           <button
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-800 text-white font-bold text-sm shadow-md hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-500 text-white font-bold text-sm shadow-md hover:bg-sky-600 transition-all hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => onNavigate('symptom-input')}
           >
             <span className="text-lg">🩺</span>
             <span>AI 진단</span>
           </button>
           <button
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-600 text-white font-bold text-sm shadow-md hover:bg-sky-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white border-2 border-sky-400 text-sky-600 font-bold text-sm shadow-md hover:bg-sky-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => onNavigate('hospital')}
           >
             <span className="text-lg">🏥</span>
@@ -823,7 +825,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           <div className="grid grid-cols-5 gap-2 mb-4">
             <div className="flex flex-col items-center">
               <button
-                className="w-12 h-12 rounded-xl bg-orange-50 hover:bg-orange-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
                 onClick={() => {
                   setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
                   setHealthPoints(prev => {
@@ -839,11 +841,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 }}
               >🍚</button>
               <span className="text-xs text-slate-600 mt-1">밥</span>
-              <span className="text-sm font-bold text-orange-500">{careActions.meal}회</span>
+              <span className="text-sm font-bold text-sky-600">{careActions.meal}회</span>
             </div>
             <div className="flex flex-col items-center">
               <button
-                className="w-12 h-12 rounded-xl bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
                 onClick={() => {
                   setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
                   setHealthPoints(prev => {
@@ -859,11 +861,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 }}
               >💧</button>
               <span className="text-xs text-slate-600 mt-1">물</span>
-              <span className="text-sm font-bold text-blue-500">{careActions.water}회</span>
+              <span className="text-sm font-bold text-sky-600">{careActions.water}회</span>
             </div>
             <div className="flex flex-col items-center">
               <button
-                className="w-12 h-12 rounded-xl bg-green-50 hover:bg-green-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
                 onClick={() => {
                   setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
                   setHealthPoints(prev => {
@@ -879,11 +881,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 }}
               >🚶</button>
               <span className="text-xs text-slate-600 mt-1">산책</span>
-              <span className="text-sm font-bold text-green-500">{careActions.walk}회</span>
+              <span className="text-sm font-bold text-sky-600">{careActions.walk}회</span>
             </div>
             <div className="flex flex-col items-center">
               <button
-                className="w-12 h-12 rounded-xl bg-purple-50 hover:bg-purple-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
                 onClick={() => {
                   setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
                   setHealthPoints(prev => {
@@ -894,11 +896,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 }}
               >✨</button>
               <span className="text-xs text-slate-600 mt-1">손질</span>
-              <span className="text-sm font-bold text-purple-500">{careActions.grooming}회</span>
+              <span className="text-sm font-bold text-sky-600">{careActions.grooming}회</span>
             </div>
             <div className="flex flex-col items-center">
               <button
-                className="w-12 h-12 rounded-xl bg-pink-50 hover:bg-pink-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
                 onClick={() => {
                   setCareActions(prev => ({ ...prev, play: prev.play + 1 }));
                   setHealthPoints(prev => {
@@ -909,25 +911,20 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 }}
               >🎾</button>
               <span className="text-xs text-slate-600 mt-1">놀이</span>
-              <span className="text-sm font-bold text-pink-500">{careActions.play}회</span>
+              <span className="text-sm font-bold text-sky-600">{careActions.play}회</span>
             </div>
           </div>
 
           {/* 건강 포인트 바 */}
-          <div className="bg-slate-50 rounded-xl p-3">
+          <div className="bg-sky-50 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-slate-600">💚 건강 포인트</span>
-              <span className="text-sm font-bold" style={{ color: healthPoints >= 70 ? '#22c55e' : healthPoints >= 40 ? '#f59e0b' : '#ef4444' }}>{healthPoints}%</span>
+              <span className="text-xs font-medium text-slate-600">💙 건강 포인트</span>
+              <span className="text-sm font-bold text-sky-600">{healthPoints}%</span>
             </div>
-            <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-sky-100 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${healthPoints}%`,
-                  background: healthPoints >= 70 ? 'linear-gradient(90deg, #4ade80, #22c55e)' :
-                             healthPoints >= 40 ? 'linear-gradient(90deg, #fbbf24, #f59e0b)' :
-                             'linear-gradient(90deg, #f87171, #ef4444)'
-                }}
+                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-sky-400 to-sky-500"
+                style={{ width: `${healthPoints}%` }}
               />
             </div>
           </div>
@@ -940,7 +937,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
         {/* AI 패턴 분석 버튼 */}
         <button
-          className="w-full py-4 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-500 text-white font-bold shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+          className="w-full py-4 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
           onClick={handleAnalyzePattern}
           disabled={analyzing}
         >
@@ -2541,6 +2538,7 @@ function App() {
             }
             setCurrentView('diagnosis-view');
           }}
+          onClinicMode={() => setCurrentView('clinic-admin')}
         />
       )}
 
@@ -2680,6 +2678,32 @@ function App() {
         </div>
       )}
 
+      {/* OCR 문서 스캔 화면 */}
+      {currentView === 'ocr' && (
+        <OCRUpload
+          petData={petData}
+          onBack={() => setCurrentView(null)}
+          onSaveRecord={(record) => {
+            console.log('의료 기록 저장됨:', record);
+            // 필요시 상태 업데이트
+          }}
+        />
+      )}
+
+      {/* 병원 어드민 화면 */}
+      {currentView === 'clinic-admin' && (
+        <ClinicAdmin
+          onBack={() => {
+            setCurrentView(null);
+            setCurrentTab('care');
+          }}
+          onLogout={() => {
+            setCurrentView(null);
+            setCurrentTab('care');
+          }}
+        />
+      )}
+
       {/* 탭 기반 메인 화면 - currentView가 없을 때만 표시 */}
       {!currentView && currentTab && (
         <div className="main-content" style={{ paddingBottom: '80px' }}>
@@ -2739,6 +2763,7 @@ function App() {
                 setLastDiagnosis(diagnosis);
                 setCurrentView('diagnosis-view');
               }}
+              onOCR={() => setCurrentView('ocr')}
             />
           )}
 
@@ -2759,6 +2784,7 @@ function App() {
                 }
                 setCurrentView('diagnosis-view');
               }}
+              onClinicMode={() => setCurrentView('clinic-admin')}
             />
           )}
 
