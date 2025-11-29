@@ -4,6 +4,8 @@ import { runMultiAgentDiagnosis } from './src/services/ai/agentOrchestrator'
 import { MyPage } from './src/components/MyPage'
 import { Avatar } from './src/components/Avatar'
 import { AvatarLayered } from './src/components/AvatarLayered'
+import { CuteCharacter } from './src/components/CuteCharacter'
+import { FloatingBackground, AnimatedCard, AnimatedButton, AnimatedContainer, StaggerList, CuteLoader, AnimatedProgress } from './src/components/AnimatedUI'
 import { DailyCareTracker, getDailyLogs } from './src/components/DailyCareTracker'
 import { DailyCareLog } from './src/components/DailyCareLog'
 import { analyzeHealthPattern } from './src/services/ai/patternAnalyzer'
@@ -573,18 +575,43 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           </div>
         </div>
         
-        {/* 디지털 트윈 아바타 */}
-        <div className="bg-surface-light rounded-lg p-4 shadow-soft mb-4">
-          <AvatarLayered 
-            pet={{
-              name: petData.petName,
-              species: petData.species,
-              breed: petData.breed
-            }}
-            size="lg"
-            healthFlags={mergedFlags}
-          />
-        </div>
+        {/* 디지털 트윈 아바타 - 귀여운 캐릭터 */}
+        <AnimatedContainer animation="scale-up" delay={0.1}>
+          <div className="bg-gradient-to-br from-violet-50 via-sky-50 to-teal-50 rounded-2xl p-6 shadow-lg mb-4 border border-white/50 relative overflow-hidden">
+            {/* 배경 장식 */}
+            <div className="absolute top-2 right-2 text-2xl opacity-30 animate-bounce">✨</div>
+            <div className="absolute bottom-2 left-2 text-xl opacity-20">🐾</div>
+
+            <div className="flex items-center gap-6">
+              {/* 귀여운 캐릭터 */}
+              <CuteCharacter
+                pet={{
+                  name: petData.petName,
+                  species: petData.species,
+                  breed: petData.breed
+                }}
+                size="lg"
+                healthFlags={mergedFlags}
+                interactive={true}
+                showEffects={true}
+              />
+
+              {/* 상태 정보 */}
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-800 mb-2 font-display">{petData.petName}</h3>
+                <p className="text-sm text-gray-500 mb-3">{petData.breed || '품종 미등록'}</p>
+
+                {/* 건강 게이지 */}
+                <AnimatedProgress
+                  value={mergedFlags.energyLevel * 100}
+                  max={100}
+                  label="에너지 레벨"
+                  showValue={true}
+                />
+              </div>
+            </div>
+          </div>
+        </AnimatedContainer>
         
         {/* Health Status Badges */}
         <div className="flex gap-3 px-4 pt-2 pb-2 overflow-x-auto mb-4">
@@ -1981,6 +2008,9 @@ function App() {
   
   return (
     <div className="App">
+      {/* 플로팅 배경 효과 */}
+      <FloatingBackground variant="default" />
+
       {currentView === 'registration' && (
         <ProfileRegistration 
           onComplete={handleRegistrationComplete}
