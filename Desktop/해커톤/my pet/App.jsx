@@ -23,6 +23,7 @@ import { CareActionButton } from './src/components/CareActionButton'
 import { loadDailyLog, saveDailyLog, getTodayKey } from './src/lib/careLogs'
 import DiagnosisReport from './src/components/DiagnosisReport'
 import { initializeDummyData, DUMMY_PETS, DUMMY_MEDICAL_RECORDS } from './src/lib/dummyData'
+import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from './src/components/Auth'
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -2232,6 +2233,10 @@ const getEmergencyColor = (emergency) => {
 
 // ============ 메인 앱 ============
 function App() {
+  // 인증 상태
+  const [authScreen, setAuthScreen] = useState('login'); // 'login', 'register', null (로그인됨)
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [currentTab, setCurrentTab] = useState('care');
   const [currentView, setCurrentView] = useState(null); // 모달/서브 화면용
   const [petData, setPetData] = useState(null);
@@ -2242,6 +2247,13 @@ function App() {
   const [hospitalPacket, setHospitalPacket] = useState(null);
 
   useEffect(() => {
+    // 기존 로그인 세션 확인
+    const savedSession = getAuthSession();
+    if (savedSession) {
+      setCurrentUser(savedSession);
+      setAuthScreen(null);
+    }
+
     // 더미데이터 초기화 (처음 실행시에만)
     initializeDummyData();
 
@@ -2255,6 +2267,50 @@ function App() {
     // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
     setCurrentTab('care');
   }, []);
+
+  // 로그인 성공 핸들러
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    setAuthScreen(null);
+  };
+
+  // 회원가입 성공 핸들러
+  const handleRegister = (user) => {
+    setCurrentUser(user);
+    setAuthScreen(null);
+  };
+
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    clearAuthSession();
+    setCurrentUser(null);
+    setAuthScreen('login');
+  };
+
+  // 로그인 없이 바로 입장 (테스트용)
+  const handleSkipLogin = () => {
+    setAuthScreen(null);
+  };
+
+  // 인증 화면 렌더링
+  if (authScreen === 'login') {
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onGoToRegister={() => setAuthScreen('register')}
+        onSkipLogin={handleSkipLogin}
+      />
+    );
+  }
+
+  if (authScreen === 'register') {
+    return (
+      <RegisterScreen
+        onRegister={handleRegister}
+        onGoToLogin={() => setAuthScreen('login')}
+      />
+    );
+  }
 
   const handleRegistrationComplete = (data) => {
     const updatedPets = getPetsFromStorage();
