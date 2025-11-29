@@ -24,9 +24,9 @@ export function PacketSentSummary({ petData, hospital, onBack, onGetDirections }
   }
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="page-container">
       {/* Header */}
-      <div className="flex items-center bg-background-light/80 p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
+      <div className="page-header">
         <div className="flex size-12 shrink-0 items-center text-slate-800">
           <button onClick={onBack} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
             <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>

@@ -3072,10 +3072,137 @@ body {
   background-color: #ecfeff; /* 아주 옅은 teal 톤 */
 }
 
-/* 병원 예약 페이지 최상단 컨테이너 */
+/* ================================
+   공통 페이지 컨테이너 & 헤더
+   ================================ */
+
+/* 모든 서브 페이지 공통 컨테이너 */
+.page-container {
+  min-height: 100vh;
+  background-color: #ecfeff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 공통 페이지 헤더 */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.5rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: rgba(236, 254, 255, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* 페이지 헤더 내 뒤로가기 버튼 */
+.page-header .back-btn {
+  padding: 0.5rem;
+  margin-left: -0.5rem;
+  color: #475569;
+  border-radius: 9999px;
+  transition: background-color 0.15s;
+}
+.page-header .back-btn:hover {
+  background-color: #f1f5f9;
+}
+
+/* 페이지 헤더 타이틀 */
+.page-header .header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.015em;
+}
+
+/* 공통 페이지 콘텐츠 영역 */
+.page-content {
+  padding: 0.5rem 1rem 10rem 1rem;
+}
+
+/* 공통 카드 스타일 */
+.card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 공통 하단 고정 버튼 영역 */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* 기본 버튼 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.15s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary-lg {
+  background-color: #14b8a6;
+  color: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
+}
+.btn-primary-lg:hover {
+  background-color: rgba(20, 184, 166, 0.9);
+}
+
+.btn-secondary-lg {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+.btn-secondary-lg:hover {
+  background-color: #cbd5e1;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem;
+}
+.btn-ghost:hover {
+  color: #334155;
+}
+
+/* 레거시 호환 */
 .hospital-booking-page {
   min-height: 100vh;
-  background-color: #ecfeff; /* 앱 전체 배경과 맞춤 */
+  background-color: #ecfeff;
   display: flex;
   flex-direction: column;
 }
