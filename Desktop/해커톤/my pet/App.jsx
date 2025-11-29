@@ -22,6 +22,7 @@ import { callCareAgent } from './src/services/ai/careAgent'
 import { CareActionButton } from './src/components/CareActionButton'
 import { loadDailyLog, saveDailyLog, getTodayKey } from './src/lib/careLogs'
 import DiagnosisReport from './src/components/DiagnosisReport'
+import { initializeDummyData, DUMMY_PETS, DUMMY_MEDICAL_RECORDS } from './src/lib/dummyData'
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -86,6 +87,26 @@ const calculateAge = (birthDate) => {
   return `${age}세`;
 };
 
+// ============ 캐릭터 옵션 ============
+const PET_CHARACTERS = {
+  dog: [
+    { id: 'dog_white', emoji: '🐶', label: '흰색 강아지', color: '#F5F5F5' },
+    { id: 'dog_brown', emoji: '🐕', label: '갈색 강아지', color: '#8B4513' },
+    { id: 'dog_golden', emoji: '🦮', label: '골든 리트리버', color: '#DAA520' },
+    { id: 'dog_poodle', emoji: '🐩', label: '푸들', color: '#FFB6C1' },
+    { id: 'dog_shiba', emoji: '🐕‍🦺', label: '시바이누', color: '#D2691E' },
+    { id: 'dog_husky', emoji: '🐺', label: '허스키', color: '#708090' },
+  ],
+  cat: [
+    { id: 'cat_orange', emoji: '🐱', label: '치즈 고양이', color: '#FFA500' },
+    { id: 'cat_black', emoji: '🐈‍⬛', label: '검은 고양이', color: '#2C2C2C' },
+    { id: 'cat_white', emoji: '🐈', label: '흰 고양이', color: '#FFFAFA' },
+    { id: 'cat_gray', emoji: '😺', label: '회색 고양이', color: '#808080' },
+    { id: 'cat_calico', emoji: '😸', label: '삼색 고양이', color: '#FFE4B5' },
+    { id: 'cat_siamese', emoji: '😻', label: '샴 고양이', color: '#D2B48C' },
+  ]
+};
+
 // ============ 프로필 등록 화면 ============
 function ProfileRegistration({ onComplete }) {
   const [formData, setFormData] = useState({
@@ -96,11 +117,40 @@ function ProfileRegistration({ onComplete }) {
     sex: 'M',
     neutered: true,
     sido: '',
-    sigungu: ''
+    sigungu: '',
+    profileImage: null,
+    character: 'dog_white'
   });
-  
+
   const [loading, setLoading] = useState(false);
-  
+  const [previewImage, setPreviewImage] = useState(null);
+
+  // 이미지 업로드 핸들러
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // 파일 크기 체크 (5MB 이하)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('이미지 크기는 5MB 이하여야 합니다.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result;
+        setPreviewImage(base64);
+        setFormData(prev => ({ ...prev, profileImage: base64 }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 종류 변경시 캐릭터도 변경
+  const handleSpeciesChange = (species) => {
+    const defaultCharacter = species === 'dog' ? 'dog_white' : 'cat_orange';
+    setFormData(prev => ({ ...prev, species, character: defaultCharacter }));
+  };
+
   const regions = {
     '서울특별시': ['강남구', '강동구', '강북구', '강서구', '관악구'],
     '경기도': ['수원시', '성남시', '고양시', '용인시'],
@@ -139,6 +189,73 @@ function ProfileRegistration({ onComplete }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="registration-form">
+            {/* 프로필 사진/캐릭터 선택 */}
+            <div className="form-group">
+              <label>프로필 사진 또는 캐릭터 *</label>
+              <div className="profile-selector">
+                {/* 프로필 이미지 미리보기 */}
+                <div className="profile-preview-container">
+                  {previewImage ? (
+                    <div className="profile-preview">
+                      <img src={previewImage} alt="프로필 미리보기" />
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={() => {
+                          setPreviewImage(null);
+                          setFormData(prev => ({ ...prev, profileImage: null }));
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="profile-preview character"
+                      style={{ backgroundColor: PET_CHARACTERS[formData.species].find(c => c.id === formData.character)?.color + '40' }}
+                    >
+                      <span className="character-emoji">
+                        {PET_CHARACTERS[formData.species].find(c => c.id === formData.character)?.emoji}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 사진 업로드 버튼 */}
+                <div className="profile-options">
+                  <label className="upload-btn">
+                    📷 사진 업로드
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  <span className="or-text">또는</span>
+                </div>
+
+                {/* 캐릭터 선택 */}
+                <div className="character-grid">
+                  {PET_CHARACTERS[formData.species].map(char => (
+                    <button
+                      key={char.id}
+                      type="button"
+                      className={`character-btn ${formData.character === char.id && !previewImage ? 'active' : ''}`}
+                      onClick={() => {
+                        setPreviewImage(null);
+                        setFormData(prev => ({ ...prev, profileImage: null, character: char.id }));
+                      }}
+                      style={{ backgroundColor: char.color + '40' }}
+                    >
+                      <span className="char-emoji">{char.emoji}</span>
+                      <span className="char-label">{char.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <div className="form-group">
               <label>반려동물 이름 *</label>
               <input
@@ -149,7 +266,7 @@ function ProfileRegistration({ onComplete }) {
                 onChange={(e) => setFormData({...formData, petName: e.target.value})}
               />
             </div>
-            
+
             <div className="form-group">
               <label>종류 *</label>
               <div className="radio-group">
@@ -160,7 +277,7 @@ function ProfileRegistration({ onComplete }) {
                     name="species"
                     value="dog"
                     checked={formData.species === 'dog'}
-                    onChange={(e) => setFormData({...formData, species: e.target.value})}
+                    onChange={(e) => handleSpeciesChange(e.target.value)}
                   />
                   <label htmlFor="dog">🐕 개</label>
                 </div>
@@ -171,7 +288,7 @@ function ProfileRegistration({ onComplete }) {
                     name="species"
                     value="cat"
                     checked={formData.species === 'cat'}
-                    onChange={(e) => setFormData({...formData, species: e.target.value})}
+                    onChange={(e) => handleSpeciesChange(e.target.value)}
                   />
                   <label htmlFor="cat">🐈 고양이</label>
                 </div>
@@ -2125,6 +2242,9 @@ function App() {
   const [hospitalPacket, setHospitalPacket] = useState(null);
 
   useEffect(() => {
+    // 더미데이터 초기화 (처음 실행시에만)
+    initializeDummyData();
+
     const savedPets = getPetsFromStorage();
     setPets(savedPets);
 

@@ -4,150 +4,168 @@
   margin-top: 16px;
   background: #ffffff;
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .carelog-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 8px;
 }
 
 .carelog-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  color: #333;
+  color: #1e293b;
 }
 
 .carelog-date {
-  font-size: 12px;
-  color: #777;
+  font-size: 13px;
+  color: #64748b;
 }
 
-.carelog-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.carelog-row > span:first-child {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  min-width: 80px;
-}
-
-.carelog-counter {
-  display: flex;
-  align-items: center;
+/* 케어 아이콘 그리드 */
+.carelog-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
-.carelog-counter button {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: transform 0.2s;
+.carelog-icon-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  padding: 16px 8px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border: 2px solid #99f6e4;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.carelog-counter button:hover {
-  transform: scale(1.1);
+.carelog-icon-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  border-color: #14b8a6;
 }
 
-.carelog-counter button:active {
+.carelog-icon-btn:active {
   transform: scale(0.95);
 }
 
-.carelog-counter span {
-  min-width: 30px;
-  text-align: center;
+.carelog-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.carelog-count {
   font-size: 16px;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.carelog-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 입력 섹션 */
+.carelog-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carelog-input-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: #475569;
+}
+
+.carelog-input-icon {
+  font-size: 18px;
 }
 
 .carelog-input {
-  width: 120px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #f8fafc;
 }
 
 .carelog-input:focus {
   outline: none;
-  border-color: #38bdf8;
+  border-color: #14b8a6;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
 }
 
 .carelog-textarea {
-  flex: 1;
-  min-height: 60px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
   resize: vertical;
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
-  transition: border-color 0.2s;
+  line-height: 1.5;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #f8fafc;
 }
 
 .carelog-textarea:focus {
   outline: none;
-  border-color: #38bdf8;
+  border-color: #14b8a6;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
 }
 
-.carelog-save-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: center;
+.carelog-textarea::placeholder {
+  color: #94a3b8;
 }
 
-.carelog-save-btn {
+/* 케어 완료 버튼 */
+.carelog-complete-btn {
   width: 100%;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 16px 24px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.3);
 }
 
-.carelog-save-btn:hover {
+.carelog-complete-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
 }
 
-.carelog-save-btn:active {
+.carelog-complete-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
 }
 
-.carelog-save-btn.saved {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+.carelog-complete-btn.saved {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
-

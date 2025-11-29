@@ -2,6 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { generateHospitalPacket } from '../services/ai/hospitalPacket';
 import { getCurrentPosition, searchAnimalHospitals, initKakaoMap, addMarker, loadKakao } from '../services/kakaoMap';
 
+// 나이 계산 함수
+const calculateAge = (birthDate) => {
+  if (!birthDate) return '';
+  const birth = new Date(birthDate);
+  const today = new Date();
+  const age = today.getFullYear() - birth.getFullYear();
+  return `${age}세`;
+};
+
 export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital }) {
   const [hospitalPacket, setHospitalPacket] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +22,13 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
   const [loadingReviews, setLoadingReviews] = useState({}); // 후기 로딩 상태
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
+
+  // 예약 모달 관련 state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingHospital, setBookingHospital] = useState(null);
+  const [bookingDate, setBookingDate] = useState('');
+  const [bookingTime, setBookingTime] = useState('');
+  const [bookingMessage, setBookingMessage] = useState('');
 
   // 1. 병원 패킷 생성 및 현재 위치 가져오기
   useEffect(() => {
@@ -160,10 +176,43 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
   }, [userLocation, hospitals]);
 
   const handleBookAppointment = (hospital) => {
-    setSelectedHospital(hospital);
-    if (onSelectHospital) {
-      onSelectHospital(hospital);
+    // 예약 모달 열기
+    setBookingHospital(hospital);
+    setShowBookingModal(true);
+    // 기본 날짜를 오늘로 설정
+    const today = new Date().toISOString().split('T')[0];
+    setBookingDate(today);
+    setBookingTime('');
+    setBookingMessage('');
+  };
+
+  const handleConfirmBooking = () => {
+    if (!bookingDate || !bookingTime) {
+      alert('날짜와 시간을 선택해주세요.');
+      return;
     }
+    setSelectedHospital(bookingHospital);
+    if (onSelectHospital) {
+      onSelectHospital({
+        ...bookingHospital,
+        bookingDate,
+        bookingTime,
+        bookingMessage
+      });
+    }
+    setShowBookingModal(false);
+  };
+
+  // 예약 가능한 시간 슬롯 생성
+  const getTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 18; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      if (hour < 18) {
+        slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      }
+    }
+    return slots;
   };
 
   const handleRefreshLocation = async () => {
@@ -280,30 +329,72 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       </div>
 
       <div className="px-4 pt-2 pb-40 space-y-6">
-        {/* AI 진단 패킷 미리보기 */}
+        {/* AI 진단 요약 카드 */}
         {diagnosis && (
-          <div className="bg-surface-light rounded-lg shadow-soft border border-slate-200 overflow-hidden">
-            <div className="bg-primary/10 p-4 border-b border-primary/20">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2 font-display">
-                <span className="material-symbols-outlined text-primary">inventory_2</span>
-                AI 진단 패킷 준비 완료
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl shadow-soft border border-primary/20 overflow-hidden">
+            <div className="bg-gradient-to-r from-primary to-primary/80 px-4 py-3">
+              <h3 className="font-bold text-white flex items-center gap-2 font-display">
+                <span className="material-symbols-outlined">smart_toy</span>
+                AI 사전진단 요약
               </h3>
-              <p className="text-xs text-slate-600 mt-1">선택한 병원에 자동으로 전송됩니다</p>
             </div>
-            
+
             {loading ? (
               <div className="p-8 text-center text-gray-500">
-                <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                패킷 생성 중...
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                진단서 준비 중...
               </div>
-            ) : hospitalPacket && (
-              <div className="p-4">
-                <div className="text-xs text-gray-500 mb-2 font-mono bg-gray-50 p-2 rounded border border-gray-100 max-h-32 overflow-y-auto">
-                  {hospitalPacket.packet_text}
+            ) : (
+              <div className="p-4 space-y-4">
+                {/* 반려동물 정보 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center text-2xl">
+                    {petData?.species === 'dog' ? '🐕' : '🐈'}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{petData?.petName || '반려동물'}</h4>
+                    <p className="text-sm text-slate-500">{petData?.breed} • {petData?.birthDate ? calculateAge(petData.birthDate) : ''}</p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-400 mt-2">
-                  <span>작성일: {new Date().toLocaleDateString()}</span>
-                  <span>상태: <span className="text-green-500 font-bold">준비됨</span></span>
+
+                {/* 주요 증상 */}
+                {diagnosis.symptom && (
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <p className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">symptoms</span>
+                      주요 증상
+                    </p>
+                    <p className="text-slate-800 font-medium">{diagnosis.symptom}</p>
+                  </div>
+                )}
+
+                {/* 의심 질환 */}
+                {diagnosis.possible_diseases && diagnosis.possible_diseases.length > 0 && (
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">psychology</span>
+                      AI 의심 질환
+                    </p>
+                    <div className="space-y-2">
+                      {diagnosis.possible_diseases.slice(0, 2).map((disease, idx) => (
+                        <div key={idx} className="flex justify-between items-center">
+                          <span className="text-slate-800 text-sm">{disease.name || disease}</span>
+                          <span className={`text-sm font-bold ${idx === 0 ? 'text-primary' : 'text-slate-500'}`}>
+                            {disease.probability || disease.probability_percent || 'N/A'}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 전송 상태 */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                  <span className="text-xs text-slate-500">병원 선택 시 자동 전송</span>
+                  <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    전송 준비 완료
+                  </span>
                 </div>
               </div>
             )}
@@ -311,11 +402,16 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         )}
 
         {!diagnosis && (
-          <div className="bg-accent/20 border border-accent/30 rounded-lg p-4">
-            <p className="text-sm text-slate-700 flex items-start gap-2">
-              <span className="material-symbols-outlined text-accent">lightbulb</span>
-              <span><strong>진단 기록이 없습니다.</strong> AI 진단을 받으면 병원에 사전 전송할 수 있는 진단 패킷이 생성됩니다.</span>
-            </p>
+          <div className="bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/30 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-accent/30 flex items-center justify-center">
+                <span className="material-symbols-outlined text-accent">lightbulb</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 mb-1">진단 기록이 없습니다</h4>
+                <p className="text-sm text-slate-600">AI 진단을 받으면 병원에 사전 전송할 수 있는 진단서가 생성됩니다. 병원에서 미리 증상을 파악하고 더 정확한 진료를 준비할 수 있어요.</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -467,7 +563,108 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         </div>
       </div>
 
-      {/* 예약 완료 모달 - App.jsx의 hospital-review 화면에서 처리됨 */}
+      {/* 예약 모달 */}
+      {showBookingModal && bookingHospital && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-t-3xl w-full max-w-md p-6 animate-slide-up">
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900">예약하기</h3>
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* 선택된 병원 정보 */}
+            <div className="bg-slate-50 rounded-lg p-3 mb-4">
+              <p className="font-bold text-slate-900">{bookingHospital.name}</p>
+              <p className="text-sm text-slate-500">{bookingHospital.roadAddress || bookingHospital.address}</p>
+            </div>
+
+            {/* 날짜 선택 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="material-symbols-outlined text-sm align-middle mr-1">calendar_today</span>
+                예약 날짜
+              </label>
+              <input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+            </div>
+
+            {/* 시간 선택 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="material-symbols-outlined text-sm align-middle mr-1">schedule</span>
+                예약 시간
+              </label>
+              <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+                {getTimeSlots().map(time => (
+                  <button
+                    key={time}
+                    onClick={() => setBookingTime(time)}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                      bookingTime === time
+                        ? 'bg-primary text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 메시지 입력 */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="material-symbols-outlined text-sm align-middle mr-1">edit_note</span>
+                병원에 전달할 메시지 (선택)
+              </label>
+              <textarea
+                value={bookingMessage}
+                onChange={(e) => setBookingMessage(e.target.value)}
+                placeholder="증상이나 요청사항을 입력해주세요"
+                rows="3"
+                className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+              />
+            </div>
+
+            {/* AI 진단서 포함 안내 */}
+            {diagnosis && (
+              <div className="bg-primary/10 rounded-lg p-3 mb-4 flex items-start gap-2">
+                <span className="material-symbols-outlined text-primary text-sm mt-0.5">smart_toy</span>
+                <p className="text-sm text-slate-700">
+                  AI 진단서가 함께 전송됩니다.
+                </p>
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-300 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmBooking}
+                className="flex-1 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
+              >
+                예약 요청
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

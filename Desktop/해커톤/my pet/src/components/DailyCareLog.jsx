@@ -19,22 +19,25 @@ export function DailyCareLog({ pet }) {
   const updateField = (field, value) => {
     const updated = { ...log, [field]: value };
     setLog(updated);
-    // 자동 저장은 제거하고 저장 버튼으로만 저장
   };
 
-  const handleSave = () => {
+  const handleCompleteCare = () => {
     saveDailyLog(pet.id, log);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const inc = (field) => {
+  // 아이콘 클릭시 카운트 증가
+  const handleIconClick = (field) => {
     updateField(field, (log[field] || 0) + 1);
   };
 
-  const dec = (field) => {
-    updateField(field, Math.max(0, (log[field] || 0) - 1));
-  };
+  const careItems = [
+    { field: 'mealCount', icon: '🍚', label: '밥' },
+    { field: 'waterCount', icon: '💧', label: '물' },
+    { field: 'walkCount', icon: '🚶', label: '산책' },
+    { field: 'poopCount', icon: '💩', label: '배변' },
+  ];
 
   return (
     <div className="carelog-card">
@@ -43,72 +46,59 @@ export function DailyCareLog({ pet }) {
         <span className="carelog-date">{log.date}</span>
       </div>
 
-      <div className="carelog-row">
-        <span>🍚 밥</span>
-        <div className="carelog-counter">
-          <button onClick={() => dec("mealCount")}>-</button>
-          <span>{log.mealCount}</span>
-          <button onClick={() => inc("mealCount")}>+</button>
-        </div>
+      {/* 케어 아이콘 그리드 - 클릭하면 카운트 증가 */}
+      <div className="carelog-icon-grid">
+        {careItems.map(item => (
+          <button
+            key={item.field}
+            className="carelog-icon-btn"
+            onClick={() => handleIconClick(item.field)}
+          >
+            <span className="carelog-icon">{item.icon}</span>
+            <span className="carelog-count">{log[item.field] || 0}회</span>
+            <span className="carelog-label">{item.label}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="carelog-row">
-        <span>💧 물</span>
-        <div className="carelog-counter">
-          <button onClick={() => dec("waterCount")}>-</button>
-          <span>{log.waterCount}</span>
-          <button onClick={() => inc("waterCount")}>+</button>
-        </div>
-      </div>
-
-      <div className="carelog-row">
-        <span>🚶 산책</span>
-        <div className="carelog-counter">
-          <button onClick={() => dec("walkCount")}>-</button>
-          <span>{log.walkCount}</span>
-          <button onClick={() => inc("walkCount")}>+</button>
-        </div>
-      </div>
-
-      <div className="carelog-row">
-        <span>🚽 배변</span>
-        <div className="carelog-counter">
-          <button onClick={() => dec("poopCount")}>-</button>
-          <span>{log.poopCount}</span>
-          <button onClick={() => inc("poopCount")}>+</button>
-        </div>
-      </div>
-
-      <div className="carelog-row">
-        <span>⚖️ 체중(kg)</span>
+      {/* 체중 입력 */}
+      <div className="carelog-input-section">
+        <label className="carelog-input-label">
+          <span className="carelog-input-icon">⚖️</span>
+          체중 (kg)
+        </label>
         <input
           type="number"
           value={log.weight || ""}
           onChange={(e) => updateField("weight", e.target.value)}
           className="carelog-input"
           step="0.1"
+          placeholder="예: 5.2"
         />
       </div>
 
-      <div className="carelog-row">
-        <span>📝 메모</span>
+      {/* 특이사항 입력 */}
+      <div className="carelog-input-section">
+        <label className="carelog-input-label">
+          <span className="carelog-input-icon">📝</span>
+          특이사항
+        </label>
         <textarea
           value={log.note || ""}
           onChange={(e) => updateField("note", e.target.value)}
           className="carelog-textarea"
-          placeholder="오늘 아이 상태를 간단히 적어주세요."
+          placeholder="오늘 아이 상태나 특이사항을 적어주세요."
+          rows={3}
         />
       </div>
 
-      <div className="carelog-save-section">
-        <button 
-          onClick={handleSave}
-          className={`carelog-save-btn ${saved ? 'saved' : ''}`}
-        >
-          {saved ? '✓ 저장되었습니다!' : '💾 저장하기'}
-        </button>
-      </div>
+      {/* 케어 완료 버튼 */}
+      <button
+        onClick={handleCompleteCare}
+        className={`carelog-complete-btn ${saved ? 'saved' : ''}`}
+      >
+        {saved ? '✓ 저장되었습니다!' : '오늘 케어 완료'}
+      </button>
     </div>
   );
 }
-
