@@ -1,6 +1,8 @@
 // src/components/Auth.jsx
 import { useState, useEffect } from 'react';
 import { authService } from '../services/firebaseAuth';
+import { loginWithKakao } from '../services/kakaoAuth';
+import { userService } from '../services/firestore';
 
 // Firebase 인증 상태 변경 리스너 export
 export const onAuthStateChange = authService.onAuthStateChange;
@@ -56,6 +58,36 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       onLogin({ ...result.user, userMode });
     } else {
       setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  // 카카오 로그인
+  const handleKakaoLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await loginWithKakao();
+
+      if (result.success) {
+        // Firestore에 사용자 정보 저장
+        await userService.saveUser(result.user.uid, {
+          email: result.user.email,
+          displayName: result.user.displayName,
+          photoURL: result.user.photoURL,
+          provider: 'kakao',
+          userMode,
+          createdAt: new Date().toISOString()
+        });
+
+        onLogin({ ...result.user, userMode });
+      } else {
+        setError(result.error || '카카오 로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error);
+      setError(error.error || '카카오 로그인에 실패했습니다.');
     }
     setLoading(false);
   };
@@ -188,26 +220,28 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
               <span className="font-medium text-slate-700">Google로 계속하기</span>
             </button>
 
-            {/* 카카오/네이버는 추후 구현 */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg bg-[#FEE500] hover:opacity-90 transition-opacity opacity-50 cursor-not-allowed"
-                disabled
-                title="준비 중"
-              >
-                <span className="text-lg">💬</span>
-                <span className="text-sm font-medium text-slate-800">카카오</span>
-              </button>
-              <button
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg bg-[#03C75A] hover:opacity-90 transition-opacity opacity-50 cursor-not-allowed"
-                disabled
-                title="준비 중"
-              >
-                <span className="text-white font-bold text-sm">N</span>
-                <span className="text-sm font-medium text-white">네이버</span>
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 text-center">카카오/네이버 로그인은 준비 중입니다</p>
+            {/* 카카오 로그인 */}
+            <button
+              onClick={handleKakaoLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#FEE500] hover:bg-[#FDD835] transition-colors disabled:opacity-50"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2.14282C6.26621 2.14282 1.61035 5.94196 1.61035 10.5715C1.61035 13.4547 3.38887 15.9903 6.11035 17.4761L5.15039 21.1904C5.08984 21.4285 5.35938 21.619 5.56641 21.4761L9.91504 18.6428C10.5938 18.7618 11.291 18.8237 12 18.8237C17.7338 18.8237 22.3896 15.0246 22.3896 10.395C22.3896 5.76539 17.7338 2.14282 12 2.14282Z" fill="#191919"/>
+              </svg>
+              <span className="font-medium text-slate-900">카카오로 계속하기</span>
+            </button>
+
+            {/* 네이버 로그인 (준비 중) */}
+            <button
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#03C75A] hover:bg-[#02b351] transition-colors opacity-50 cursor-not-allowed"
+              disabled
+              title="준비 중"
+            >
+              <span className="text-white font-bold text-lg">N</span>
+              <span className="font-medium text-white">네이버로 계속하기</span>
+            </button>
+            <p className="text-xs text-slate-400 text-center">네이버 로그인은 준비 중입니다</p>
           </div>
         </div>
 
