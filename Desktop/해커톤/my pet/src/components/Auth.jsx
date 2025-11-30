@@ -33,36 +33,52 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   // 페이지 로드 시 리다이렉트 결과 확인 (모바일 구글/카카오 로그인)
   useEffect(() => {
     const checkRedirectResult = async () => {
+      // 리다이렉트 대기 상태인 경우만 로딩 표시
+      const hasPendingGoogle = sessionStorage.getItem('pendingUserMode');
+      const hasPendingKakao = sessionStorage.getItem('pendingKakaoLogin');
+
+      if (!hasPendingGoogle && !hasPendingKakao) {
+        return; // 리다이렉트 대기 중이 아니면 체크하지 않음
+      }
+
       setLoading(true);
       try {
         // 구글 리다이렉트 결과 확인
-        const googleResult = await authService.handleRedirectResult();
-        if (googleResult.success) {
-          onLogin(googleResult.user);
-          setLoading(false);
-          return;
+        if (hasPendingGoogle) {
+          const googleResult = await authService.handleRedirectResult();
+          if (googleResult.success) {
+            onLogin(googleResult.user);
+            setLoading(false);
+            return;
+          }
         }
 
         // 카카오 리다이렉트 결과 확인
-        try {
-          const kakaoResult = await handleKakaoRedirectResult();
-          if (kakaoResult.success) {
-            // Firestore에 사용자 정보 저장
-            await userService.saveUser(kakaoResult.user.uid, {
-              email: kakaoResult.user.email,
-              displayName: kakaoResult.user.displayName,
-              photoURL: kakaoResult.user.photoURL,
-              provider: 'kakao',
-              userMode: kakaoResult.user.userMode,
-              createdAt: new Date().toISOString()
-            });
-            onLogin(kakaoResult.user);
+        if (hasPendingKakao) {
+          try {
+            const kakaoResult = await handleKakaoRedirectResult();
+            if (kakaoResult.success) {
+              // Firestore에 사용자 정보 저장 시도
+              try {
+                await userService.saveUser(kakaoResult.user.uid, {
+                  email: kakaoResult.user.email,
+                  displayName: kakaoResult.user.displayName,
+                  photoURL: kakaoResult.user.photoURL,
+                  provider: 'kakao',
+                  userMode: kakaoResult.user.userMode,
+                  createdAt: new Date().toISOString()
+                });
+              } catch (firestoreError) {
+                console.warn('Firestore 저장 실패 (로그인은 계속 진행):', firestoreError);
+              }
+              onLogin(kakaoResult.user);
+            }
+          } catch (kakaoError) {
+            if (kakaoError.error) {
+              setError(kakaoError.error);
+            }
+            console.error('카카오 리다이렉트 결과 확인 실패:', kakaoError);
           }
-        } catch (kakaoError) {
-          if (kakaoError.error) {
-            setError(kakaoError.error);
-          }
-          console.error('카카오 리다이렉트 결과 확인 실패:', kakaoError);
         }
       } catch (error) {
         console.error('리다이렉트 결과 확인 실패:', error);
@@ -119,15 +135,19 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       const result = await loginWithKakao(userMode);
 
       if (result.success) {
-        // Firestore에 사용자 정보 저장
-        await userService.saveUser(result.user.uid, {
-          email: result.user.email,
-          displayName: result.user.displayName,
-          photoURL: result.user.photoURL,
-          provider: 'kakao',
-          userMode,
-          createdAt: new Date().toISOString()
-        });
+        // Firestore에 사용자 정보 저장 시도 (실패해도 로그인은 진행)
+        try {
+          await userService.saveUser(result.user.uid, {
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+            provider: 'kakao',
+            userMode,
+            createdAt: new Date().toISOString()
+          });
+        } catch (firestoreError) {
+          console.warn('Firestore 저장 실패 (로그인은 계속 진행):', firestoreError);
+        }
 
         onLogin({ ...result.user, userMode });
       } else if (result.redirecting) {

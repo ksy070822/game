@@ -146,21 +146,25 @@ export const authService = {
       result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Firestore에서 기존 사용자 정보 확인
-      const existingUser = await userService.getUser(user.uid);
+      // Firestore에서 기존 사용자 정보 확인 (실패해도 로그인은 진행)
+      let userData = {};
+      try {
+        const existingUser = await userService.getUser(user.uid);
+        userData = existingUser.data || {};
 
-      if (!existingUser.data) {
-        // 신규 사용자면 Firestore에 저장
-        await userService.saveUser(user.uid, {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          userMode,
-          createdAt: new Date().toISOString()
-        });
+        if (!existingUser.data) {
+          // 신규 사용자면 Firestore에 저장 시도
+          await userService.saveUser(user.uid, {
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            userMode,
+            createdAt: new Date().toISOString()
+          });
+        }
+      } catch (firestoreError) {
+        console.warn('Firestore 접근 실패 (로그인은 계속 진행):', firestoreError);
       }
-
-      const userData = existingUser.data || {};
 
       return {
         success: true,
@@ -197,21 +201,25 @@ export const authService = {
         const userMode = sessionStorage.getItem('pendingUserMode') || 'guardian';
         sessionStorage.removeItem('pendingUserMode');
 
-        // Firestore에서 기존 사용자 정보 확인
-        const existingUser = await userService.getUser(user.uid);
+        // Firestore에서 기존 사용자 정보 확인 (실패해도 로그인은 진행)
+        let userData = {};
+        try {
+          const existingUser = await userService.getUser(user.uid);
+          userData = existingUser.data || {};
 
-        if (!existingUser.data) {
-          // 신규 사용자면 Firestore에 저장
-          await userService.saveUser(user.uid, {
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            userMode,
-            createdAt: new Date().toISOString()
-          });
+          if (!existingUser.data) {
+            // 신규 사용자면 Firestore에 저장 시도
+            await userService.saveUser(user.uid, {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              userMode,
+              createdAt: new Date().toISOString()
+            });
+          }
+        } catch (firestoreError) {
+          console.warn('Firestore 접근 실패 (로그인은 계속 진행):', firestoreError);
         }
-
-        const userData = existingUser.data || {};
 
         return {
           success: true,
