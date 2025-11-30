@@ -1,10 +1,11 @@
 // Ops Agent - Claude 3.5 Sonnet (JSON 구조화/기록 최강)
 import { COMMON_CONTEXT } from './commonContext';
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callOpsAgent = async (petData, symptomData, medicalDiagnosis, triageResult, csSummary, infoSummary) => {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.ANTHROPIC);
   if (!apiKey) {
-    throw new Error('Anthropic API 키가 설정되지 않았습니다.');
+    throw new Error('Anthropic API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const prompt = `${COMMON_CONTEXT}

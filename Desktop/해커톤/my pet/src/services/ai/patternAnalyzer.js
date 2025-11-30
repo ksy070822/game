@@ -1,8 +1,10 @@
 // 건강 패턴 분석 - Gemini Flash 활용
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
+
 export const analyzeHealthPattern = async (petData, dailyLogs) => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
   if (!apiKey) {
-    throw new Error('Gemini API 키가 설정되지 않았습니다.');
+    throw new Error('Gemini API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   // 최근 7일 데이터만 사용

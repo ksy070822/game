@@ -1,10 +1,11 @@
 // CS Agent - Gemini Flash (빠르고 저렴, 문진/요약 특화)
 import { COMMON_CONTEXT } from './commonContext';
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callCSAgent = async (petData, symptomData) => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
   if (!apiKey) {
-    throw new Error('Gemini API 키가 설정되지 않았습니다.');
+    throw new Error('Gemini API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const prompt = `${COMMON_CONTEXT}

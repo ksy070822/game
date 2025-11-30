@@ -2414,10 +2414,18 @@ function App() {
     setAuthScreen('login');
   };
 
-  // 로그인 없이 바로 입장 (테스트용) - 비활성화
+  // 로그인 없이 바로 입장 (테스트용)
   const handleSkipLogin = () => {
-    // 실제 서비스에서는 로그인 필수
-    // setAuthScreen(null);
+    // 테스트용 게스트 유저
+    const guestUser = {
+      uid: 'guest_' + Date.now(),
+      email: 'guest@test.com',
+      displayName: '테스트 유저',
+      userMode: 'guardian'
+    };
+    setCurrentUser(guestUser);
+    setUserMode('guardian');
+    setAuthScreen(null);
   };
 
   // 인증 화면 렌더링
@@ -2426,7 +2434,7 @@ function App() {
       <LoginScreen
         onLogin={handleLogin}
         onGoToRegister={() => setAuthScreen('register')}
-        // onSkipLogin 제거 - 실제 서비스에서는 로그인 필수
+        onSkipLogin={handleSkipLogin}
       />
     );
   }

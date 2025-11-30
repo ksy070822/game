@@ -1,10 +1,11 @@
 // Care Agent - Gemini Pro/Flash (홈케어 가이드 작성 특화)
 import { COMMON_CONTEXT } from './commonContext';
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callCareAgent = async (petData, opsData, medicalDiagnosis, triageResult) => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
   if (!apiKey) {
-    throw new Error('Gemini API 키가 설정되지 않았습니다.');
+    throw new Error('Gemini API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const model = import.meta.env.VITE_GEMINI_CARE_MODEL || 'gemini-1.5-pro';

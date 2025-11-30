@@ -1,4 +1,6 @@
 // 병원 진단 패킷 생성 - Ops Agent 결과 활용
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
+
 export const generateHospitalPacket = async (petData, diagnosisResult, symptomData) => {
   // 이미 Ops Agent에서 hospital_previsit_packet을 생성했으므로 그것을 사용
   if (diagnosisResult.hospitalPacket) {
@@ -45,9 +47,9 @@ ${packet.requested_actions_for_hospital.map(a => `- ${a}`).join('\n')}
   }
   
   // Fallback: 기존 방식
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.ANTHROPIC);
   if (!apiKey) {
-    throw new Error('Anthropic API 키가 설정되지 않았습니다.');
+    throw new Error('Anthropic API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const prompt = `당신은 동물병원을 위한 사전 진단 패킷을 생성하는 전문가입니다.

@@ -1,5 +1,6 @@
 // Gemini를 이용한 케어 패턴 분석
 import { getRecentCareLogs } from "./careLogs";
+import { getApiKey, API_KEY_TYPES } from "../services/apiKeyManager";
 
 /**
  * Gemini Flash를 사용하여 케어 패턴 분석 및 healthFlags 생성
@@ -12,11 +13,11 @@ export async function analyzeCarePatternWithGemini(pet, days = 7) {
     return null;
   }
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
+
   // API 키가 없으면 더미 값 반환
   if (!apiKey) {
-    console.warn('Gemini API 키가 없습니다. 더미 값을 반환합니다.');
+    console.warn('Gemini API 키가 없습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
     return {
       earIssue: false,
       digestionIssue: logs.some((l) => l.poopCount >= 3),

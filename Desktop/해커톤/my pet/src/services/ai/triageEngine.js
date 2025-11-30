@@ -1,10 +1,11 @@
 // AI Triage Engine - GPT 활용
 import { COMMON_CONTEXT } from './commonContext';
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const calculateTriageScore = async (petData, symptomData, medicalDiagnosis, csSummary) => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.OPENAI);
   if (!apiKey) {
-    throw new Error('OpenAI API 키가 설정되지 않았습니다.');
+    throw new Error('OpenAI API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const model = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o';

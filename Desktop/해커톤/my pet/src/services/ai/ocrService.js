@@ -1,4 +1,5 @@
 // OCR 서비스 - Gemini Vision을 사용한 문서 구조화
+import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 /**
  * 이미지를 base64로 변환
@@ -31,10 +32,10 @@ export const OCR_DOCUMENT_TYPES = {
  * Gemini Vision API를 사용하여 의료 문서 OCR 및 구조화
  */
 export async function parseVetDocument(imageBase64, documentType = 'auto', mimeType = 'image/jpeg') {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
 
   if (!apiKey) {
-    console.warn('Gemini API 키가 없습니다. 더미 데이터를 반환합니다.');
+    console.warn('Gemini API 키가 없습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
     return generateDummyResult(documentType);
   }
 
