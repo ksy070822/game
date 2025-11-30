@@ -47,8 +47,7 @@ const loadKakaoScript = () => {
     // 스크립트 동적 로드
     const script = document.createElement('script');
     script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.6.0/kakao.min.js';
-    script.integrity = 'sha384-6MFdIr0zOira1CHQkedUqJVql0YtcZA1P0nbPrQYJXVJZUkTk/oX4U9GhUIs3/z8';
-    script.crossOrigin = 'anonymous';
+    // integrity 속성 제거 - SDK 업데이트 시 해시 불일치 문제 방지
     script.async = true;
 
     script.onload = () => {
