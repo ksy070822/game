@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getAllApiKeys, saveAllApiKeys, API_KEY_TYPES, getRequiredApiKeysStatus } from '../services/apiKeyManager';
 
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
 const STORAGE_KEY = 'petMedical_pets';
@@ -104,25 +103,12 @@ const saveBookingsToStorage = (bookings) => {
 };
 
 export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClinicMode, onHome, userId }) {
-  const [activeTab, setActiveTab] = useState('pets'); // 'pets', 'records', 'bookings', or 'settings'
+  const [activeTab, setActiveTab] = useState('pets'); // 'pets', 'records', 'bookings'
   const [pets, setPets] = useState([]);
   const [diagnoses, setDiagnoses] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [editingPet, setEditingPet] = useState(null);
   const [editFormData, setEditFormData] = useState(null);
-
-  // API 키 설정 상태
-  const [apiKeys, setApiKeys] = useState({
-    gemini: '',
-    openai: '',
-    anthropic: ''
-  });
-  const [apiKeySaved, setApiKeySaved] = useState(false);
-  const [showApiKeys, setShowApiKeys] = useState({
-    gemini: false,
-    openai: false,
-    anthropic: false
-  });
 
   useEffect(() => {
     // 사용자별 데이터 로드
@@ -135,30 +121,7 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
       setDiagnoses(getDiagnosesFromStorage());
       setBookings(getBookingsFromStorage());
     }
-
-    // API 키 로드
-    const storedKeys = getAllApiKeys();
-    setApiKeys({
-      gemini: storedKeys[API_KEY_TYPES.GEMINI] || '',
-      openai: storedKeys[API_KEY_TYPES.OPENAI] || '',
-      anthropic: storedKeys[API_KEY_TYPES.ANTHROPIC] || ''
-    });
   }, [userId]);
-
-  const handleSaveApiKeys = () => {
-    const keysToSave = {
-      [API_KEY_TYPES.GEMINI]: apiKeys.gemini,
-      [API_KEY_TYPES.OPENAI]: apiKeys.openai,
-      [API_KEY_TYPES.ANTHROPIC]: apiKeys.anthropic
-    };
-    saveAllApiKeys(keysToSave);
-    setApiKeySaved(true);
-    setTimeout(() => setApiKeySaved(false), 2000);
-  };
-
-  const toggleShowApiKey = (key) => {
-    setShowApiKeys(prev => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('ko-KR', {
@@ -349,16 +312,6 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
           }`}
         >
           진료 기록
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
-            activeTab === 'settings'
-              ? 'bg-primary text-white'
-              : 'bg-surface-light text-slate-600'
-          }`}
-        >
-          설정
         </button>
       </div>
 
@@ -724,160 +677,6 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
         </div>
       )}
 
-      {activeTab === 'settings' && (
-        <div className="px-4 pt-4 pb-40">
-          <div className="space-y-6">
-            {/* API 키 설정 섹션 */}
-            <div className="bg-surface-light rounded-lg p-4 shadow-soft">
-              <h3 className="text-slate-900 font-bold text-lg mb-1 font-display flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">key</span>
-                API 키 설정
-              </h3>
-              <p className="text-slate-500 text-sm mb-4">
-                AI 진단 기능을 사용하려면 API 키를 입력하세요.
-              </p>
-
-              {/* Gemini API Key */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Google Gemini API 키
-                  <span className="text-xs text-slate-400 ml-2">(CS Agent, Care Agent)</span>
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showApiKeys.gemini ? 'text' : 'password'}
-                      value={apiKeys.gemini}
-                      onChange={(e) => setApiKeys(prev => ({ ...prev, gemini: e.target.value }))}
-                      placeholder="AIza..."
-                      className="w-full p-3 pr-10 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-primary focus:border-primary text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggleShowApiKey('gemini')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <span className="material-symbols-outlined text-xl">
-                        {showApiKeys.gemini ? 'visibility_off' : 'visibility'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                {apiKeys.gemini && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    설정됨
-                  </p>
-                )}
-              </div>
-
-              {/* OpenAI API Key */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  OpenAI API 키
-                  <span className="text-xs text-slate-400 ml-2">(Medical Agent, Triage Engine)</span>
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showApiKeys.openai ? 'text' : 'password'}
-                      value={apiKeys.openai}
-                      onChange={(e) => setApiKeys(prev => ({ ...prev, openai: e.target.value }))}
-                      placeholder="sk-proj-..."
-                      className="w-full p-3 pr-10 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-primary focus:border-primary text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggleShowApiKey('openai')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <span className="material-symbols-outlined text-xl">
-                        {showApiKeys.openai ? 'visibility_off' : 'visibility'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                {apiKeys.openai && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    설정됨
-                  </p>
-                )}
-              </div>
-
-              {/* Anthropic API Key */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Anthropic API 키
-                  <span className="text-xs text-slate-400 ml-2">(Ops Agent)</span>
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showApiKeys.anthropic ? 'text' : 'password'}
-                      value={apiKeys.anthropic}
-                      onChange={(e) => setApiKeys(prev => ({ ...prev, anthropic: e.target.value }))}
-                      placeholder="sk-ant-..."
-                      className="w-full p-3 pr-10 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-primary focus:border-primary text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggleShowApiKey('anthropic')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <span className="material-symbols-outlined text-xl">
-                        {showApiKeys.anthropic ? 'visibility_off' : 'visibility'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                {apiKeys.anthropic && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">check_circle</span>
-                    설정됨
-                  </p>
-                )}
-              </div>
-
-              {/* 저장 버튼 */}
-              <button
-                onClick={handleSaveApiKeys}
-                className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-              >
-                {apiKeySaved ? (
-                  <>
-                    <span className="material-symbols-outlined">check</span>
-                    저장 완료!
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined">save</span>
-                    API 키 저장
-                  </>
-                )}
-              </button>
-
-              {/* 안내 메시지 */}
-              <div className="mt-4 bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
-                <p className="font-medium mb-1">API 키 발급 방법:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li><strong>Gemini:</strong> <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline">Google AI Studio</a></li>
-                  <li><strong>OpenAI:</strong> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline">OpenAI Platform</a></li>
-                  <li><strong>Anthropic:</strong> <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="underline">Anthropic Console</a></li>
-                </ul>
-              </div>
-
-              {/* 보안 안내 */}
-              <div className="mt-3 bg-amber-50 rounded-lg p-3 text-sm text-amber-700">
-                <p className="flex items-start gap-2">
-                  <span className="material-symbols-outlined text-base mt-0.5">warning</span>
-                  <span>API 키는 브라우저의 로컬 스토리지에 저장됩니다. 공용 컴퓨터에서는 사용 후 키를 삭제해주세요.</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
