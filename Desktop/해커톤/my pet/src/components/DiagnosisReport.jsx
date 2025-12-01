@@ -102,7 +102,7 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoT
   const generateReportText = () => {
     return `
 ═══════════════════════════════════════
-       🐾 PetLink AI 진단서
+       🐾 PetMedical.AI 진단서
 ═══════════════════════════════════════
 
 📅 발급일시: ${reportDate}
@@ -177,7 +177,7 @@ ${diagnosisResult?.hospitalVisit ? `
           {/* 헤더 */}
           <div className="report-header">
             <div className="report-logo">🐾</div>
-            <h1>PetLink AI 진단서</h1>
+            <h1>PetMedical.AI 진단서</h1>
             <p className="report-subtitle">AI 기반 반려동물 건강 분석 리포트</p>
           </div>
 
@@ -221,11 +221,29 @@ ${diagnosisResult?.hospitalVisit ? `
           {/* 증상 요약 */}
           <div className="report-section symptoms-summary">
             <h2>📝 증상 요약</h2>
-            <p className="symptom-description">
-              {symptomData?.symptomText || symptomData?.description || symptomData?.userDescription || '증상 정보 없음'}
-            </p>
             {symptomData?.department && (
-              <p className="symptom-duration">🏥 진료과목: {symptomData.department}</p>
+              <p className="symptom-duration" style={{marginBottom: '8px'}}>🏥 진료과목: {symptomData.department}</p>
+            )}
+            {symptomData?.selectedSymptoms?.length > 0 && (
+              <div style={{marginBottom: '8px'}}>
+                <span style={{fontWeight: 'bold', fontSize: '14px'}}>선택 증상: </span>
+                {symptomData.selectedSymptoms.map((symptom, idx) => (
+                  <span key={idx} style={{
+                    display: 'inline-block',
+                    background: '#e0f2fe',
+                    color: '#0369a1',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    margin: '2px',
+                    fontSize: '12px'
+                  }}>{symptom}</span>
+                ))}
+              </div>
+            )}
+            {(symptomData?.userDescription || symptomData?.description) && (
+              <p className="symptom-description">
+                {symptomData?.userDescription || symptomData?.description}
+              </p>
             )}
             {symptomData?.duration && (
               <p className="symptom-duration">⏱️ 증상 지속: {symptomData.duration}</p>
@@ -315,7 +333,7 @@ ${diagnosisResult?.hospitalVisit ? `
               정확한 진단을 위해 반드시 수의사와 상담하세요.
             </p>
             <div className="footer-logo">
-              <span>🐾</span> PetLink AI
+              <span>🐾</span> PetMedical.AI
             </div>
           </div>
         </div>

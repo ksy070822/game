@@ -301,7 +301,7 @@ function ProfileRegistration({ onComplete, userId }) {
     <div className="registration-container">
       <div className="registration-card">
         <div className="header-gradient">
-          <h1>🐾 PetLink AI</h1>
+          <h1>🐾 PetMedical.AI</h1>
           <p>반려동물 건강 관리의 시작</p>
         </div>
         
