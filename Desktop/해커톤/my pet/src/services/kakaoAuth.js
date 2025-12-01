@@ -110,7 +110,7 @@ export const initKakao = () => {
 
 /**
  * 카카오 로그인
- * REST API를 사용하여 implicit grant 방식으로 로그인
+ * REST API Authorization Code 방식
  */
 export const loginWithKakao = (userMode = 'guardian') => {
   return new Promise(async (resolve, reject) => {
@@ -119,8 +119,8 @@ export const loginWithKakao = (userMode = 'guardian') => {
       sessionStorage.setItem('pendingUserMode', userMode);
       sessionStorage.setItem('pendingKakaoLogin', 'true');
 
-      // REST API를 사용한 implicit grant 방식 (SDK 우회)
-      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&response_type=token&scope=profile_nickname,profile_image,account_email`;
+      // Authorization Code 방식 (response_type=code)
+      const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&response_type=code`;
 
       window.location.href = kakaoAuthUrl;
 
@@ -135,7 +135,7 @@ export const loginWithKakao = (userMode = 'guardian') => {
 
 /**
  * 카카오 리다이렉트 결과 처리
- * URL 해시에서 access_token을 추출하고 REST API로 사용자 정보 조회
+ * URL에서 authorization code를 추출하고 토큰 교환 후 사용자 정보 조회
  */
 export const handleKakaoRedirectResult = () => {
   return new Promise(async (resolve, reject) => {
@@ -147,13 +147,9 @@ export const handleKakaoRedirectResult = () => {
         return;
       }
 
-      // URL 해시에서 access_token 확인 (implicit grant)
-      const hash = window.location.hash.substring(1);
-      const hashParams = new URLSearchParams(hash);
-      const accessToken = hashParams.get('access_token');
-
-      // URL 쿼리에서 error 확인
+      // URL 쿼리에서 code 또는 error 확인
       const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
       const error = urlParams.get('error');
       const errorDescription = urlParams.get('error_description');
 
@@ -166,25 +162,47 @@ export const handleKakaoRedirectResult = () => {
         return;
       }
 
-      // access_token이 있으면 REST API로 사용자 정보 조회
-      if (accessToken) {
+      // authorization code가 있으면 토큰 교환
+      if (code) {
         // URL 정리
         window.history.replaceState({}, document.title, window.location.pathname);
 
         try {
+          // 토큰 교환 요청
+          const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+            },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              client_id: KAKAO_REST_API_KEY,
+              redirect_uri: KAKAO_REDIRECT_URI,
+              code: code
+            })
+          });
+
+          if (!tokenResponse.ok) {
+            const errorData = await tokenResponse.json();
+            throw new Error(errorData.error_description || '토큰 발급 실패');
+          }
+
+          const tokenData = await tokenResponse.json();
+          const accessToken = tokenData.access_token;
+
           // REST API로 사용자 정보 가져오기
-          const response = await fetch('https://kapi.kakao.com/v2/user/me', {
+          const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
             }
           });
 
-          if (!response.ok) {
+          if (!userResponse.ok) {
             throw new Error('사용자 정보 조회 실패');
           }
 
-          const res = await response.json();
+          const res = await userResponse.json();
           const userMode = sessionStorage.getItem('pendingUserMode') || 'guardian';
           sessionStorage.removeItem('pendingKakaoLogin');
           sessionStorage.removeItem('pendingUserMode');
@@ -202,15 +220,15 @@ export const handleKakaoRedirectResult = () => {
         } catch (fetchError) {
           sessionStorage.removeItem('pendingKakaoLogin');
           sessionStorage.removeItem('pendingUserMode');
-          console.error('카카오 사용자 정보 조회 실패:', fetchError);
-          reject({ success: false, error: '사용자 정보를 가져올 수 없습니다.' });
+          console.error('카카오 로그인 처리 실패:', fetchError);
+          reject({ success: false, error: fetchError.message || '카카오 로그인 처리에 실패했습니다.' });
         }
         return;
       }
 
-      // 토큰이 없는 경우
+      // code가 없는 경우
       sessionStorage.removeItem('pendingKakaoLogin');
-      resolve({ success: false, noToken: true });
+      resolve({ success: false, noCode: true });
     } catch (error) {
       sessionStorage.removeItem('pendingKakaoLogin');
       sessionStorage.removeItem('pendingUserMode');
