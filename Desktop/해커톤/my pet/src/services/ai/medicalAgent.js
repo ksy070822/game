@@ -1,8 +1,9 @@
 // Medical Agent - Claude Sonnet (수의학 진단 정확도 최강)
 import { COMMON_CONTEXT } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
+import { buildAIContext } from './dataContextService';
 
-export const callMedicalAgent = async (petData, symptomData, csSummary, infoSummary) => {
+export const callMedicalAgent = async (petData, symptomData, csSummary, infoSummary, dataContext = '') => {
   const apiKey = getApiKey(API_KEY_TYPES.ANTHROPIC);
   if (!apiKey) {
     throw new Error('Claude API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
@@ -58,6 +59,12 @@ ${JSON.stringify(infoSummary, null, 2)}
 
 원본 증상 설명:
 ${symptomData.symptomText || '증상 정보 없음'}
+${dataContext ? `
+=== 참고 데이터 (Firestore DB) ===
+${dataContext}
+=================================
+위 참고 데이터는 과거 진료 기록과 FAQ입니다. 진단 시 참고하되, 현재 증상을 기반으로 독립적인 판단을 해주세요.
+` : ''}
 
 규칙:
 - 'emergency'는 생명 위협 가능성이 있는 경우만 사용합니다.

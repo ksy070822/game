@@ -3,6 +3,7 @@ import { generateHospitalPacket } from '../services/ai/hospitalPacket';
 import { getCurrentPosition, searchAnimalHospitals, initKakaoMap, addMarker, loadKakao } from '../services/kakaoMap';
 import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
+import { bookingService } from '../services/firestore';
 
 // 나이 계산 함수
 const calculateAge = (birthDate) => {
@@ -347,7 +348,23 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       existingBookings.push(bookingData);
       localStorage.setItem('petMedical_bookings', JSON.stringify(existingBookings));
     } catch (error) {
-      console.error('예약 저장 실패:', error);
+      console.error('예약 localStorage 저장 실패:', error);
+    }
+
+    // Firestore에도 저장
+    try {
+      const firestoreBookingData = {
+        ...bookingData,
+        userId: petData?.userId || null,
+        clinicId: bookingHospital.id,
+        clinicName: bookingHospital.name
+      };
+      const result = await bookingService.createBooking(firestoreBookingData);
+      if (result.success) {
+        console.log('예약 Firestore 저장 완료:', result.id);
+      }
+    } catch (firestoreError) {
+      console.warn('예약 Firestore 저장 실패 (로컬 저장은 완료):', firestoreError);
     }
 
     setSelectedHospital(bookingHospital);
