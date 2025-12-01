@@ -1954,15 +1954,15 @@ ${userQuestion}
     }
   };
   
-  // 에이전트 룸 정의 (카드 형태 UI용)
+  // 에이전트 룸 정의 (카드 형태 UI용) - 병원 분위기 반영
   const agentRooms = [
-    { id: 'cs', name: '접수 도우미', icon: '🏥', role: '상담 간호사', agentKey: 'CS Agent' },
-    { id: 'info', name: '간호사 상담', icon: '💉', role: '정보수집가', agentKey: 'Information Agent' },
-    { id: 'medical', name: '주치의 진찰', icon: '👨‍⚕️', role: '전문 수의사', agentKey: 'Veterinarian Agent' },
-    { id: 'triage', name: '위급도 판단실', icon: '🚨', role: '응급도 평가', agentKey: 'Triage Engine' },
-    { id: 'data', name: '치료 계획실', icon: '📋', role: '데이터 처리자', agentKey: 'Data Agent' },
-    { id: 'care', name: '약국 안내', icon: '💊', role: '케어 플래너', agentKey: 'Care Agent' },
-    { id: 'summary', name: '진료 요약실', icon: '📄', role: '진료 완료', agentKey: 'summary' }
+    { id: 'cs', name: '접수 · 예약 센터', icon: '🏥', role: 'Front Desk', agentKey: 'CS Agent', description: '진료 접수 및 안내' },
+    { id: 'info', name: '증상 사전 상담실', icon: '💉', role: 'Triage 간호팀', agentKey: 'Information Agent', description: '증상 청취 및 초기 평가' },
+    { id: 'medical', name: '전문 진료실', icon: '👨‍⚕️', role: '담당 수의사', agentKey: 'Veterinarian Agent', description: '전문 진찰 및 진단' },
+    { id: 'triage', name: '응급도 판정실', icon: '🚨', role: '응급의학팀', agentKey: 'Triage Engine', description: '위급도 평가 및 분류' },
+    { id: 'data', name: '치료 계획 수립실', icon: '📋', role: '의료진 협진', agentKey: 'Data Agent', description: '치료 방향 설정' },
+    { id: 'care', name: '처방 · 약물 관리실', icon: '💊', role: 'Pet 약국', agentKey: 'Care Agent', description: '처방약 안내 및 복용법' },
+    { id: 'summary', name: '진료 요약 · 관리실', icon: '📄', role: 'Care Summary', agentKey: 'summary', description: '주의사항 및 케어 플랜' }
   ];
 
   // 각 에이전트 룸의 상태 (pending, processing, completed)
@@ -2103,11 +2103,21 @@ ${userQuestion}
                     {room.name}
                   </div>
                   <div style={{
-                    fontSize: '13px',
-                    color: '#64748b'
+                    fontSize: '12px',
+                    color: status === 'completed' ? '#16a34a' : status === 'processing' ? '#2563eb' : '#64748b',
+                    fontWeight: '500'
                   }}>
                     {room.role}
                   </div>
+                  {room.description && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#94a3b8',
+                      marginTop: '2px'
+                    }}>
+                      {room.description}
+                    </div>
+                  )}
                 </div>
 
                 {/* 상태 표시 */}
