@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { generateHospitalPacket } from '../services/ai/hospitalPacket';
 import { getCurrentPosition, searchAnimalHospitals, initKakaoMap, addMarker, loadKakao } from '../services/kakaoMap';
+import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 
 // 나이 계산 함수
 const calculateAge = (birthDate) => {
@@ -313,17 +314,20 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     setLoadingReviews(prev => ({ ...prev, [hospital.id]: true }));
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      // localStorage에서 API 키 가져오기 (마이페이지에서 설정한 키)
+      const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
       if (apiKey) {
-        const prompt = `다음 동물병원 정보를 바탕으로 간단한 후기 요약을 생성해주세요. (실제 후기가 아닌, 병원 특징을 기반으로 한 요약)
+        const prompt = `다음 동물병원 정보를 바탕으로 이 병원만의 특징과 장점을 구체적으로 요약해주세요.
 
 병원명: ${hospital.name}
 주소: ${hospital.address}
 24시간 운영: ${hospital.is24Hours ? '예' : '아니오'}
 평점: ${hospital.rating || '정보 없음'}
 후기 수: ${hospital.reviewCount || 0}개
+거리: ${hospital.distance ? (hospital.distance / 1000).toFixed(1) + 'km' : '정보 없음'}
 
-위 정보를 바탕으로 이 병원의 특징을 2-3줄로 요약해주세요. 예: "24시간 운영으로 응급 상황에 대비할 수 있는 병원입니다. 평점이 높아 신뢰할 수 있는 진료를 제공합니다."`;
+각 병원의 고유한 특징(24시간 여부, 평점, 위치 등)을 반영하여 다른 병원과 차별화된 2-3줄 요약을 작성하세요.
+병원마다 다른 내용으로 작성해주세요.`;
 
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -344,18 +348,30 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
           throw new Error('API 호출 실패');
         }
       } else {
-        // API 키가 없으면 기본 요약 생성
-        const defaultSummary = hospital.is24Hours 
-          ? `24시간 운영으로 응급 상황에 대비할 수 있는 병원입니다. 평점 ${hospital.rating}점으로 신뢰할 수 있는 진료를 제공합니다.`
-          : `평점 ${hospital.rating}점의 신뢰할 수 있는 동물병원입니다. ${hospital.reviewCount}개의 후기가 있어 검증된 병원입니다.`;
+        // API 키가 없으면 병원 특성에 맞는 기본 요약 생성
+        let defaultSummary = '';
+        if (hospital.is24Hours) {
+          defaultSummary = `🚨 24시간 운영 병원! 야간 응급 상황에도 즉시 대응 가능합니다. `;
+        }
+        if (hospital.rating && parseFloat(hospital.rating) >= 4.5) {
+          defaultSummary += `⭐ 평점 ${hospital.rating}점의 인기 병원으로, ${hospital.reviewCount}개 이상의 긍정적인 후기가 있습니다.`;
+        } else if (hospital.rating) {
+          defaultSummary += `평점 ${hospital.rating}점, ${hospital.reviewCount}개의 후기가 있는 검증된 병원입니다.`;
+        }
+        if (!defaultSummary) {
+          defaultSummary = `${hospital.name}은(는) 내 위치에서 ${hospital.distance ? (hospital.distance / 1000).toFixed(1) + 'km' : '가까운'} 거리에 있는 동물병원입니다.`;
+        }
         setReviewSummaries(prev => ({ ...prev, [hospital.id]: defaultSummary }));
       }
     } catch (error) {
       console.error('후기 요약 생성 오류:', error);
-      // Fallback 요약
-      const fallbackSummary = hospital.is24Hours 
-        ? `24시간 운영으로 응급 상황에 대비할 수 있는 병원입니다.`
-        : `신뢰할 수 있는 동물병원입니다.`;
+      // Fallback 요약 - 병원별 특성 반영
+      let fallbackSummary = hospital.is24Hours
+        ? `🚨 24시간 응급 진료 가능한 병원입니다.`
+        : `평점 ${hospital.rating || '정보없음'}점의 동물병원입니다.`;
+      if (hospital.reviewCount > 100) {
+        fallbackSummary += ` ${hospital.reviewCount}개의 후기로 검증된 곳입니다.`;
+      }
       setReviewSummaries(prev => ({ ...prev, [hospital.id]: fallbackSummary }));
     } finally {
       setLoadingReviews(prev => {
@@ -656,7 +672,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     </a>
                   )}
                   <a
-                    href={`https://map.kakao.com/link/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`}
+                    href={userLocation
+                      ? `https://map.kakao.com/link/from/내위치,${userLocation.lat},${userLocation.lng}/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`
+                      : `https://map.kakao.com/link/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
