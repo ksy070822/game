@@ -4,6 +4,7 @@
 
 const KAKAO_JS_KEY = '72f88f8c8193dd28d0539df80f16ab87';
 const KAKAO_REST_API_KEY = '6a6433ff3ccbbc31a0448cae49055e4d';
+const KAKAO_CLIENT_SECRET = 'jNNfgEPny8kfcQ6NLBtGmegCRa558c4m';
 // 리다이렉트 URI는 현재 페이지로 설정 (카카오 개발자 콘솔에 등록 필요)
 const KAKAO_REDIRECT_URI = window.location.origin + window.location.pathname;
 
@@ -168,7 +169,7 @@ export const handleKakaoRedirectResult = () => {
         window.history.replaceState({}, document.title, window.location.pathname);
 
         try {
-          // 토큰 교환 요청
+          // 토큰 교환 요청 (client_secret 포함)
           const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
             method: 'POST',
             headers: {
@@ -177,6 +178,7 @@ export const handleKakaoRedirectResult = () => {
             body: new URLSearchParams({
               grant_type: 'authorization_code',
               client_id: KAKAO_REST_API_KEY,
+              client_secret: KAKAO_CLIENT_SECRET,
               redirect_uri: KAKAO_REDIRECT_URI,
               code: code
             })
