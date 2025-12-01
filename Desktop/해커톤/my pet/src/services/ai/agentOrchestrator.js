@@ -37,13 +37,13 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
   };
 
   try {
-    // 1. CS Agent (Gemini Flash)
+    // 1. CS Agent (Gemini Flash) - 접수센터
     onLogReceived({
       agent: 'CS Agent',
-      role: '상담 간호사',
-      icon: '💬',
+      role: '접수 · 예약 센터',
+      icon: '🏥',
       type: 'cs',
-      content: '안녕하세요! 접수 도와드리겠습니다.',
+      content: '안녕하세요, 접수센터입니다. 진료 접수 도와드리겠습니다.',
       timestamp: Date.now()
     });
 
@@ -52,8 +52,8 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     csResult = await callCSAgent(normalizedPetData, normalizedSymptomData);
     logs.push({
       agent: 'CS Agent',
-      role: '상담 간호사',
-      icon: '💬',
+      role: '접수 · 예약 센터',
+      icon: '🏥',
       type: 'cs',
       content: csResult.message,
       timestamp: Date.now()
@@ -62,36 +62,36 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // CS Agent가 Information Agent에게 전달
+    // 접수센터 → 증상 상담실 이관
     onLogReceived({
       agent: 'CS Agent',
-      role: '상담 간호사',
-      icon: '💬',
+      role: '접수 · 예약 센터',
+      icon: '🏥',
       type: 'cs',
-      content: '🔍 Information Agent님, 증상 정보 분석 부탁드려요!',
+      content: '🔍 증상 사전 상담실로 이관합니다. 간호팀에서 초기 상담 진행해 주세요.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // 2. Information Agent (시뮬레이션)
+    // 2. Information Agent - 증상 사전 상담실
     onLogReceived({
       agent: 'Information Agent',
-      role: '정보수집가',
-      icon: '🔍',
+      role: '증상 사전 상담실',
+      icon: '💉',
       type: 'info',
-      content: '네, CS Agent님! 증상 정보 수집 시작하겠습니다.',
+      content: '네, 접수 확인했습니다. 보호자님, 증상에 대해 자세히 여쭤볼게요.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
     infoResult = await callInformationAgent(normalizedPetData, normalizedSymptomData, csResult.json);
-    
+
     logs.push({
       agent: 'Information Agent',
-      role: '정보수집가',
-      icon: '🔍',
+      role: '증상 사전 상담실',
+      icon: '💉',
       type: 'info',
       content: infoResult.message,
       timestamp: Date.now()
@@ -100,35 +100,35 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Information Agent가 Medical Agent에게 전달
+    // 증상 상담실 → 전문 진료실 이관
     onLogReceived({
       agent: 'Information Agent',
-      role: '정보수집가',
-      icon: '🔍',
+      role: '증상 사전 상담실',
+      icon: '💉',
       type: 'info',
-      content: '👨‍⚕️ Veterinarian Agent님, 분석 결과 전달드립니다. 종합 진단 부탁드려요!',
+      content: '👨‍⚕️ 초기 증상 평가 완료했습니다. 담당 수의사 선생님께 진료 의뢰드립니다.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // 3. Medical Agent (GPT-4o)
+    // 3. Medical Agent (GPT-4o) - 전문 진료실
     onLogReceived({
       agent: 'Veterinarian Agent',
-      role: '전문 수의사',
+      role: '전문 진료실',
       icon: '👨‍⚕️',
       type: 'medical',
-      content: 'Information Agent님, 감사합니다! 종합 진단 시작하겠습니다.',
+      content: '네, 상담 기록 확인했습니다. 정밀 진찰 시작하겠습니다.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
     medicalResult = await callMedicalAgent(normalizedPetData, normalizedSymptomData, csResult.json, infoResult.json);
-    
+
     logs.push({
       agent: 'Veterinarian Agent',
-      role: '전문 수의사',
+      role: '전문 진료실',
       icon: '👨‍⚕️',
       type: 'medical',
       content: medicalResult.message,
@@ -138,25 +138,25 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Medical Agent가 Triage Engine에게 요청
+    // 전문 진료실 → 응급도 판정실 요청
     onLogReceived({
       agent: 'Veterinarian Agent',
-      role: '전문 수의사',
+      role: '전문 진료실',
       icon: '👨‍⚕️',
       type: 'medical',
-      content: '🚨 Triage Engine님, 응급도 평가 부탁드립니다. 진단 결과 전달드릴게요.',
+      content: '🚨 응급의학팀에 위급도 평가 요청드립니다. 진단 소견 전달해 드릴게요.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // 4. Triage Engine (GPT-4o) - 응급도 평가
+    // 4. Triage Engine (GPT-4o) - 응급도 판정실
     onLogReceived({
       agent: 'Triage Engine',
-      role: '응급도 평가',
+      role: '응급도 판정실',
       icon: '🚨',
       type: 'triage',
-      content: 'Veterinarian Agent님, 네! 응급도 평가 시작하겠습니다.',
+      content: '네, 진단 소견서 확인했습니다. 응급도 평가 진행하겠습니다.',
       timestamp: Date.now()
     });
 
@@ -166,10 +166,10 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       triageResult = await calculateTriageScore(normalizedPetData, normalizedSymptomData, medicalResult.json, csResult.json);
       logs.push({
         agent: 'Triage Engine',
-        role: '응급도 평가',
+        role: '응급도 판정실',
         icon: '🚨',
         type: 'triage',
-        content: `응급도 평가 완료.\n\nTriage Score: ${triageResult.triage_score}/5\n응급도: ${triageResult.triage_level}\n시급성: ${triageResult.recommended_action_window}\n\n${triageResult.emergency_summary_kor}\n\n💾 Data Agent님, 진단서 작성 부탁드려요!`,
+        content: `응급도 평가 완료했습니다.\n\n📊 Triage Score: ${triageResult.triage_score}/5\n🏷️ 응급 등급: ${triageResult.triage_level}\n⏰ 권장 조치: ${triageResult.recommended_action_window}\n\n${triageResult.emergency_summary_kor}\n\n📋 치료 계획팀에 협진 의뢰드립니다.`,
         timestamp: Date.now()
       });
       onLogReceived(logs[logs.length - 1]);
@@ -179,13 +179,13 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 5. Ops Agent (Claude 3.5 Sonnet)
+    // 5. Data Agent - 치료 계획 수립실
     onLogReceived({
       agent: 'Data Agent',
-      role: '데이터 처리자',
-      icon: '💾',
+      role: '치료 계획 수립실',
+      icon: '📋',
       type: 'data',
-      content: 'Triage Engine님, 네! 진료 기록 정리 시작하겠습니다.',
+      content: '응급도 평가 결과 확인했습니다. 의료진 협진으로 치료 계획 수립하겠습니다.',
       timestamp: Date.now()
     });
 
@@ -199,11 +199,11 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       csResult.json,
       infoResult.json
     );
-    
+
     logs.push({
       agent: 'Data Agent',
-      role: '데이터 처리자',
-      icon: '💾',
+      role: '치료 계획 수립실',
+      icon: '📋',
       type: 'data',
       content: opsResult.message,
       timestamp: Date.now()
@@ -212,25 +212,25 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Data Agent가 Care Agent에게 요청
+    // 치료 계획실 → 처방 관리실 이관
     onLogReceived({
       agent: 'Data Agent',
-      role: '데이터 처리자',
-      icon: '💾',
+      role: '치료 계획 수립실',
+      icon: '📋',
       type: 'data',
-      content: '💊 Care Agent님, 홈케어 가이드 작성 부탁드려요!',
+      content: '💊 Pet 약국으로 처방 정보 전달합니다. 복용 안내 부탁드려요.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // 6. Care Agent (Gemini Pro)
+    // 6. Care Agent - 처방 · 약물 관리실
     onLogReceived({
       agent: 'Care Agent',
-      role: '케어 플래너',
+      role: '처방 · 약물 관리실',
       icon: '💊',
       type: 'care',
-      content: 'Data Agent님, 네! 보호자님께 도움이 되는 케어 가이드 작성하겠습니다.',
+      content: '처방전 확인했습니다. 보호자님께 약물 복용법과 케어 가이드 안내해 드릴게요.',
       timestamp: Date.now()
     });
 
@@ -242,10 +242,10 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       medicalResult.json,
       triageResult
     );
-    
+
     logs.push({
       agent: 'Care Agent',
-      role: '케어 플래너',
+      role: '처방 · 약물 관리실',
       icon: '💊',
       type: 'care',
       content: careResult.message,
@@ -255,13 +255,25 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // 최종 완료 메시지
+    // 처방실 → 진료요약실 이관
     onLogReceived({
-      agent: 'CS Agent',
-      role: '상담 간호사',
-      icon: '💬',
-      type: 'cs',
-      content: '✅ 모든 에이전트 협업 완료! 진단서가 준비되었습니다.',
+      agent: 'Care Agent',
+      role: '처방 · 약물 관리실',
+      icon: '💊',
+      type: 'care',
+      content: '📄 진료 요약실로 케어 정보 전달합니다. 최종 요약 부탁드려요.',
+      timestamp: Date.now()
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    // 7. Summary - 진료 요약 관리실
+    onLogReceived({
+      agent: 'summary',
+      role: '진료 요약 · 관리실',
+      icon: '📄',
+      type: 'summary',
+      content: '✅ 진료가 완료되었습니다. 진단서와 케어 플랜을 정리했습니다.\n\n📋 주의사항과 홈케어 가이드를 꼭 확인해 주세요!',
       timestamp: Date.now()
     });
 

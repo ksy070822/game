@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 const BOOKINGS_KEY = 'petMedical_bookings';
 const DIAGNOSES_KEY = 'petMedical_diagnoses';
 const CLINIC_RESULTS_KEY = 'petMedical_clinicResults';
+const MEDICATION_FEEDBACK_KEY = 'petMedical_medicationFeedback';
 
 /**
  * 병원용 어드민 페이지
@@ -829,11 +830,16 @@ function ClinicSettings({ clinicInfo, onUpdate }) {
 
 // 예약 상세 모달
 function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) {
-  // AI 진단 데이터 가져오기
+  // AI 진단 데이터 - booking.aiDiagnosis 우선 사용
   const [diagnosis, setDiagnosis] = useState(null);
+  const petProfile = booking.petProfile || {};
 
   useEffect(() => {
-    if (booking.diagnosisId) {
+    // 이미 예약에 포함된 aiDiagnosis 사용
+    if (booking.aiDiagnosis) {
+      setDiagnosis(booking.aiDiagnosis);
+    } else if (booking.diagnosisId) {
+      // 없으면 localStorage에서 가져오기
       try {
         const diagnoses = JSON.parse(localStorage.getItem('petMedical_diagnoses') || '[]');
         const found = diagnoses.find(d => d.id === booking.diagnosisId);
@@ -842,13 +848,13 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
         console.error('진단 데이터 로드 실패:', error);
       }
     }
-  }, [booking.diagnosisId]);
+  }, [booking.aiDiagnosis, booking.diagnosisId]);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
       <div className="bg-white w-full rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
         {/* 헤더 */}
-        <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
           <h2 className="font-bold text-lg text-slate-800">예약 상세</h2>
           <button
             onClick={onClose}
@@ -859,13 +865,13 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
         </div>
 
         <div className="p-4 space-y-4">
-          {/* 환자 정보 */}
+          {/* 예약 정보 헤더 */}
           <div className="bg-emerald-50 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl shadow-sm">
-                🐾
+                {petProfile.species === 'cat' ? '🐱' : '🐕'}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-bold text-lg text-emerald-800">{booking.petName}</p>
                 <p className="text-sm text-emerald-600">
                   예약일: {booking.date} {booking.time}
@@ -877,10 +883,63 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
             </div>
           </div>
 
+          {/* 반려동물 상세 정보 */}
+          {petProfile && Object.keys(petProfile).length > 1 && (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="p-3 bg-sky-50 border-b border-sky-100">
+                <h3 className="font-semibold text-sky-800 flex items-center gap-2 text-sm">
+                  <span className="material-symbols-outlined text-sky-500 text-lg">pets</span>
+                  반려동물 정보
+                </h3>
+              </div>
+              <div className="p-3 grid grid-cols-2 gap-2 text-sm">
+                {petProfile.breed && (
+                  <div>
+                    <span className="text-slate-500 text-xs">품종</span>
+                    <p className="font-medium text-slate-800">{petProfile.breed}</p>
+                  </div>
+                )}
+                {petProfile.age && (
+                  <div>
+                    <span className="text-slate-500 text-xs">나이</span>
+                    <p className="font-medium text-slate-800">{petProfile.age}</p>
+                  </div>
+                )}
+                {petProfile.sex && (
+                  <div>
+                    <span className="text-slate-500 text-xs">성별</span>
+                    <p className="font-medium text-slate-800">
+                      {petProfile.sex === 'M' ? '수컷' : petProfile.sex === 'F' ? '암컷' : petProfile.sex}
+                      {petProfile.neutered ? ' (중성화)' : ''}
+                    </p>
+                  </div>
+                )}
+                {petProfile.weight && (
+                  <div>
+                    <span className="text-slate-500 text-xs">체중</span>
+                    <p className="font-medium text-slate-800">{petProfile.weight}kg</p>
+                  </div>
+                )}
+                {petProfile.allergies && petProfile.allergies.length > 0 && (
+                  <div className="col-span-2">
+                    <span className="text-slate-500 text-xs">⚠️ 알레르기</span>
+                    <p className="font-medium text-red-600">{petProfile.allergies.join(', ')}</p>
+                  </div>
+                )}
+                {petProfile.chronicConditions && petProfile.chronicConditions.length > 0 && (
+                  <div className="col-span-2">
+                    <span className="text-slate-500 text-xs">⚠️ 기저질환</span>
+                    <p className="font-medium text-amber-600">{petProfile.chronicConditions.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 보호자 메시지 */}
           {booking.message && (
             <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <h3 className="font-semibold text-slate-700 flex items-center gap-2 mb-2">
+              <h3 className="font-semibold text-slate-700 flex items-center gap-2 mb-2 text-sm">
                 <span className="material-symbols-outlined text-sky-500">chat</span>
                 보호자 메시지
               </h3>
@@ -953,68 +1012,98 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
                   </div>
                 )}
 
-                {/* 가능성 있는 질환 */}
-                {diagnosis.suspectedConditions && diagnosis.suspectedConditions.length > 0 && (
+                {/* AI 감별진단 - possibleDiseases */}
+                {(diagnosis.possibleDiseases && diagnosis.possibleDiseases.length > 0) ||
+                 (diagnosis.suspectedConditions && diagnosis.suspectedConditions.length > 0) ? (
                   <div className="mb-3">
-                    <p className="text-xs font-medium text-amber-700 mb-1">의심 질환</p>
+                    <p className="text-xs font-medium text-amber-700 mb-1">🔬 AI 감별진단 (Top 3 의심 질환)</p>
                     <div className="space-y-2">
-                      {diagnosis.suspectedConditions.map((condition, i) => (
-                        <div key={i} className="bg-white p-2 rounded-lg border border-amber-200">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-amber-800">{condition.name}</span>
-                            <span className={`text-sm font-bold ${
-                              condition.probability >= 70 ? 'text-red-600' :
-                              condition.probability >= 40 ? 'text-amber-600' : 'text-green-600'
-                            }`}>
-                              {condition.probability}%
-                            </span>
+                      {(diagnosis.possibleDiseases || diagnosis.suspectedConditions || []).slice(0, 3).map((disease, i) => {
+                        const prob = disease.probability || disease.probability_percent || 0;
+                        const probValue = typeof prob === 'number' && prob <= 1 ? prob * 100 : prob;
+                        return (
+                          <div key={i} className="bg-white p-2 rounded-lg border border-amber-200">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium text-amber-800">{disease.name || disease.name_kor}</span>
+                              <span className={`text-sm font-bold ${
+                                probValue >= 70 ? 'text-red-600' :
+                                probValue >= 40 ? 'text-amber-600' : 'text-green-600'
+                              }`}>
+                                {Math.round(probValue)}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-amber-100 rounded-full mt-1 overflow-hidden">
+                              <div
+                                className={`h-full ${
+                                  probValue >= 70 ? 'bg-red-500' :
+                                  probValue >= 40 ? 'bg-amber-500' : 'bg-green-500'
+                                }`}
+                                style={{ width: `${probValue}%` }}
+                              />
+                            </div>
+                            {disease.related_area && (
+                              <p className="text-xs text-slate-500 mt-1">관련 부위: {disease.related_area}</p>
+                            )}
                           </div>
-                          <div className="h-1.5 bg-amber-100 rounded-full mt-1 overflow-hidden">
-                            <div
-                              className={`h-full ${
-                                condition.probability >= 70 ? 'bg-red-500' :
-                                condition.probability >= 40 ? 'bg-amber-500' : 'bg-green-500'
-                              }`}
-                              style={{ width: `${condition.probability}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
-                )}
+                ) : null}
 
-                {/* 긴급도 */}
-                {(diagnosis.triageScore || diagnosis.riskLevel) && (
-                  <div className="mb-3">
-                    <p className="text-xs font-medium text-amber-700 mb-1">긴급도</p>
-                    <div className="flex items-center gap-2">
-                      {diagnosis.triageScore && (
-                        <>
-                          <div className="flex-1 h-2 bg-amber-200 rounded-full overflow-hidden">
+                {/* 응급도 평가 (Triage) */}
+                {(diagnosis.triageScore !== undefined || diagnosis.triageLevel || diagnosis.riskLevel) && (
+                  <div className="mb-3 p-3 bg-white rounded-lg border border-amber-200">
+                    <p className="text-xs font-medium text-amber-700 mb-2">🚨 응급도 평가 (Triage)</p>
+                    <div className="flex items-center gap-3">
+                      {diagnosis.triageScore !== undefined && (
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
                             <div
-                              className={`h-full ${
-                                diagnosis.triageScore >= 70 ? 'bg-red-500' :
-                                diagnosis.triageScore >= 40 ? 'bg-amber-500' : 'bg-green-500'
+                              className={`h-full transition-all ${
+                                diagnosis.triageScore >= 4 ? 'bg-red-500' :
+                                diagnosis.triageScore >= 3 ? 'bg-orange-500' :
+                                diagnosis.triageScore >= 2 ? 'bg-yellow-500' : 'bg-green-500'
                               }`}
-                              style={{ width: `${diagnosis.triageScore}%` }}
+                              style={{ width: `${(diagnosis.triageScore / 5) * 100}%` }}
                             />
                           </div>
-                          <span className="text-sm font-bold text-amber-800">{diagnosis.triageScore}점</span>
-                        </>
+                          <span className="text-lg font-bold text-slate-800">{diagnosis.triageScore}/5</span>
+                        </div>
                       )}
-                      {diagnosis.riskLevel && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          diagnosis.riskLevel === 'high' || diagnosis.riskLevel === '긴급' ? 'bg-red-100 text-red-700' :
-                          diagnosis.riskLevel === 'medium' || diagnosis.riskLevel === '주의' ? 'bg-amber-100 text-amber-700' :
+                      {(diagnosis.triageLevel || diagnosis.riskLevel) && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          (diagnosis.triageLevel || '').includes('red') || diagnosis.riskLevel === 'high' ? 'bg-red-100 text-red-700' :
+                          (diagnosis.triageLevel || '').includes('orange') || diagnosis.riskLevel === 'medium' ? 'bg-orange-100 text-orange-700' :
+                          (diagnosis.triageLevel || '').includes('yellow') ? 'bg-yellow-100 text-yellow-700' :
                           'bg-green-100 text-green-700'
                         }`}>
-                          {diagnosis.riskLevel === 'high' ? '긴급' :
-                           diagnosis.riskLevel === 'medium' ? '주의' :
-                           diagnosis.riskLevel === 'low' ? '양호' : diagnosis.riskLevel}
+                          {diagnosis.triageLevel ||
+                           (diagnosis.riskLevel === 'high' ? '긴급' :
+                            diagnosis.riskLevel === 'medium' ? '주의' : '양호')}
                         </span>
                       )}
                     </div>
+                    {diagnosis.hospitalVisitTime && (
+                      <p className="text-sm text-red-600 mt-2 font-medium">
+                        ⏰ 권장 병원 방문: {diagnosis.hospitalVisitTime}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* 권장 조치사항 */}
+                {diagnosis.actions && diagnosis.actions.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-amber-700 mb-1">💊 AI 권장 조치사항</p>
+                    <ul className="text-sm text-amber-800 space-y-1 bg-white p-2 rounded-lg border border-amber-200">
+                      {diagnosis.actions.map((action, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="material-symbols-outlined text-green-500 text-sm mt-0.5">check_circle</span>
+                          {action}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
@@ -1056,6 +1145,9 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
               </div>
             </div>
           )}
+
+          {/* 이전 처방약 이력 (보호자 피드백 포함) */}
+          <MedicationHistorySection petId={booking.petId} />
 
           {/* 액션 버튼 */}
           <div className="flex gap-3 pt-2">
@@ -1101,30 +1193,58 @@ function ClinicResultModal({ booking, onClose, onSave }) {
   const [form, setForm] = useState({
     diagnosis: '',
     treatment: '',
-    medications: '',
     notes: '',
     followUp: '',
     totalCost: '',
   });
+
+  // 처방약 개별 관리
+  const [medications, setMedications] = useState([
+    { name: '', dosage: '', days: '', instructions: '' }
+  ]);
+
+  const addMedication = () => {
+    setMedications([...medications, { name: '', dosage: '', days: '', instructions: '' }]);
+  };
+
+  const removeMedication = (index) => {
+    if (medications.length > 1) {
+      setMedications(medications.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateMedication = (index, field, value) => {
+    const updated = [...medications];
+    updated[index][field] = value;
+    setMedications(updated);
+  };
 
   const handleSubmit = () => {
     if (!form.diagnosis.trim()) {
       alert('진단명을 입력해주세요.');
       return;
     }
+
+    // 유효한 처방약만 필터링
+    const validMedications = medications.filter(m => m.name.trim());
+
     onSave({
       petId: booking.petId,
       petName: booking.petName,
+      petProfile: booking.petProfile,
       ...form,
+      medications: validMedications,
       totalCost: form.totalCost ? parseInt(form.totalCost) : 0,
     });
   };
+
+  const petProfile = booking.petProfile || {};
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
       <div className="bg-white w-full rounded-t-2xl max-h-[90vh] overflow-y-auto animate-slide-up">
         {/* 헤더 */}
-        <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-slate-100 p-4 flex items-center justify-between z-10">
           <h2 className="font-bold text-lg text-slate-800">진료 결과 입력</h2>
           <button
             onClick={onClose}
@@ -1137,14 +1257,31 @@ function ClinicResultModal({ booking, onClose, onSave }) {
         <div className="p-4 space-y-4">
           {/* 환자 정보 */}
           <div className="bg-sky-50 rounded-xl p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl">
-              🐾
+            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-sm">
+              {petProfile.species === 'cat' ? '🐱' : '🐕'}
             </div>
-            <div>
+            <div className="flex-1">
               <p className="font-semibold text-sky-800">{booking.petName}</p>
-              <p className="text-xs text-sky-600">{booking.date} 진료</p>
+              <p className="text-xs text-sky-600">
+                {petProfile.breed && `${petProfile.breed} · `}
+                {petProfile.age && `${petProfile.age} · `}
+                {booking.date} 진료
+              </p>
             </div>
           </div>
+
+          {/* AI 진단 정보 표시 (있을 경우) */}
+          {booking.aiDiagnosis && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-xs font-medium text-amber-700 mb-1">📋 AI 사전 진단</p>
+              <p className="text-sm text-amber-800 font-medium">{booking.aiDiagnosis.diagnosis}</p>
+              {booking.aiDiagnosis.triageScore && (
+                <p className="text-xs text-amber-600 mt-1">
+                  응급도: {booking.aiDiagnosis.triageScore}/5 ({booking.aiDiagnosis.triageLevel || ''})
+                </p>
+              )}
+            </div>
+          )}
 
           {/* 진단명 */}
           <div>
@@ -1172,25 +1309,77 @@ function ClinicResultModal({ booking, onClose, onSave }) {
             />
           </div>
 
-          {/* 처방약 */}
+          {/* 처방약 - 개별 입력 */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">처방약</label>
-            <textarea
-              value={form.medications}
-              onChange={(e) => setForm({ ...form, medications: e.target.value })}
-              placeholder="처방한 약품 및 용법을 입력하세요"
-              rows={2}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 resize-none"
-            />
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg text-emerald-500">medication</span>
+                처방약
+              </span>
+            </label>
+            <div className="space-y-3">
+              {medications.map((med, index) => (
+                <div key={index} className="bg-slate-50 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">약품 {index + 1}</span>
+                    {medications.length > 1 && (
+                      <button
+                        onClick={() => removeMedication(index)}
+                        className="text-red-400 hover:text-red-600"
+                      >
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={med.name}
+                    onChange={(e) => updateMedication(index, 'name', e.target.value)}
+                    placeholder="약품명 (예: 아포퀠정 16mg)"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={med.dosage}
+                      onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
+                      placeholder="용량 (예: 1일 2회)"
+                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                    />
+                    <input
+                      type="text"
+                      value={med.days}
+                      onChange={(e) => updateMedication(index, 'days', e.target.value)}
+                      placeholder="투약기간 (예: 7일분)"
+                      className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={med.instructions}
+                    onChange={(e) => updateMedication(index, 'instructions', e.target.value)}
+                    placeholder="복용 방법 (예: 식후 30분)"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={addMedication}
+                className="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 text-sm hover:border-sky-400 hover:text-sky-500 transition flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                처방약 추가
+              </button>
+            </div>
           </div>
 
           {/* 특이사항 */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">특이사항</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">특이사항 / 주의사항</label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="추가 메모사항"
+              placeholder="보호자에게 전달할 주의사항이나 메모"
               rows={2}
               className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 resize-none"
             />
@@ -1219,6 +1408,15 @@ function ClinicResultModal({ booking, onClose, onSave }) {
             />
           </div>
 
+          {/* 안내 문구 */}
+          <div className="bg-emerald-50 rounded-xl p-3 flex items-start gap-2">
+            <span className="material-symbols-outlined text-emerald-500 text-lg">info</span>
+            <p className="text-sm text-emerald-700">
+              저장하면 보호자 앱에 진료 결과가 자동으로 전송됩니다.
+              처방약 정보는 보호자가 효과/부작용을 기록할 수 있습니다.
+            </p>
+          </div>
+
           {/* 저장 버튼 */}
           <div className="flex gap-3 pt-2">
             <button
@@ -1237,6 +1435,149 @@ function ClinicResultModal({ booking, onClose, onSave }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// 이전 처방약 이력 섹션 (보호자 피드백 포함)
+function MedicationHistorySection({ petId }) {
+  const [medicationHistory, setMedicationHistory] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!petId) return;
+
+    // 진료 결과에서 처방약 가져오기
+    const results = JSON.parse(localStorage.getItem(CLINIC_RESULTS_KEY) || '[]');
+    const feedback = JSON.parse(localStorage.getItem(MEDICATION_FEEDBACK_KEY) || '{}');
+
+    const petResults = results.filter(r => r.petId === petId);
+
+    // 모든 처방약 추출 및 피드백 연결
+    const medications = petResults.flatMap(result =>
+      (result.medications || []).map((med, idx) => ({
+        id: `${result.id}_med_${idx}`,
+        name: med.name,
+        dosage: med.dosage,
+        days: med.days,
+        instructions: med.instructions,
+        hospitalName: result.clinic?.name || result.hospitalName || '알 수 없음',
+        date: result.visitDate || result.createdAt,
+        feedback: feedback[`${result.id}_med_${idx}`] || null
+      }))
+    ).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    setMedicationHistory(medications);
+  }, [petId]);
+
+  if (medicationHistory.length === 0) return null;
+
+  const effectiveMeds = medicationHistory.filter(m => m.feedback?.status === 'effective');
+  const sideEffectMeds = medicationHistory.filter(m => m.feedback?.status === 'side_effect');
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full p-3 bg-purple-50 border-b border-purple-100 flex items-center justify-between"
+      >
+        <h3 className="font-semibold text-purple-800 flex items-center gap-2 text-sm">
+          <span className="material-symbols-outlined text-purple-500 text-lg">history</span>
+          이전 처방약 이력 ({medicationHistory.length}건)
+        </h3>
+        <span className="material-symbols-outlined text-purple-500">
+          {isExpanded ? 'expand_less' : 'expand_more'}
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="p-3">
+          {/* 요약 정보 */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {effectiveMeds.length > 0 && (
+              <div className="bg-green-50 rounded-lg p-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-green-500">thumb_up</span>
+                <div>
+                  <p className="text-xs text-green-600">잘 맞았던 약</p>
+                  <p className="font-bold text-green-700">{effectiveMeds.length}개</p>
+                </div>
+              </div>
+            )}
+            {sideEffectMeds.length > 0 && (
+              <div className="bg-red-50 rounded-lg p-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-red-500">thumb_down</span>
+                <div>
+                  <p className="text-xs text-red-600">부작용 있었던 약</p>
+                  <p className="font-bold text-red-700">{sideEffectMeds.length}개</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 부작용 약품 경고 */}
+          {sideEffectMeds.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+              <p className="text-xs font-bold text-red-700 mb-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">warning</span>
+                ⚠️ 부작용 기록된 약품 (처방 주의)
+              </p>
+              <div className="space-y-1">
+                {sideEffectMeds.map(med => (
+                  <div key={med.id} className="flex items-center gap-2 text-sm text-red-800">
+                    <span className="material-symbols-outlined text-xs">medication</span>
+                    <span className="font-medium">{med.name}</span>
+                    <span className="text-red-500 text-xs">({new Date(med.date).toLocaleDateString('ko-KR')})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 잘 맞았던 약품 */}
+          {effectiveMeds.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+              <p className="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                잘 맞았던 약품 (재처방 권장)
+              </p>
+              <div className="space-y-1">
+                {effectiveMeds.map(med => (
+                  <div key={med.id} className="flex items-center gap-2 text-sm text-green-800">
+                    <span className="material-symbols-outlined text-xs">medication</span>
+                    <span className="font-medium">{med.name}</span>
+                    <span className="text-green-500 text-xs">({new Date(med.date).toLocaleDateString('ko-KR')})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 전체 이력 */}
+          <p className="text-xs font-medium text-slate-500 mb-2">전체 처방 이력</p>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {medicationHistory.map(med => (
+              <div key={med.id} className="bg-slate-50 rounded-lg p-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-slate-800">{med.name}</span>
+                  {med.feedback && (
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      med.feedback.status === 'effective'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {med.feedback.status === 'effective' ? '✓ 효과 좋음' : '⚠ 부작용'}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  {med.hospitalName} • {new Date(med.date).toLocaleDateString('ko-KR')}
+                  {med.dosage && ` • ${med.dosage}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

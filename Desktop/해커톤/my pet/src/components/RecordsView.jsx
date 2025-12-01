@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
+const CLINIC_RESULTS_KEY = 'petMedical_clinicResults';
+const MEDICATION_FEEDBACK_KEY = 'petMedical_medicationFeedback';
 
 // 더미 데이터 - 방문이력
 const DUMMY_VISITS = [
@@ -185,8 +187,11 @@ const DUMMY_VACCINATIONS = [
 export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome }) {
   const [activeTab, setActiveTab] = useState('visits'); // visits, medication, checkup, vaccination
   const [diagnoses, setDiagnoses] = useState([]);
+  const [clinicResults, setClinicResults] = useState([]);
+  const [medicationFeedback, setMedicationFeedback] = useState({});
   const [useDummyData, setUseDummyData] = useState(false); // 더미데이터 사용 플래그 - 실제 서비스용 false
 
+  // 진단 기록 로드
   useEffect(() => {
     const stored = localStorage.getItem(DIAGNOSIS_KEY);
     if (stored) {
@@ -195,6 +200,38 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
       setDiagnoses(petDiagnoses);
     }
   }, [petData]);
+
+  // 병원 진료 결과 로드
+  useEffect(() => {
+    const stored = localStorage.getItem(CLINIC_RESULTS_KEY);
+    if (stored) {
+      const allResults = JSON.parse(stored);
+      const petResults = allResults.filter(r => r.petId === petData?.id);
+      setClinicResults(petResults);
+    }
+  }, [petData]);
+
+  // 의약품 피드백 로드
+  useEffect(() => {
+    const stored = localStorage.getItem(MEDICATION_FEEDBACK_KEY);
+    if (stored) {
+      setMedicationFeedback(JSON.parse(stored));
+    }
+  }, []);
+
+  // 의약품 피드백 저장
+  const saveMedicationFeedback = (medicationId, feedback) => {
+    const newFeedback = {
+      ...medicationFeedback,
+      [medicationId]: {
+        status: feedback,
+        updatedAt: new Date().toISOString(),
+        petId: petData?.id
+      }
+    };
+    setMedicationFeedback(newFeedback);
+    localStorage.setItem(MEDICATION_FEEDBACK_KEY, JSON.stringify(newFeedback));
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -224,24 +261,78 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
     { id: 'care', label: '케어기록', icon: 'favorite' }
   ];
 
-  // 방문이력 데이터 (실제 + 더미)
-  const visitRecords = useDummyData
-    ? [...diagnoses.filter(d => d.type === 'visit' || !d.type), ...DUMMY_VISITS]
-    : diagnoses.filter(d => d.type === 'visit' || !d.type);
+  // 방문이력 데이터 (진료 결과 + 진단 기록)
+  const visitRecords = (() => {
+    // 병원 진료 결과를 방문 기록으로 변환
+    const clinicVisits = clinicResults.map(result => ({
+      id: result.id,
+      date: result.visitDate || result.createdAt,
+      hospitalName: result.hospitalName,
+      hospitalAddress: result.hospitalAddress || '',
+      diagnosis: result.finalDiagnosis || result.diagnosis,
+      type: 'visit',
+      triage_score: result.triageScore,
+      treatment: result.treatment,
+      medications: result.medications,
+      totalCost: result.totalCost,
+      nextVisitDate: result.nextVisitDate,
+      doctorNote: result.doctorNote,
+      source: 'clinic' // 병원에서 입력한 기록
+    }));
 
-  // 의약품 기록 (실제 + 더미)
-  const medicationRecords = useDummyData
-    ? [
-        ...diagnoses.filter(d => d.medications || d.prescription).map(d => ({
-          ...d,
-          medications: d.medications || d.prescription || []
-        })),
-        ...DUMMY_MEDICATIONS
-      ]
-    : diagnoses.filter(d => d.medications || d.prescription).map(d => ({
-        ...d,
-        medications: d.medications || d.prescription || []
+    // 진단 기록 (AI 진단)
+    const diagnosisVisits = diagnoses.filter(d => d.type === 'visit' || !d.type).map(d => ({
+      ...d,
+      source: 'ai' // AI 진단 기록
+    }));
+
+    const realData = [...clinicVisits, ...diagnosisVisits].sort((a, b) =>
+      new Date(b.date || b.created_at) - new Date(a.date || a.created_at)
+    );
+
+    return useDummyData ? [...realData, ...DUMMY_VISITS] : realData;
+  })();
+
+  // 의약품 기록 (병원 처방 + AI 진단 처방)
+  const medicationRecords = (() => {
+    // 병원 진료 결과에서 의약품 추출
+    const clinicMedications = clinicResults
+      .filter(result => result.medications && result.medications.length > 0)
+      .flatMap(result =>
+        result.medications.map((med, idx) => ({
+          id: `${result.id}_med_${idx}`,
+          resultId: result.id,
+          date: result.visitDate || result.createdAt,
+          name: med.name,
+          dosage: med.dosage,
+          days: med.days,
+          instructions: med.instructions,
+          hospitalName: result.hospitalName,
+          petId: result.petId,
+          source: 'clinic',
+          // 피드백 상태 확인
+          feedbackStatus: medicationFeedback[`${result.id}_med_${idx}`]?.status || 'none'
+        }))
+      );
+
+    // AI 진단에서 처방 추출
+    const aiMedications = diagnoses
+      .filter(d => d.medications || d.prescription)
+      .map(d => ({
+        id: d.id,
+        date: d.created_at || d.date,
+        medications: d.medications || d.prescription || [],
+        hospitalName: 'AI 진단',
+        source: 'ai',
+        feedbackStatus: medicationFeedback[d.id]?.status || 'none'
       }));
+
+    const realData = [...clinicMedications, ...aiMedications].sort((a, b) =>
+      new Date(b.date) - new Date(a.date)
+    );
+
+    return useDummyData ? [...realData, ...DUMMY_MEDICATIONS] : realData;
+  })();
 
   // 건강검진 기록
   const checkupRecords = useDummyData ? DUMMY_CHECKUPS : [];
@@ -253,8 +344,9 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
   const careRecords = useDummyData ? DUMMY_CARE_LOGS : [];
 
   // 의약품 상태 카운트
-  const effectiveMeds = medicationRecords.filter(m => m.status === 'effective').length;
-  const sideEffectMeds = medicationRecords.filter(m => m.status === 'side_effect').length;
+  const effectiveMeds = medicationRecords.filter(m => m.feedbackStatus === 'effective').length;
+  const sideEffectMeds = medicationRecords.filter(m => m.feedbackStatus === 'side_effect').length;
+  const pendingMeds = medicationRecords.filter(m => m.feedbackStatus === 'none' || !m.feedbackStatus).length;
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -326,59 +418,117 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
           </div>
         </div>
 
-        {/* 병원 방문 */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-bold text-slate-800">병원 방문</h3>
-            <span className="text-xs text-slate-400">{new Date(Date.now() - 86400000).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
+        {/* 최근 병원 방문 요약 */}
+        {visitRecords.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-slate-800">최근 병원 방문</h3>
+              <span className="text-xs text-slate-400">{formatDateShort(visitRecords[0]?.date || visitRecords[0]?.created_at)}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                visitRecords[0]?.source === 'clinic' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+              }`}>
+                {visitRecords[0]?.source === 'clinic' ? '병원 진료' : 'AI 진단'}
+              </span>
+              <span className="text-sm text-slate-700">{visitRecords[0]?.hospitalName || 'AI 진단'}</span>
+            </div>
+            <p className="text-sm text-slate-600">{visitRecords[0]?.diagnosis || '진단 정보 없음'}</p>
+            {visitRecords[0]?.medications?.length > 0 && (
+              <p className="text-xs text-slate-500 mt-2">
+                💊 처방약 {visitRecords[0].medications.length}개
+              </p>
+            )}
           </div>
-          <p className="text-sm text-slate-600">정기 검진 - 건강함</p>
-        </div>
+        )}
 
-        {/* 상세 기록 탭 (숨김 처리) */}
-        <div className="hidden">
-        {/* 방문이력 */}
+        {/* 탭 네비게이션 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="flex border-b border-slate-100 overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[80px] py-3 px-2 text-center transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-primary/5 text-primary border-b-2 border-primary'
+                    : 'text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg block mb-0.5">{tab.icon}</span>
+                <span className="text-xs font-medium">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="p-4">
+            {/* 방문이력 */}
         {activeTab === 'visits' && (
           <div className="space-y-4">
             {visitRecords.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-6xl mb-4">🏥</div>
+              <div className="text-center py-12">
+                <div className="text-5xl mb-4">🏥</div>
                 <p className="text-slate-500">방문 기록이 없습니다.</p>
+                <p className="text-slate-400 text-sm mt-1">AI 진단 후 병원을 방문하면 기록이 남아요</p>
               </div>
             ) : (
               visitRecords.map(record => (
                 <div
                   key={record.id}
                   onClick={() => onViewDiagnosis && onViewDiagnosis(record)}
-                  className="bg-surface-light rounded-lg p-4 shadow-soft cursor-pointer hover:border-primary/50 border border-transparent transition-all"
+                  className="bg-slate-50 rounded-xl p-4 cursor-pointer hover:bg-slate-100 transition-all"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-slate-500 text-sm mb-1">{formatDateShort(record.date || record.created_at)}</p>
-                      <h3 className="text-slate-900 font-bold text-base mb-1 font-display">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          record.source === 'clinic' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {record.source === 'clinic' ? '병원' : 'AI'}
+                        </span>
+                        <p className="text-slate-500 text-xs">{formatDateShort(record.date || record.created_at)}</p>
+                      </div>
+                      <h3 className="text-slate-900 font-bold text-base mb-1">
                         {record.hospitalName || 'AI 진단'}
                       </h3>
-                      {record.hospitalAddress && (
-                        <p className="text-slate-500 text-sm flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">location_on</span>
-                          {record.hospitalAddress}
-                        </p>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">medical_services</span>
-                      <span className="text-slate-500 text-sm">진료</span>
-                    </div>
+                    <span className="material-symbols-outlined text-slate-400">chevron_right</span>
                   </div>
+
                   {record.diagnosis && (
-                    <p className="text-slate-700 text-sm mt-2">
-                      <strong>진단:</strong> {record.diagnosis}
+                    <p className="text-slate-700 text-sm mb-2">
+                      {record.diagnosis}
                     </p>
                   )}
-                  <div className="flex items-center justify-end mt-3 text-primary text-sm font-medium">
-                    <span>상세보기</span>
-                    <span className="material-symbols-outlined text-sm">arrow_forward_ios</span>
-                  </div>
+
+                  {/* 병원 진료 결과 추가 정보 */}
+                  {record.source === 'clinic' && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {record.treatment && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
+                          <span className="material-symbols-outlined text-xs">healing</span>
+                          {record.treatment}
+                        </span>
+                      )}
+                      {record.medications?.length > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs">
+                          <span className="material-symbols-outlined text-xs">medication</span>
+                          처방약 {record.medications.length}개
+                        </span>
+                      )}
+                      {record.totalCost > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">
+                          💰 {record.totalCost.toLocaleString()}원
+                        </span>
+                      )}
+                      {record.nextVisitDate && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
+                          <span className="material-symbols-outlined text-xs">event</span>
+                          다음방문: {formatDateShort(record.nextVisitDate)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -389,67 +539,152 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
         {activeTab === 'medication' && (
           <div className="space-y-4">
             {/* 요약 정보 */}
-            <div className="bg-surface-light rounded-lg p-4 shadow-soft mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-green-500">check_circle</span>
-                  <span className="text-slate-700 text-sm">잘 듣는 약 {effectiveMeds}</span>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+              <h4 className="text-sm font-bold text-slate-700 mb-3">약품 피드백 현황</h4>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                  <span className="material-symbols-outlined text-green-500 text-2xl">check_circle</span>
+                  <p className="text-xl font-bold text-green-600 mt-1">{effectiveMeds}</p>
+                  <p className="text-xs text-slate-500">잘 맞는 약</p>
                 </div>
-                <span className="text-slate-500 text-sm">→</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-500">warning</span>
-                  <span className="text-slate-700 text-sm">부작용 있는 약 {sideEffectMeds}</span>
+                <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                  <span className="material-symbols-outlined text-red-500 text-2xl">warning</span>
+                  <p className="text-xl font-bold text-red-600 mt-1">{sideEffectMeds}</p>
+                  <p className="text-xs text-slate-500">부작용</p>
                 </div>
-                <span className="text-slate-500 text-sm">→</span>
+                <div className="bg-white rounded-lg p-3 text-center shadow-sm">
+                  <span className="material-symbols-outlined text-slate-400 text-2xl">pending</span>
+                  <p className="text-xl font-bold text-slate-600 mt-1">{pendingMeds}</p>
+                  <p className="text-xs text-slate-500">기록 필요</p>
+                </div>
               </div>
-            </div>
-
-            {/* 필터 버튼 */}
-            <div className="flex gap-2 mb-4">
-              <button className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium">
-                전체
-              </button>
-              <button className="px-4 py-2 bg-surface-light text-slate-600 rounded-lg text-sm font-medium">
-                기록 필요
-              </button>
+              <p className="text-xs text-slate-500 mt-3 text-center">
+                💡 약 효과를 기록하면 다음 병원 방문 시 수의사가 참고할 수 있어요
+              </p>
             </div>
 
             {medicationRecords.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-6xl mb-4">💊</div>
-                <p className="text-slate-500">의약품 기록이 없습니다.</p>
+              <div className="text-center py-12">
+                <div className="text-5xl mb-4">💊</div>
+                <p className="text-slate-500">처방받은 약이 없습니다.</p>
+                <p className="text-slate-400 text-sm mt-1">병원에서 처방받은 약이 자동으로 기록돼요</p>
               </div>
             ) : (
               medicationRecords.map(record => (
-                <div key={record.id} className="bg-surface-light rounded-lg p-4 shadow-soft">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="text-slate-500 text-sm mb-1">{formatDateShort(record.date || record.created_at)}</p>
-                      <p className="text-slate-900 font-bold text-base mb-1">
-                        {record.medications?.length > 0
-                          ? (record.medications.length > 1
-                              ? `${record.medications[0]} 외 ${record.medications.length - 1}개`
-                              : record.medications[0])
-                          : '처방전'}
-                      </p>
-                      <p className="text-slate-500 text-sm">
-                        {record.pharmacyName || 'AI 진단'} • {record.daysSupply || '3일분'}
-                      </p>
-                    </div>
-                    <span className="material-symbols-outlined text-slate-400">arrow_forward_ios</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors">
-                      <span className="material-symbols-outlined text-sm">check_circle</span>
-                      약이 잘 들었어요
-                    </button>
-                    <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors">
-                      <span className="material-symbols-outlined text-sm">warning</span>
-                      부작용이 있었어요
-                    </button>
-                  </div>
+                <div key={record.id} className="bg-slate-50 rounded-xl p-4">
+                  {/* 개별 약품 (병원 처방) */}
+                  {record.source === 'clinic' && (
+                    <>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                              병원 처방
+                            </span>
+                            <span className="text-xs text-slate-500">{formatDateShort(record.date)}</span>
+                          </div>
+                          <h4 className="text-slate-900 font-bold text-base">{record.name}</h4>
+                          <p className="text-slate-500 text-sm">{record.hospitalName}</p>
+                        </div>
+                        {/* 현재 피드백 상태 표시 */}
+                        {record.feedbackStatus === 'effective' && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">check</span>
+                            잘 맞음
+                          </span>
+                        )}
+                        {record.feedbackStatus === 'side_effect' && (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">warning</span>
+                            부작용
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 약품 상세 정보 */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {record.dosage && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            💉 {record.dosage}
+                          </span>
+                        )}
+                        {record.days && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            📅 {record.days}일분
+                          </span>
+                        )}
+                        {record.instructions && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            📝 {record.instructions}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 피드백 버튼 */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveMedicationFeedback(record.id, 'effective');
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            record.feedbackStatus === 'effective'
+                              ? 'bg-green-500 text-white shadow-md'
+                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">thumb_up</span>
+                          잘 맞았어요
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveMedicationFeedback(record.id, 'side_effect');
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            record.feedbackStatus === 'side_effect'
+                              ? 'bg-red-500 text-white shadow-md'
+                              : 'bg-red-50 text-red-700 hover:bg-red-100'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">thumb_down</span>
+                          부작용 있었어요
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* AI 진단 처방 (기존 형식) */}
+                  {record.source === 'ai' && (
+                    <>
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                              AI 권장
+                            </span>
+                            <span className="text-xs text-slate-500">{formatDateShort(record.date)}</span>
+                          </div>
+                          <p className="text-slate-900 font-bold text-base mb-1">
+                            {Array.isArray(record.medications) && record.medications.length > 0
+                              ? (record.medications.length > 1
+                                  ? `${typeof record.medications[0] === 'string' ? record.medications[0] : record.medications[0].name} 외 ${record.medications.length - 1}개`
+                                  : (typeof record.medications[0] === 'string' ? record.medications[0] : record.medications[0].name))
+                              : '처방 정보'}
+                          </p>
+                        </div>
+                      </div>
+                      {Array.isArray(record.medications) && record.medications.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {record.medications.map((med, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                              💊 {typeof med === 'string' ? med : med.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               ))
             )}
@@ -689,6 +924,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
             )}
           </div>
         )}
+          </div>
         </div>
       </div>
     </div>

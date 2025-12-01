@@ -219,17 +219,61 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     setBookingMessage('');
   };
 
+  // AI 진단서 첨부 여부
+  const [attachDiagnosis, setAttachDiagnosis] = useState(true);
+
   const handleConfirmBooking = () => {
     if (!bookingDate || !bookingTime) {
       alert('날짜와 시간을 선택해주세요.');
       return;
     }
 
+    // 반려동물 상세 정보
+    const petProfile = {
+      id: petData?.id,
+      name: petData?.petName || petData?.name,
+      species: petData?.species,
+      breed: petData?.breed,
+      birthDate: petData?.birthDate,
+      age: petData?.birthDate ? calculateAge(petData.birthDate) : petData?.age,
+      sex: petData?.sex,
+      neutered: petData?.neutered,
+      weight: petData?.weight,
+      allergies: petData?.allergies || [],
+      chronicConditions: petData?.chronicConditions || []
+    };
+
+    // AI 진단 상세 정보 (첨부 시)
+    const aiDiagnosisData = (attachDiagnosis && diagnosis) ? {
+      id: diagnosis.id,
+      createdAt: diagnosis.created_at || diagnosis.createdAt,
+      symptom: diagnosis.symptom || symptomData?.symptomText,
+      symptomTimeline: diagnosis.symptomTimeline,
+      // AI 진단 결과
+      diagnosis: diagnosis.diagnosis,
+      possibleDiseases: diagnosis.possible_diseases || [],
+      probability: diagnosis.probability,
+      // 응급도
+      triageScore: diagnosis.triage_score,
+      triageLevel: diagnosis.triage_level,
+      riskLevel: diagnosis.riskLevel || diagnosis.emergency,
+      hospitalVisitTime: diagnosis.hospitalVisitTime,
+      // 권장 조치
+      actions: diagnosis.actions || [],
+      ownerSheet: diagnosis.ownerSheet,
+      // 케어 가이드
+      careGuide: diagnosis.careGuide,
+      carePlan: diagnosis.carePlan,
+      // 건강 플래그
+      healthFlags: diagnosis.healthFlags
+    } : null;
+
     // 예약 정보 저장
     const bookingData = {
       id: 'booking_' + Date.now(),
       petId: petData?.id,
       petName: petData?.petName,
+      petProfile: petProfile, // 상세 펫 정보 추가
       hospital: {
         id: bookingHospital.id,
         name: bookingHospital.name,
@@ -241,7 +285,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       message: bookingMessage,
       status: 'pending', // pending, confirmed, cancelled
       createdAt: new Date().toISOString(),
-      diagnosisId: diagnosis?.id || null
+      diagnosisId: (attachDiagnosis && diagnosis) ? diagnosis.id : null,
+      aiDiagnosis: aiDiagnosisData // AI 진단 상세 데이터 포함
     };
 
     // localStorage에 저장
@@ -816,13 +861,62 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   />
                 </div>
 
-                {/* AI 진단서 포함 안내 */}
+                {/* AI 진단서 첨부 옵션 */}
                 {diagnosis && (
-                  <div className="bg-primary/10 rounded-lg p-3 mb-4 flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-sm mt-0.5">smart_toy</span>
-                    <p className="text-sm text-slate-700">
-                      AI 진단서가 함께 전송됩니다.
-                    </p>
+                  <div className="mb-4">
+                    <div
+                      className={`rounded-xl p-4 border-2 cursor-pointer transition-all ${
+                        attachDiagnosis
+                          ? 'border-primary bg-primary/5'
+                          : 'border-slate-200 bg-slate-50'
+                      }`}
+                      onClick={() => setAttachDiagnosis(!attachDiagnosis)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
+                          attachDiagnosis ? 'bg-primary' : 'bg-slate-200'
+                        }`}>
+                          {attachDiagnosis && (
+                            <span className="material-symbols-outlined text-white text-sm">check</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="material-symbols-outlined text-primary text-lg">description</span>
+                            <span className="font-bold text-slate-800">AI 사전 진단서 첨부</span>
+                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">권장</span>
+                          </div>
+                          <p className="text-sm text-slate-600 mb-2">
+                            병원에서 사전에 진료 계획을 세울 수 있어요
+                          </p>
+                          {attachDiagnosis && (
+                            <div className="bg-white rounded-lg p-3 space-y-2 text-sm">
+                              <div className="flex items-center gap-2 text-slate-700">
+                                <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                반려동물 기본 정보
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-700">
+                                <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                증상 및 타임라인
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-700">
+                                <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                AI 감별진단 (Top 3 의심 질환)
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-700">
+                                <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                                응급도 평가 및 권장 조치
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {!attachDiagnosis && (
+                      <p className="text-xs text-slate-500 mt-2 ml-1">
+                        ⚠️ 진단서 없이 예약하면 병원에서 증상을 다시 설명해야 할 수 있어요
+                      </p>
+                    )}
                   </div>
                 )}
 
