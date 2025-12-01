@@ -69,7 +69,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '접수 · 예약 센터',
       icon: '🏥',
       type: 'cs',
-      content: '증상 상담실로 안내해 드릴게요. 간호팀에서 자세한 증상을 여쭤볼 거예요.',
+      content: '증상 상담실로 안내해 드릴게요. 간호팀에서 자세한 증상을 확인할게요.',
       timestamp: Date.now()
     });
 

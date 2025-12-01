@@ -28,6 +28,7 @@ import { getApiKey, API_KEY_TYPES } from './src/services/apiKeyManager'
 import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from './src/components/Auth'
 import { OCRUpload } from './src/components/OCRUpload'
 import { ClinicAdmin } from './src/components/ClinicAdmin'
+import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
 import { diagnosisService, bookingService, petService } from './src/services/firestore'
 
@@ -3403,6 +3404,18 @@ function App() {
             console.log('의료 기록 저장됨:', record);
             // 필요시 상태 업데이트
           }}
+        />
+      )}
+
+      {/* AI 케어 문진 화면 */}
+      {currentView === 'ai-consultation' && petData && (
+        <AICareConsultation
+          petData={petData}
+          onBack={() => {
+            setCurrentView(null);
+            setCurrentTab('care');
+          }}
+          onHome={handleGoHome}
         />
       )}
 
