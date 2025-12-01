@@ -164,169 +164,127 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background-light flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6">
       {/* 로고 */}
       <div className="text-center mb-8">
-        <div className="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto mb-4 flex items-center justify-center">
-          <span className="text-5xl">🐾</span>
+        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg mx-auto mb-4 flex items-center justify-center">
+          <span className="text-4xl">🐾</span>
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 font-display">PetLink AI</h1>
-        <p className="text-slate-500 mt-2">반려동물 건강 관리의 시작</p>
+        <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
+        <p className="text-slate-500 mt-1 text-sm">반려동물 건강 관리의 시작</p>
       </div>
 
-      {/* 로그인 폼 */}
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">로그인</h2>
-
-        {/* 모드 선택 */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2 text-center">이용 모드 선택</label>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setUserMode('guardian')}
-              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
-                userMode === 'guardian'
-                  ? 'border-sky-500 bg-sky-50 text-sky-700'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
-              }`}
-            >
-              <span className="text-2xl">🐾</span>
-              <span className="font-semibold text-sm">보호자</span>
-              <span className="text-xs opacity-70">반려동물 관리</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserMode('clinic')}
-              className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
-                userMode === 'clinic'
-                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
-              }`}
-            >
-              <span className="text-2xl">🏥</span>
-              <span className="font-semibold text-sm">병원</span>
-              <span className="text-xs opacity-70">환자 예약 관리</span>
-            </button>
-          </div>
+      {/* 모드 선택 카드 */}
+      <div className="w-full max-w-sm mb-6">
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setUserMode('guardian')}
+            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-2 ${
+              userMode === 'guardian'
+                ? 'ring-2 ring-sky-500 bg-sky-50'
+                : 'hover:shadow-lg'
+            }`}
+          >
+            <span className="text-3xl">🐕</span>
+            <span className="font-bold text-slate-800">보호자</span>
+            <span className="text-xs text-slate-500">반려동물 건강 관리</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setUserMode('clinic')}
+            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-2 ${
+              userMode === 'clinic'
+                ? 'ring-2 ring-sky-500 bg-sky-50'
+                : 'hover:shadow-lg'
+            }`}
+          >
+            <span className="text-3xl">📋</span>
+            <span className="font-bold text-slate-800">병원</span>
+            <span className="text-xs text-slate-500">예약 및 환자 관리</span>
+          </button>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">이메일</label>
-            <input
-              type="email"
-              required
-              placeholder="example@email.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">비밀번호</label>
-            <input
-              type="password"
-              required
-              placeholder="비밀번호를 입력하세요"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-start gap-2">
-              <span className="material-symbols-outlined text-sm mt-0.5">error</span>
-              <span className="whitespace-pre-line">{error}</span>
-            </div>
+      {/* 이메일 로그인 버튼 */}
+      <div className="w-full max-w-sm">
+        <button
+          onClick={onGoToRegister}
+          disabled={loading}
+          className="w-full py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
+        >
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              로딩 중...
+            </>
+          ) : (
+            '이메일로 시작하기'
           )}
+        </button>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                로그인 중...
-              </>
-            ) : (
-              '로그인'
-            )}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-slate-500 text-sm">계정이 없으신가요?</p>
-          <button
-            onClick={onGoToRegister}
-            className="text-primary font-medium hover:underline mt-1"
-          >
-            회원가입하기
-          </button>
-        </div>
+        {error && (
+          <div className="mt-4 bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-start gap-2">
+            <span className="material-symbols-outlined text-sm mt-0.5">error</span>
+            <span className="whitespace-pre-line">{error}</span>
+          </div>
+        )}
 
         {/* 소셜 로그인 */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
+              <div className="w-full border-t border-slate-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-slate-400">또는</span>
+              <span className="px-3 bg-gradient-to-b from-sky-100 to-blue-50 text-slate-500">또는</span>
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
-            {/* 구글 로그인 버튼 */}
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-              <span className="font-medium text-slate-700">Google로 계속하기</span>
-            </button>
-
+          <div className="mt-4 flex gap-3">
             {/* 카카오 로그인 */}
             <button
               onClick={handleKakaoLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#FEE500] hover:bg-[#FDD835] transition-colors disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] transition-colors disabled:opacity-50 font-medium"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2.14282C6.26621 2.14282 1.61035 5.94196 1.61035 10.5715C1.61035 13.4547 3.38887 15.9903 6.11035 17.4761L5.15039 21.1904C5.08984 21.4285 5.35938 21.619 5.56641 21.4761L9.91504 18.6428C10.5938 18.7618 11.291 18.8237 12 18.8237C17.7338 18.8237 22.3896 15.0246 22.3896 10.395C22.3896 5.76539 17.7338 2.14282 12 2.14282Z" fill="#191919"/>
-              </svg>
-              <span className="font-medium text-slate-900">카카오로 계속하기</span>
+              <span className="text-lg">●</span>
+              <span className="text-slate-900 font-bold">카카오</span>
             </button>
 
-            {/* 네이버 로그인 (준비 중) */}
+            {/* 구글 로그인 버튼 */}
             <button
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-[#03C75A] hover:bg-[#02b351] transition-colors opacity-50 cursor-not-allowed"
-              disabled
-              title="준비 중"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-300 rounded-xl bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
-              <span className="text-white font-bold text-lg">N</span>
-              <span className="font-medium text-white">네이버로 계속하기</span>
+              <span className="text-lg font-bold text-blue-500">G</span>
+              <span className="font-bold text-slate-700">구글</span>
             </button>
-            <p className="text-xs text-slate-400 text-center">네이버 로그인은 준비 중입니다</p>
           </div>
+        </div>
+
+        {/* 회원가입 링크 */}
+        <div className="mt-8 text-center">
+          <span className="text-slate-500 text-sm">계정이 없으신가요? </span>
+          <button
+            onClick={onGoToRegister}
+            className="text-sky-600 font-bold text-sm hover:underline"
+          >
+            회원가입
+          </button>
         </div>
 
         {/* 테스트용 바로 입장 버튼 */}
         {onSkipLogin && (
-          <div className="mt-6 pt-4 border-t border-dashed border-slate-200">
+          <div className="mt-4">
             <button
               onClick={onSkipLogin}
-              className="w-full py-3 bg-slate-100 text-slate-600 font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-white/50 text-slate-600 font-medium rounded-xl hover:bg-white transition-colors flex items-center justify-center gap-2 border border-slate-200"
             >
               <span className="material-symbols-outlined text-sm">rocket_launch</span>
               로그인 없이 바로 입장하기
             </button>
-            <p className="text-xs text-slate-400 text-center mt-2">테스트 용도로만 사용하세요</p>
           </div>
         )}
       </div>
@@ -404,13 +362,13 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background-light flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6">
       {/* 로고 */}
       <div className="text-center mb-6">
-        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg mx-auto mb-3 flex items-center justify-center">
-          <span className="text-4xl">🐾</span>
+        <div className="w-16 h-16 bg-white rounded-2xl shadow-lg mx-auto mb-3 flex items-center justify-center">
+          <span className="text-3xl">🐾</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 font-display">회원가입</h1>
+        <h1 className="text-xl font-bold text-slate-900 font-display">회원가입</h1>
       </div>
 
       {/* 진행 상태 */}

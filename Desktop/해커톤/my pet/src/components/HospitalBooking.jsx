@@ -330,6 +330,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   if (!petData) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -338,7 +340,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
           <h2 className="text-xl font-bold text-gray-900 mb-2">반려동물을 등록해주세요</h2>
           <button
             onClick={onBack}
-            className="mt-4 bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors"
+            className="mt-4 bg-sky-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-sky-600 transition-colors"
           >
             돌아가기
           </button>
@@ -347,26 +349,25 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     );
   }
 
+  // 검색 필터링
+  const filteredHospitals = hospitals.filter(hospital =>
+    !searchQuery || hospital.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (hospital.address && hospital.address.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
-    <div className="page-container">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="page-header">
-        <div className="flex size-12 shrink-0 items-center text-slate-800">
-          <button onClick={onBack} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
-            <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+      <div className="bg-white px-4 py-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={onBack} className="text-slate-600">
+            <span className="text-sm">← 돌아가기</span>
           </button>
         </div>
-        <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">병원 찾기</h2>
-        <div className="flex size-12 shrink-0 items-center justify-end">
-          {onHome && (
-            <button onClick={onHome} className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
-              <span className="material-symbols-outlined text-2xl">home</span>
-            </button>
-          )}
-        </div>
+        <h1 className="text-xl font-bold text-slate-900">병원 찾기</h1>
       </div>
 
-      <div className="px-4 pt-2 pb-40 space-y-6">
+      <div className="px-4 pt-4 pb-24 space-y-4">
         {/* AI 진단 요약 카드 */}
         {diagnosis && (
           <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl shadow-soft border border-primary/20 overflow-hidden">
@@ -482,122 +483,107 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
           </div>
         )}
 
-        {/* 지도 및 병원 목록 */}
+        {/* 내 위치 기반 추천 섹션 */}
+        <div className="flex justify-between items-center">
+          <h3 className="font-bold text-slate-900">내 위치 기반 추천</h3>
+          <button className="text-sm text-sky-500 font-medium flex items-center gap-1">
+            📍 거리순
+          </button>
+        </div>
+
+        {/* 검색창 */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="병원명, 지역으로 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 pl-10 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+          />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+        </div>
+
+        {/* 병원 리스트 */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold text-slate-900 text-lg font-display flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">location_on</span>
-              내 주변 병원
-            </h3>
-            <button 
-              onClick={handleRefreshLocation}
-              className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-sm">refresh</span>
-              재검색
-            </button>
-          </div>
-
-          {/* 지도 영역 */}
-          <div className="bg-gray-100 rounded-2xl overflow-hidden h-[300px] relative shadow-inner border border-gray-200">
-            {mapLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
-                <p className="text-gray-500 text-sm">지도를 불러오는 중...</p>
-              </div>
-            )}
-            <div ref={mapContainerRef} className="w-full h-full"></div>
-          </div>
-
-          {/* 병원 리스트 */}
-          <div className="space-y-3">
-            {hospitals.length === 0 && !mapLoading ? (
-              <div className="text-center py-8 text-gray-500 bg-white rounded-2xl border border-gray-100">
-                주변에 동물병원을 찾을 수 없습니다.
-              </div>
-            ) : (
-              hospitals.map(hospital => (
-                <div key={hospital.id} className="bg-surface-light p-4 rounded-lg shadow-soft border border-slate-200 hover:border-primary/50 transition-all">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-slate-900 font-display">{hospital.name}</h4>
-                      <p className="text-xs text-slate-500 mt-1">{hospital.roadAddress || hospital.address}</p>
-                      
-                      {/* 평점 및 후기 */}
-                      {hospital.rating && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <div className="flex items-center gap-1">
-                            <span className="text-yellow-500 text-sm">⭐</span>
-                            <span className="font-bold text-slate-900 text-sm">{hospital.rating}</span>
-                          </div>
-                          {hospital.reviewCount > 0 && (
-                            <span className="text-xs text-slate-500">({hospital.reviewCount.toLocaleString()}개 후기)</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right ml-4">
-                      <span className="text-primary font-bold text-sm">{formatDistance(hospital.distance)}</span>
-                    </div>
+          {filteredHospitals.length === 0 && !mapLoading ? (
+            <div className="text-center py-8 text-gray-500 bg-white rounded-2xl border border-slate-100">
+              주변에 동물병원을 찾을 수 없습니다.
+            </div>
+          ) : (
+            filteredHospitals.map(hospital => (
+              <div key={hospital.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                {/* 병원명과 거리 */}
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
+                    <p className="text-xs text-slate-500 mt-1">{hospital.roadAddress || hospital.address}</p>
                   </div>
-                  
-                  <div className="flex gap-2 mb-3 flex-wrap">
-                    {hospital.is24Hours ? (
-                      <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold rounded-md">24시 응급</span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[10px] font-bold rounded-md">진료중</span>
-                    )}
-                    <span className="px-2 py-0.5 bg-gray-50 text-gray-500 text-[10px] rounded-md">{hospital.category}</span>
-                    {hospital.rating && hospital.rating >= 4.5 && (
-                      <span className="px-2 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded-md">⭐ 인기</span>
-                    )}
-                  </div>
-
-                  {/* 후기 요약 */}
-                  <div className="mb-4">
-                    {loadingReviews[hospital.id] ? (
-                      <div className="text-xs text-slate-400 flex items-center gap-1">
-                        <div className="w-3 h-3 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></div>
-                        후기 요약 생성 중...
-                      </div>
-                    ) : reviewSummaries[hospital.id] ? (
-                      <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 text-xs text-slate-700">
-                        <div className="font-medium mb-1 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-primary text-sm">rate_review</span>
-                          후기 요약
-                        </div>
-                        <p>{reviewSummaries[hospital.id]}</p>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => generateReviewSummary(hospital)}
-                        className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-sm">rate_review</span>
-                        후기 요약 보기
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    {hospital.phone && (
-                      <a 
-                        href={`tel:${hospital.phone}`}
-                        className="flex-1 py-2 text-center border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                      >
-                        📞 전화
-                      </a>
-                    )}
-                    <button 
-                      onClick={() => handleBookAppointment(hospital)}
-                      className="flex-1 py-2 text-center bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors"
-                    >
-                      예약하기
-                    </button>
-                  </div>
+                  <span className="text-sm text-slate-500">{formatDistance(hospital.distance)}</span>
                 </div>
-              ))
-            )}
-          </div>
+
+                {/* 평점 및 후기 */}
+                {hospital.rating && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-yellow-500">⭐</span>
+                    <span className="font-bold text-slate-900">{hospital.rating}</span>
+                    {hospital.reviewCount > 0 && (
+                      <span className="text-xs text-slate-500">({hospital.reviewCount.toLocaleString()}개 후기)</span>
+                    )}
+                  </div>
+                )}
+
+                {/* 태그 */}
+                <div className="flex gap-2 mb-3 flex-wrap">
+                  {hospital.is24Hours && (
+                    <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">24시 응급</span>
+                  )}
+                  <span className="px-2 py-1 bg-sky-100 text-sky-600 text-xs font-medium rounded">동물병원</span>
+                  {hospital.rating && hospital.rating >= 4.5 && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">⭐ 인기</span>
+                  )}
+                </div>
+
+                {/* 후기 요약 */}
+                <div className="mb-4">
+                  {loadingReviews[hospital.id] ? (
+                    <div className="text-xs text-slate-400 flex items-center gap-1">
+                      <div className="w-3 h-3 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></div>
+                      후기 요약 생성 중...
+                    </div>
+                  ) : reviewSummaries[hospital.id] ? (
+                    <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-700">
+                      <p>{reviewSummaries[hospital.id]}</p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => generateReviewSummary(hospital)}
+                      className="text-xs text-slate-500 hover:text-sky-500 font-medium flex items-center gap-1"
+                    >
+                      ▶ 후기 요약 보기
+                    </button>
+                  )}
+                </div>
+
+                {/* 버튼 */}
+                <div className="flex gap-2">
+                  {hospital.phone && (
+                    <a
+                      href={`tel:${hospital.phone}`}
+                      className="flex-1 py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      전화
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleBookAppointment(hospital)}
+                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors"
+                  >
+                    예약하기
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

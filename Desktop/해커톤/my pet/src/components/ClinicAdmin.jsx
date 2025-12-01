@@ -79,75 +79,57 @@ export function ClinicAdmin({ onBack, onLogout, onModeSwitch, onHome }) {
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-50">
       {/* 헤더 */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={onBack}
-            className="p-2 -ml-2 hover:bg-white/20 rounded-full transition"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
+      <div className="bg-white border-b border-slate-100">
+        <div className="flex items-center justify-between px-4 py-4">
+          <button onClick={onBack} className="text-slate-600">
+            <span className="text-sm">← 돌아가기</span>
           </button>
-          <div className="text-center">
-            <h1 className="text-lg font-bold">🏥 {clinicInfo.name}</h1>
-            <p className="text-xs text-emerald-100">병원 관리자 모드</p>
-          </div>
-          <div className="flex items-center gap-1">
-            {onHome && (
-              <button
-                onClick={onHome}
-                className="p-2 hover:bg-white/20 rounded-full transition"
-                title="홈으로"
-              >
-                <span className="material-symbols-outlined">home</span>
-              </button>
-            )}
+          <div className="flex items-center gap-2">
             {onModeSwitch && (
               <button
                 onClick={onModeSwitch}
-                className="p-2 hover:bg-white/20 rounded-full transition"
+                className="p-2 text-sky-500 hover:bg-sky-50 rounded-full transition"
                 title="보호자 모드로 전환"
               >
-                <span className="material-symbols-outlined">swap_horiz</span>
+                <span className="material-symbols-outlined text-xl">swap_horiz</span>
               </button>
             )}
             <button
               onClick={onLogout}
-              className="p-2 hover:bg-white/20 rounded-full transition"
+              className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition"
               title="로그아웃"
             >
-              <span className="material-symbols-outlined">logout</span>
+              <span className="material-symbols-outlined text-xl">logout</span>
             </button>
           </div>
+        </div>
+        <div className="px-4 pb-4">
+          <h1 className="text-xl font-bold text-slate-900">🏥 {clinicInfo.name}</h1>
+          <p className="text-sm text-slate-500 mt-1">병원 관리자 모드</p>
         </div>
 
         {/* 요약 카드 */}
         <div className="px-4 pb-4 grid grid-cols-3 gap-3">
-          <SummaryCard
-            icon="today"
-            label="오늘 예약"
-            value={todayBookings.length}
-            color="bg-white/20"
-          />
-          <SummaryCard
-            icon="pending"
-            label="확인 대기"
-            value={pendingBookings.length}
-            color="bg-amber-500/30"
-          />
-          <SummaryCard
-            icon="check_circle"
-            label="확정"
-            value={confirmedBookings.length}
-            color="bg-emerald-500/30"
-          />
+          <div className="bg-sky-50 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-sky-600">{todayBookings.length}</p>
+            <p className="text-xs text-slate-500">오늘 예약</p>
+          </div>
+          <div className="bg-amber-50 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-amber-600">{pendingBookings.length}</p>
+            <p className="text-xs text-slate-500">확인 대기</p>
+          </div>
+          <div className="bg-green-50 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-green-600">{confirmedBookings.length}</p>
+            <p className="text-xs text-slate-500">확정</p>
+          </div>
         </div>
       </div>
 
       {/* 탭 네비게이션 */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="flex">
+      <div className="bg-white border-b border-slate-100 sticky top-0 z-10 overflow-x-auto">
+        <div className="flex min-w-max">
           {[
             { id: 'today', label: '오늘 예약', icon: 'calendar_today' },
             { id: 'monthly', label: '이번달', icon: 'calendar_month' },
@@ -159,9 +141,9 @@ export function ClinicAdmin({ onBack, onLogout, onModeSwitch, onHome }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-center text-sm font-medium transition border-b-2 ${
+              className={`flex-1 min-w-[70px] py-3 text-center text-xs font-medium transition border-b-2 ${
                 activeTab === tab.id
-                  ? 'border-emerald-500 text-emerald-600'
+                  ? 'border-sky-500 text-sky-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -289,7 +271,6 @@ function TodayBookings({ bookings, allBookings, onSelectBooking, onUpdateStatus,
   return (
     <div className="space-y-3">
       <h2 className="font-bold text-slate-800 flex items-center gap-2">
-        <span className="material-symbols-outlined text-emerald-500">schedule</span>
         오늘의 진료 일정 ({sortedBookings.length}건)
       </h2>
 
@@ -312,23 +293,23 @@ function BookingCard({ booking, onClick, onConfirm, onComplete }) {
 
   return (
     <div
-      className="bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition"
+      className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden cursor-pointer hover:shadow-md transition"
       onClick={onClick}
     >
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-xl">
+            <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center text-xl">
               🐾
             </div>
             <div>
-              <p className="font-semibold text-slate-800">{booking.petName || '이름 없음'}</p>
+              <p className="font-bold text-slate-800">{booking.petName || '이름 없음'}</p>
               <p className="text-sm text-slate-500">
                 {booking.time || '시간 미정'} · {booking.hospital?.name || '병원 정보 없음'}
               </p>
             </div>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+          <span className={`px-2 py-1 rounded text-xs font-medium ${statusInfo.color}`}>
             {statusInfo.label}
           </span>
         </div>
@@ -344,7 +325,7 @@ function BookingCard({ booking, onClick, onConfirm, onComplete }) {
           {booking.status === 'pending' && (
             <button
               onClick={onConfirm}
-              className="flex-1 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition"
+              className="flex-1 py-2.5 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition"
             >
               예약 확정
             </button>
@@ -352,7 +333,7 @@ function BookingCard({ booking, onClick, onConfirm, onComplete }) {
           {(booking.status === 'confirmed' || booking.status === 'pending') && (
             <button
               onClick={onComplete}
-              className="flex-1 py-2 bg-sky-500 text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition"
+              className="flex-1 py-2.5 bg-sky-500 text-white text-sm font-bold rounded-xl hover:bg-sky-600 transition"
             >
               진료 완료
             </button>
@@ -363,8 +344,7 @@ function BookingCard({ booking, onClick, onConfirm, onComplete }) {
       {/* AI 진단 정보 표시 */}
       {booking.diagnosisId && (
         <div className="px-4 py-2 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
-          <span className="material-symbols-outlined text-amber-500 text-sm">auto_awesome</span>
-          <span className="text-xs text-amber-700">AI 사전 진단 정보 있음</span>
+          <span className="text-xs text-amber-700">✨ AI 사전 진단 정보 있음</span>
         </div>
       )}
     </div>
@@ -376,9 +356,7 @@ function PreVisitPackets({ bookings, onViewDetails }) {
   if (bookings.length === 0) {
     return (
       <div className="text-center py-12">
-        <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">
-          description
-        </span>
+        <div className="text-5xl mb-3">📋</div>
         <p className="text-slate-500">AI 사전 진단 정보가 없습니다</p>
         <p className="text-sm text-slate-400 mt-1">
           보호자가 AI 진단을 받고 예약하면 여기에 표시됩니다
@@ -399,8 +377,7 @@ function PreVisitPackets({ bookings, onViewDetails }) {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-bold text-slate-800 flex items-center gap-2">
-        <span className="material-symbols-outlined text-amber-500">auto_awesome</span>
+      <h2 className="font-bold text-slate-800">
         AI 사전 문진표 ({bookings.length}건)
       </h2>
 
@@ -409,29 +386,29 @@ function PreVisitPackets({ bookings, onViewDetails }) {
         return (
           <div
             key={booking.id}
-            className="bg-white rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition"
+            className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer hover:shadow-md transition"
             onClick={() => onViewDetails(booking)}
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-semibold text-slate-800">{booking.petName}</p>
+                <p className="font-bold text-slate-800">{booking.petName}</p>
                 <p className="text-sm text-slate-500">
                   예약일: {booking.date} {booking.time}
                 </p>
               </div>
-              <span className="material-symbols-outlined text-amber-500">chevron_right</span>
+              <span className="text-slate-400">→</span>
             </div>
 
             {diagnosis && (
-              <div className="mt-3 p-3 bg-amber-50 rounded-lg">
-                <p className="text-sm font-medium text-amber-800">AI 예비 진단</p>
-                <p className="text-sm text-amber-700 mt-1">
+              <div className="mt-3 p-3 bg-sky-50 rounded-xl">
+                <p className="text-sm font-bold text-sky-800">AI 예비 진단</p>
+                <p className="text-sm text-slate-600 mt-1">
                   {diagnosis.diagnosis?.primary || diagnosis.diagnosis || '진단 정보 없음'}
                 </p>
                 {diagnosis.symptoms && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {diagnosis.symptoms.slice(0, 3).map((s, i) => (
-                      <span key={i} className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded">
+                      <span key={i} className="px-2 py-1 bg-white text-slate-600 text-xs rounded">
                         {s}
                       </span>
                     ))}
@@ -466,9 +443,7 @@ function PatientManagement({ bookings }) {
   if (uniquePets.length === 0) {
     return (
       <div className="text-center py-12">
-        <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">
-          folder_shared
-        </span>
+        <div className="text-5xl mb-3">🐾</div>
         <p className="text-slate-500">등록된 환자가 없습니다</p>
       </div>
     );
@@ -476,15 +451,14 @@ function PatientManagement({ bookings }) {
 
   return (
     <div className="space-y-3">
-      <h2 className="font-bold text-slate-800 flex items-center gap-2">
-        <span className="material-symbols-outlined text-sky-500">pets</span>
+      <h2 className="font-bold text-slate-800">
         환자 목록 ({uniquePets.length}마리)
       </h2>
 
       {uniquePets.map((pet) => (
         <div
           key={pet.petId}
-          className="bg-white rounded-xl shadow-sm p-4"
+          className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -492,7 +466,7 @@ function PatientManagement({ bookings }) {
                 🐾
               </div>
               <div>
-                <p className="font-semibold text-slate-800">{pet.petName}</p>
+                <p className="font-bold text-slate-800">{pet.petName}</p>
                 <p className="text-xs text-slate-500">
                   방문 {pet.visitCount}회 · 최근 {pet.lastVisit || '기록 없음'}
                 </p>

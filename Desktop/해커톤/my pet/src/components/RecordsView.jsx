@@ -275,61 +275,68 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="flex items-center bg-background-light/80 p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex size-12 shrink-0 items-center text-slate-800">
-          <button onClick={onBack} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
-            <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+      <div className="bg-white px-4 py-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={onBack} className="text-slate-600">
+            <span className="text-sm">← 돌아가기</span>
           </button>
         </div>
-        <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">의료기록</h2>
-        <div className="flex shrink-0 items-center justify-end gap-1">
-          {onHome && (
-            <button
-              onClick={onHome}
-              className="p-2 text-slate-600 hover:bg-slate-100 rounded-full"
-              title="홈으로"
-            >
-              <span className="material-symbols-outlined text-2xl">home</span>
-            </button>
-          )}
-          {onOCR && (
-            <button
-              onClick={onOCR}
-              className="p-2 text-sky-600 hover:bg-sky-50 rounded-full"
-              title="문서 스캔"
-            >
-              <span className="material-symbols-outlined text-2xl">document_scanner</span>
-            </button>
-          )}
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-full">
-            <span className="material-symbols-outlined text-2xl">refresh</span>
-          </button>
+        <h1 className="text-xl font-bold text-slate-900">건강 기록</h1>
+      </div>
+
+      <div className="px-4 pt-4 pb-24 space-y-4">
+        {/* 일일 기록 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-slate-800">일일 기록</h3>
+            <span className="text-xs text-slate-400">{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">🍚</span>
+                <span className="text-[10px] text-slate-600">2회</span>
+              </div>
+              <span className="text-xs text-slate-500 mt-1">식사</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">💧</span>
+                <span className="text-[10px] text-slate-600">3회</span>
+              </div>
+              <span className="text-xs text-slate-500 mt-1">물</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">🚶</span>
+                <span className="text-[10px] text-slate-600">2회</span>
+              </div>
+              <span className="text-xs text-slate-500 mt-1">산책</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">💩</span>
+                <span className="text-[10px] text-slate-600">2회</span>
+              </div>
+              <span className="text-xs text-slate-500 mt-1">배변</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 px-4 pt-2 pb-2 overflow-x-auto bg-background-light">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg shrink-0 transition-colors ${
-              activeTab === tab.id
-                ? 'bg-slate-800 text-white'
-                : 'bg-surface-light text-slate-600'
-            }`}
-          >
-            <span className="material-symbols-outlined text-2xl">
-              {tab.icon}
-            </span>
-            <span className="text-xs font-medium">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+        {/* 병원 방문 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold text-slate-800">병원 방문</h3>
+            <span className="text-xs text-slate-400">{new Date(Date.now() - 86400000).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
+          </div>
+          <p className="text-sm text-slate-600">정기 검진 - 건강함</p>
+        </div>
 
-      <div className="px-4 pt-4 pb-40">
+        {/* 상세 기록 탭 (숨김 처리) */}
+        <div className="hidden">
         {/* 방문이력 */}
         {activeTab === 'visits' && (
           <div className="space-y-4">
@@ -682,6 +689,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome })
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

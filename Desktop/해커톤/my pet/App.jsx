@@ -750,326 +750,183 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   }
 
   return (
-    <div className="min-h-screen bg-background-light p-4">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="flex items-center bg-background-light/80 p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex size-12 shrink-0 items-center text-slate-800">
-          <button 
-            onClick={() => onNavigate('profile-list')} 
-            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full"
-          >
-            <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
-          </button>
-        </div>
-        <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">🐾 PetLink AI</h2>
-        <div className="flex size-12 shrink-0 items-center justify-end">
-          <button 
-            onClick={() => onNavigate('profile-list')}
-            className="text-sm font-medium text-primary hover:text-primary/80"
-          >
-            변경
-          </button>
-        </div>
+      <div className="bg-white px-4 py-6 border-b border-slate-100">
+        <h1 className="text-xl font-bold text-slate-900">환영합니다!</h1>
+        <p className="text-sm text-slate-500 mt-1">반려동물을 등록하고 AI 건강 관리를 시작하세요</p>
       </div>
-      
-      <div className="px-4 pt-2 pb-40">
-        {/* Pet Info Card */}
-        <div className="flex items-center gap-4 bg-surface-light p-4 rounded-lg shadow-soft min-h-[72px] mb-4">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-3xl overflow-hidden">
-            {petData.profileImage ? (
-              <img
-                src={petData.profileImage}
-                alt={petData.petName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              petData.species === 'dog' ? '🐕' : '🐈'
-            )}
-          </div>
-          <div className="flex-1">
-            <h2 className="font-bold text-slate-900 text-lg font-display">{petData.petName}</h2>
-            <p className="text-sm text-slate-500">{petData.breed || '품종 미등록'}, {calculateAge(petData.birthDate)}</p>
-          </div>
-        </div>
-        
-        {/* 디지털 트윈 아바타 - 귀여운 캐릭터 */}
-        <AnimatedContainer animation="scale-up" delay={0.1}>
-          <div className="bg-gradient-to-br from-sky-50 via-sky-100/50 to-blue-50 rounded-2xl p-6 shadow-lg mb-4 border border-sky-100 relative overflow-hidden">
-            {/* 배경 장식 */}
-            <div className="absolute top-2 right-2 text-2xl opacity-30 animate-bounce">✨</div>
-            <div className="absolute bottom-2 left-2 text-xl opacity-20">🐾</div>
 
-            <div className="flex items-center gap-6">
-              {/* 귀여운 캐릭터 */}
-              <CuteCharacter
-                pet={{
-                  name: petData.petName,
-                  species: petData.species,
-                  breed: petData.breed
-                }}
-                size="lg"
-                healthFlags={mergedFlags}
-                interactive={true}
-                showEffects={true}
-              />
-
-              {/* 상태 정보 */}
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-800 mb-2 font-display">{petData.petName}</h3>
-                <p className="text-sm text-gray-500 mb-3">{petData.breed || '품종 미등록'}</p>
-
-                {/* 건강 게이지 */}
-                <AnimatedProgress
-                  value={mergedFlags.energyLevel * 100}
-                  max={100}
-                  label="에너지 레벨"
-                  showValue={true}
-                />
-              </div>
-            </div>
-          </div>
-        </AnimatedContainer>
-        
-        {/* Health Status Badges */}
-        <div className="flex gap-3 px-4 pt-2 pb-2 overflow-x-auto mb-4">
-          {mergedFlags.earIssue && (
-            <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 px-4">
-              <p className="text-primary text-sm font-bold">👂 귀</p>
-            </div>
-          )}
-          {mergedFlags.digestionIssue && (
-            <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 px-4">
-              <p className="text-primary text-sm font-bold">🍽️ 소화</p>
-            </div>
-          )}
-          {mergedFlags.skinIssue && (
-            <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 px-4">
-              <p className="text-primary text-sm font-bold">🩹 피부</p>
-            </div>
-          )}
-          {mergedFlags.fever && (
-            <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/20 px-4">
-              <p className="text-primary text-sm font-bold">🌡️ 발열</p>
-            </div>
-          )}
-        </div>
-        
-        {/* 빠른 액션 버튼들 (작게) */}
-        <div className="flex gap-3 mb-6">
+      <div className="px-4 pt-4 pb-24">
+        {/* 기능 카드 3개 */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
           <button
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-500 text-white font-bold text-sm shadow-md hover:bg-sky-600 transition-all hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => onNavigate('symptom-input')}
+            className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex flex-col items-center gap-2 hover:shadow-md transition-shadow"
           >
-            <span className="text-lg">🩺</span>
-            <span>AI 진단</span>
+            <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
+              <span className="text-2xl">🧠</span>
+            </div>
+            <span className="text-xs font-bold text-slate-800">AI 증상 진단</span>
+            <span className="text-[10px] text-slate-500 text-center">증상을 입력하면 AI가<br/>분석해드립니다</span>
+            <span className="text-xs text-sky-500 font-medium mt-1">진단 시작 →</span>
           </button>
+
           <button
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white border-2 border-sky-400 text-sky-600 font-bold text-sm shadow-md hover:bg-sky-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => onNavigate('hospital')}
+            className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex flex-col items-center gap-2 hover:shadow-md transition-shadow"
           >
-            <span className="text-lg">🏥</span>
-            <span>병원 찾기</span>
+            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <span className="text-2xl">📅</span>
+            </div>
+            <span className="text-xs font-bold text-slate-800">병원 예약</span>
+            <span className="text-[10px] text-slate-500 text-center">근처 동물병원을 검색하고<br/>예약하세요</span>
+            <span className="text-xs text-green-500 font-medium mt-1">병원 찾기 →</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('records')}
+            className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex flex-col items-center gap-2 hover:shadow-md transition-shadow"
+          >
+            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+              <span className="text-2xl">📊</span>
+            </div>
+            <span className="text-xs font-bold text-slate-800">건강 기록</span>
+            <span className="text-[10px] text-slate-500 text-center">매일 먹은 및 건강 상태를<br/>기록하세요</span>
+            <span className="text-xs text-orange-500 font-medium mt-1">기록 보기 →</span>
           </button>
         </div>
 
-        {/* 오늘 케어 기록 (간소화) */}
-        <div className="bg-white rounded-2xl p-5 shadow-md mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <span>📋</span> 오늘 케어 기록
-            </h3>
-            <span className="text-xs text-slate-400">{new Date().toLocaleDateString('ko-KR')}</span>
+        {/* 반려동물 등록 카드 */}
+        {!petData ? (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h3>
+            <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
+            <button
+              onClick={() => onNavigate('profile-registration')}
+              className="w-full py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors"
+            >
+              반려동물 등록하기
+            </button>
           </div>
+        ) : (
+          <>
+            {/* Pet Info Card */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center text-3xl overflow-hidden">
+                  {petData.profileImage ? (
+                    <img
+                      src={petData.profileImage}
+                      alt={petData.petName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    petData.species === 'dog' ? '🐕' : '🐈'
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-bold text-slate-900 text-lg">{petData.petName}</h2>
+                  <p className="text-sm text-slate-500">{petData.breed || '품종 미등록'}, {calculateAge(petData.birthDate)}</p>
+                </div>
+                <button
+                  onClick={() => onNavigate('profile-list')}
+                  className="text-sm font-medium text-sky-500"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
 
-          {/* 케어 버튼 + 누적 횟수 */}
-          <div className="grid grid-cols-5 gap-2 mb-4">
-            <div className="flex flex-col items-center">
-              <button
-                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
-                onClick={() => {
-                  setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
-                  setHealthPoints(prev => {
-                    const newPoints = Math.min(100, prev + 5);
-                    if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                    return newPoints;
-                  });
-                  if (petData?.id) {
-                    const today = getTodayKey();
-                    const log = loadDailyLog(petData.id, today) || {};
-                    saveDailyLog(petData.id, { ...log, mealCount: (log.mealCount || 0) + 1 });
-                  }
-                }}
-              >🍚</button>
-              <span className="text-xs text-slate-600 mt-1">밥</span>
-              <span className="text-sm font-bold text-sky-600">{careActions.meal}회</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <button
-                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
-                onClick={() => {
-                  setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
-                  setHealthPoints(prev => {
-                    const newPoints = Math.min(100, prev + 3);
-                    if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                    return newPoints;
-                  });
-                  if (petData?.id) {
-                    const today = getTodayKey();
-                    const log = loadDailyLog(petData.id, today) || {};
-                    saveDailyLog(petData.id, { ...log, waterCount: (log.waterCount || 0) + 1 });
-                  }
-                }}
-              >💧</button>
-              <span className="text-xs text-slate-600 mt-1">물</span>
-              <span className="text-sm font-bold text-sky-600">{careActions.water}회</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <button
-                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
-                onClick={() => {
-                  setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
-                  setHealthPoints(prev => {
-                    const newPoints = Math.min(100, prev + 10);
-                    if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                    return newPoints;
-                  });
-                  if (petData?.id) {
-                    const today = getTodayKey();
-                    const log = loadDailyLog(petData.id, today) || {};
-                    saveDailyLog(petData.id, { ...log, walkCount: (log.walkCount || 0) + 1 });
-                  }
-                }}
-              >🚶</button>
-              <span className="text-xs text-slate-600 mt-1">산책</span>
-              <span className="text-sm font-bold text-sky-600">{careActions.walk}회</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <button
-                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
-                onClick={() => {
-                  setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
-                  setHealthPoints(prev => {
-                    const newPoints = Math.min(100, prev + 7);
-                    if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                    return newPoints;
-                  });
-                }}
-              >✨</button>
-              <span className="text-xs text-slate-600 mt-1">손질</span>
-              <span className="text-sm font-bold text-sky-600">{careActions.grooming}회</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <button
-                className="w-12 h-12 rounded-xl bg-sky-50 hover:bg-sky-100 flex items-center justify-center text-2xl transition-all hover:scale-110 active:scale-95"
-                onClick={() => {
-                  setCareActions(prev => ({ ...prev, play: prev.play + 1 }));
-                  setHealthPoints(prev => {
-                    const newPoints = Math.min(100, prev + 8);
-                    if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                    return newPoints;
-                  });
-                }}
-              >🎾</button>
-              <span className="text-xs text-slate-600 mt-1">놀이</span>
-              <span className="text-sm font-bold text-sky-600">{careActions.play}회</span>
-            </div>
-          </div>
+            {/* 일일 기록 카드 */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-slate-800">일일 기록</h3>
+                <span className="text-xs text-slate-400">{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
+              </div>
 
-          {/* 건강 포인트 바 */}
-          <div className="bg-sky-50 rounded-xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-slate-600">💙 건강 포인트</span>
-              <span className="text-sm font-bold text-sky-600">{healthPoints}%</span>
-            </div>
-            <div className="w-full h-2 bg-sky-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-sky-400 to-sky-500"
-                style={{ width: `${healthPoints}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 특이사항 메모 */}
-        <div className="bg-white rounded-2xl p-5 shadow-md mb-6">
-          <DailyCareLog pet={petData} />
-        </div>
-
-        {/* AI 패턴 분석 버튼 */}
-        <button
-          className="w-full py-4 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
-          onClick={handleAnalyzePattern}
-          disabled={analyzing}
-        >
-          <span className="text-xl">✨</span>
-          <span>{analyzing ? "AI가 패턴 분석 중..." : "AI로 7일 건강 패턴 분석하기"}</span>
-        </button>
-        
-        {/* 패턴 분석 결과 */}
-        {patternAnalysis && (patternAnalysis.patterns?.length > 0 || patternAnalysis.predictions?.length > 0) && (
-          <div className="mt-6 bg-surface-light rounded-lg p-4 shadow-soft border border-slate-200">
-            <h3 className="font-bold text-slate-900 mb-3 font-display flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary">smart_toy</span>
-              AI 건강 패턴 분석
-            </h3>
-            
-            {/* 패턴 변화 감지 */}
-            {patternAnalysis.patterns && patternAnalysis.patterns.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-primary text-base">trending_up</span>
-                  패턴 변화 감지
-                </h4>
-                <div className="space-y-2">
-                  {patternAnalysis.patterns.map((pattern, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-slate-600">
-                      <span className="material-symbols-outlined text-base mt-1 text-primary">check_circle</span>
-                      <p className="text-sm">{pattern}</p>
-                    </div>
-                  ))}
+              {/* 케어 버튼들 */}
+              <div className="grid grid-cols-4 gap-3">
+                <div className="flex flex-col items-center">
+                  <button
+                    className="w-14 h-14 rounded-xl bg-slate-50 hover:bg-sky-50 flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
+                      setHealthPoints(prev => {
+                        const newPoints = Math.min(100, prev + 5);
+                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                        return newPoints;
+                      });
+                    }}
+                  >
+                    <span className="text-xl">🍚</span>
+                    <span className="text-[10px] text-slate-600 mt-0.5">{careActions.meal}회</span>
+                  </button>
+                  <span className="text-xs text-slate-500 mt-1">식사</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <button
+                    className="w-14 h-14 rounded-xl bg-slate-50 hover:bg-sky-50 flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
+                      setHealthPoints(prev => {
+                        const newPoints = Math.min(100, prev + 3);
+                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                        return newPoints;
+                      });
+                    }}
+                  >
+                    <span className="text-xl">💧</span>
+                    <span className="text-[10px] text-slate-600 mt-0.5">{careActions.water}회</span>
+                  </button>
+                  <span className="text-xs text-slate-500 mt-1">물</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <button
+                    className="w-14 h-14 rounded-xl bg-slate-50 hover:bg-sky-50 flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
+                      setHealthPoints(prev => {
+                        const newPoints = Math.min(100, prev + 10);
+                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                        return newPoints;
+                      });
+                    }}
+                  >
+                    <span className="text-xl">🚶</span>
+                    <span className="text-[10px] text-slate-600 mt-0.5">{careActions.walk}회</span>
+                  </button>
+                  <span className="text-xs text-slate-500 mt-1">산책</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <button
+                    className="w-14 h-14 rounded-xl bg-slate-50 hover:bg-sky-50 flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
+                      setHealthPoints(prev => {
+                        const newPoints = Math.min(100, prev + 7);
+                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                        return newPoints;
+                      });
+                    }}
+                  >
+                    <span className="text-xl">💩</span>
+                    <span className="text-[10px] text-slate-600 mt-0.5">{careActions.grooming}회</span>
+                  </button>
+                  <span className="text-xs text-slate-500 mt-1">배변</span>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* 다음 3일 예측 */}
-            {patternAnalysis.predictions && patternAnalysis.predictions.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <h4 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-accent text-base">psychology</span>
-                  다음 3일 예측
-                </h4>
-                {patternAnalysis.predictions.map((pred, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-sm text-slate-600 mt-1">
-                    <span className="text-accent">→</span>
-                    <p>{pred}</p>
-                  </div>
-                ))}
+            {/* 병원 방문 기록 */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-slate-800">병원 방문</h3>
+                <span className="text-xs text-slate-400">{new Date(Date.now() - 86400000).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
               </div>
-            )}
-
-            {/* 위험도 변화 */}
-            {patternAnalysis.risk_changes && (
-              <div className={`mt-4 pt-4 border-t border-slate-200 rounded-lg p-3 ${
-                patternAnalysis.risk_changes.trend === 'up' ? 'bg-red-50 border-red-200' :
-                patternAnalysis.risk_changes.trend === 'down' ? 'bg-green-50 border-green-200' :
-                'bg-slate-50 border-slate-200'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`material-symbols-outlined text-base ${
-                    patternAnalysis.risk_changes.trend === 'up' ? 'text-red-600' :
-                    patternAnalysis.risk_changes.trend === 'down' ? 'text-green-600' :
-                    'text-slate-600'
-                  }`}>
-                    {patternAnalysis.risk_changes.trend === 'up' ? 'arrow_upward' :
-                     patternAnalysis.risk_changes.trend === 'down' ? 'arrow_downward' :
-                     'remove'}
-                  </span>
-                  <span className="text-sm font-bold text-slate-900">위험도 변화</span>
-                </div>
-                <p className="text-xs text-slate-700">{patternAnalysis.risk_changes.description}</p>
-              </div>
-            )}
-          </div>
+              <p className="text-sm text-slate-600">정기 검진 - 건강함</p>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -1108,7 +965,7 @@ function SymptomInput({ petData, onComplete, onBack }) {
     }
 
     setLoading(true);
-    
+
     // 증상 데이터를 진료 화면으로 전달
     setTimeout(() => {
       onComplete({
@@ -1119,96 +976,104 @@ function SymptomInput({ petData, onComplete, onBack }) {
     }, 500);
   };
 
+  // 증상 클릭 핸들러
+  const addSymptom = (symptom) => {
+    setSymptomText(prev => prev ? `${prev}, ${symptom}` : symptom);
+  };
+
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="flex items-center bg-background-light/80 p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex size-12 shrink-0 items-center text-slate-800">
-          <button onClick={onBack} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
-            <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+      <div className="bg-white px-4 py-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={onBack} className="text-slate-600">
+            <span className="text-sm">← 돌아가기</span>
           </button>
         </div>
-        <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">증상 입력</h2>
-        <div className="flex size-12 shrink-0 items-center justify-end"></div>
+        <h1 className="text-xl font-bold text-slate-900">AI 증상 진단</h1>
+        <p className="text-sm text-slate-500 mt-1">질문을 입력하면 AI가 증상을 분석합니다</p>
       </div>
 
-      <div className="px-4 pt-2 pb-40 space-y-6">
-        {/* Selected Pet Info */}
-        <div className="bg-surface-light p-4 rounded-lg shadow-soft flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-2xl">
-            {petData.species === 'dog' ? '🐕' : '🐈'}
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900 font-display">{petData.petName}</h3>
-            <p className="text-xs text-slate-500">{petData.breed}, {calculateAge(petData.birthDate)}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 font-display">어떤 증상이 있나요? *</label>
+      <div className="px-4 pt-6 pb-32">
+        {/* 증상 입력 영역 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
+          <h3 className="font-bold text-slate-800 mb-3">반려동물의 증상을 설명해주세요</h3>
           <textarea
-            className="w-full p-4 rounded-lg border border-slate-300 bg-slate-100 text-slate-900 focus:ring-primary focus:border-primary min-h-[150px] text-base"
-            placeholder="예: 어제부터 밥을 안 먹고 계속 누워만 있어요. 구토를 2번 했어요."
+            className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[120px] text-sm resize-none"
+            placeholder="예: 기침증상, 피부 발적, 무기력함"
             value={symptomText}
             onChange={(e) => setSymptomText(e.target.value)}
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 font-display">사진 첨부 (선택)</label>
-          <div className="grid grid-cols-3 gap-3">
-            <label className="aspect-square cursor-pointer flex flex-col items-center justify-center bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 hover:border-primary hover:bg-primary/10 transition-colors">
-              <span className="material-symbols-outlined text-3xl text-slate-400 mb-1">add_photo_alternate</span>
-              <span className="text-xs text-slate-500 font-medium">추가</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
-            
-            {images.map((img, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 group">
-                <img src={img} alt={`증상 ${index + 1}`} className="w-full h-full object-cover" />
-                <button 
-                  className="absolute top-1 right-1 w-6 h-6 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeImage(index)}
-                >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-            ))}
+        {/* 증상 선택 영역 */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* 일반적인 증상 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <h4 className="font-bold text-slate-800 mb-3 text-sm">일반적인 증상</h4>
+            <div className="space-y-2">
+              <button
+                onClick={() => addSymptom('식욕감소')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 식욕감소
+              </button>
+              <button
+                onClick={() => addSymptom('피부 발적')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 피부 발적
+              </button>
+              <button
+                onClick={() => addSymptom('무기력함')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 무기력함
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-primary/10 p-4 rounded-lg border border-primary/20 text-sm text-slate-700">
-          <p className="font-bold mb-1 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-lg">lightbulb</span>
-            팁
-          </p>
-          <p>증상이 시작된 시기, 빈도, 변화 양상을 자세히 적어주시면 AI가 더 정확하게 진단할 수 있습니다.</p>
+          {/* 행동 변화 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <h4 className="font-bold text-slate-800 mb-3 text-sm">행동 변화</h4>
+            <div className="space-y-2">
+              <button
+                onClick={() => addSymptom('식이활동 저하')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 식이활동 저하
+              </button>
+              <button
+                onClick={() => addSymptom('과식활동')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 과식활동
+              </button>
+              <button
+                onClick={() => addSymptom('배변이상')}
+                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-sky-50 rounded-lg transition-colors"
+              >
+                • 배변이상
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-slate-200 z-40">
-        <button 
+      <div className="fixed bottom-16 left-0 right-0 bg-white/95 backdrop-blur-sm p-4 border-t border-slate-100">
+        <button
           onClick={handleSubmit}
           disabled={loading || (!symptomText.trim() && images.length === 0)}
-          className="w-full bg-primary text-white py-4 px-6 rounded-lg font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/30"
+          className="w-full bg-sky-500 text-white py-4 px-6 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
         >
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              AI 진료실 연결 중...
+              AI 분석 중...
             </>
           ) : (
-            <>
-              AI 진료 시작
-              <span className="material-symbols-outlined text-xl">arrow_forward</span>
-            </>
+            'AI 분석하기'
           )}
         </button>
       </div>
