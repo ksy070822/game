@@ -1996,6 +1996,11 @@ ${userQuestion}
     return agentMessages[agentMessages.length - 1];
   };
 
+  // 에이전트 룸의 모든 메시지 가져오기
+  const getAgentRoomMessages = (room) => {
+    return messages.filter(m => m.agent === room.agentKey || m.type === room.id);
+  };
+
   const steps = [
     { label: '접수', icon: '1' },
     { label: '분석', icon: '2' },
@@ -2038,7 +2043,7 @@ ${userQuestion}
 
         {messages.length > 0 && agentRooms.map((room, index) => {
           const status = getAgentRoomStatus(room);
-          const lastMessage = getAgentRoomMessage(room);
+          const roomMessages = getAgentRoomMessages(room);
           const isActive = status === 'processing' || status === 'completed';
 
           // 아직 시작 안된 룸은 숨김
@@ -2073,7 +2078,7 @@ ${userQuestion}
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                marginBottom: isActive && lastMessage ? '12px' : '0'
+                marginBottom: isActive && roomMessages.length > 0 ? '12px' : '0'
               }}>
                 {/* 아이콘 */}
                 <div style={{
@@ -2197,32 +2202,45 @@ ${userQuestion}
                 </div>
               </div>
 
-              {/* 메시지 내용 (활성화된 경우만) */}
-              {isActive && lastMessage && (
+              {/* 대화 내용 (모든 메시지 표시) */}
+              {isActive && roomMessages.length > 0 && (
                 <div style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  fontSize: '14px',
-                  color: '#334155',
-                  lineHeight: '1.6',
-                  maxHeight: '120px',
-                  overflow: 'hidden',
-                  position: 'relative'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
                 }}>
-                  {lastMessage.content.split('\n').slice(0, 4).map((line, idx) => (
-                    <div key={idx} style={{ marginBottom: '4px' }}>{line}</div>
-                  ))}
-                  {lastMessage.content.split('\n').length > 4 && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: '30px',
-                      background: 'linear-gradient(transparent, rgba(255,255,255,0.9))'
-                    }}></div>
-                  )}
+                  {roomMessages.map((msg, msgIdx) => {
+                    const isUserMessage = msg.agent === '사용자';
+                    return (
+                      <div
+                        key={msgIdx}
+                        style={{
+                          background: isUserMessage ? 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)' : 'rgba(255,255,255,0.85)',
+                          borderRadius: '12px',
+                          padding: '10px 14px',
+                          fontSize: '14px',
+                          color: '#334155',
+                          lineHeight: '1.6',
+                          borderLeft: isUserMessage ? '3px solid #0ea5e9' : '3px solid #22c55e',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                        }}
+                      >
+                        {isUserMessage && (
+                          <div style={{
+                            fontSize: '11px',
+                            color: '#0369a1',
+                            fontWeight: '600',
+                            marginBottom: '4px'
+                          }}>
+                            👤 보호자
+                          </div>
+                        )}
+                        {msg.content.split('\n').map((line, lineIdx) => (
+                          <div key={lineIdx} style={{ marginBottom: line ? '4px' : '0' }}>{line}</div>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
