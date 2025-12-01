@@ -1070,28 +1070,101 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
 
-  // 동물별 진료과목
-  const DEPARTMENTS = {
-    dog: ['내과', '외과', '피부과', '안과', '치과', '정형외과', '신경과', '종양과'],
-    cat: ['내과', '외과', '피부과', '안과', '치과', '비뇨기과', '신경과'],
-    rabbit: ['내과', '피부과', '치과', '안과'],
-    hamster: ['내과', '피부과', '치과'],
-    bird: ['조류 전문', '내과', '피부과'],
-    hedgehog: ['특수동물과', '피부과', '내과'],
-    reptile: ['파충류 전문', '피부과', '내과'],
-    other: ['특수동물과', '내과', '외과']
+  // 진료과목 정보 (아이콘, 설명 포함)
+  const DEPARTMENT_INFO = {
+    '정형외과': { icon: '🦴', desc: '뼈, 관절, 근육 문제' },
+    '피부과': { icon: '🐾', desc: '피부, 털, 알레르기' },
+    '소화기과': { icon: '🐟', desc: '소화, 위장 문제' },
+    '호흡기과': { icon: '🫁', desc: '기침, 호흡 문제' },
+    '감염내과': { icon: '💉', desc: '감염, 바이러스' },
+    '내과': { icon: '💊', desc: '전반적 건강 문제' },
+    '외과': { icon: '🩹', desc: '상처, 수술 필요' },
+    '안과': { icon: '👁️', desc: '눈, 시력 문제' },
+    '치과': { icon: '🦷', desc: '치아, 잇몸 문제' },
+    '비뇨기과': { icon: '💧', desc: '배뇨, 신장 문제' },
+    '신경과': { icon: '🧠', desc: '발작, 마비, 행동이상' },
+    '종양과': { icon: '🔬', desc: '혹, 종양, 암' },
+    '조류 전문': { icon: '🐦', desc: '새 전문 진료' },
+    '특수동물과': { icon: '🦔', desc: '특수동물 전문' },
+    '파충류 전문': { icon: '🦎', desc: '파충류 전문 진료' }
   };
 
-  // 동물별 대표 증상
-  const COMMON_SYMPTOMS = {
-    dog: ['식욕감소', '구토', '설사', '기침', '피부 발적', '눈 충혈', '절뚝거림', '무기력', '체중 감소', '가려움증'],
-    cat: ['식욕감소', '구토', '설사', '기침', '재채기', '눈물/눈곱', '털 빠짐', '무기력', '배변 문제', '숨김 행동'],
-    rabbit: ['식욕감소', '설사', '배변 이상', '털 빠짐', '눈물', '콧물', '치아 문제', '무기력'],
-    hamster: ['식욕감소', '설사', '피부 문제', '털 빠짐', '눈 이상', '치아 문제', '무기력', '종양/혹'],
-    bird: ['깃털 빠짐', '식욕감소', '설사', '호흡 곤란', '무기력', '눈 이상', '발 문제', '부리 이상'],
-    hedgehog: ['식욕감소', '피부 문제', '가시 빠짐', '설사', '무기력', '진드기', '눈 이상'],
-    reptile: ['식욕감소', '피부 탈피 문제', '눈 이상', '설사', '무기력', '호흡 문제', '피부 변색'],
-    other: ['식욕감소', '설사', '피부 문제', '무기력', '호흡 문제', '눈 이상']
+  // 동물별 진료과목
+  const DEPARTMENTS = {
+    dog: ['정형외과', '피부과', '소화기과', '호흡기과', '감염내과', '안과', '치과', '비뇨기과', '신경과', '종양과'],
+    cat: ['내과', '외과', '피부과', '안과', '치과', '정형외과', '비뇨기과', '신경과', '종양과'],
+    rabbit: ['내과', '피부과', '치과', '안과', '소화기과'],
+    hamster: ['내과', '피부과', '치과', '종양과'],
+    bird: ['조류 전문', '내과', '피부과', '호흡기과'],
+    hedgehog: ['특수동물과', '피부과', '내과', '감염내과'],
+    reptile: ['파충류 전문', '피부과', '내과', '호흡기과'],
+    other: ['특수동물과', '내과', '외과', '피부과']
+  };
+
+  // 동물별/진료과별 대표 증상
+  const SYMPTOMS_BY_DEPT = {
+    dog: {
+      '내과': ['식욕 감소', '구토', '설사', '무기력', '체중 감소'],
+      '외과': ['절뚝거림', '통증(만지면 싫어함)', '상처/출혈', '행동 변화', '움직임 감소'],
+      '피부과': ['가려움증', '피부 발적', '털 빠짐', '비듬/각질', '피부 악취'],
+      '안과': ['눈 충혈', '눈곱 증가', '눈물 과다', '눈 찡그림', '시력 저하 의심'],
+      '치과': ['입 냄새', '딱딱한 음식 거부', '침 흘림', '잇몸 붉어짐', '입 주변 만지면 싫어함'],
+      '정형외과': ['절뚝거림', '관절 뻣뻣함', '뛰기/계단 거부', '뒷다리 약화', '갑자기 앉아버림'],
+      '비뇨기과': ['소변 자주 봄', '소변 줄기 약함', '배뇨 시 통증', '소변에 피', '화장실 자주 감'],
+      '신경과': ['뒤뚱거림', '발을 끌고 걷기', '경련/발작', '방향 감각 상실', '과도한 무기력'],
+      '종양과': ['만져지는 혹', '체중 감소', '식욕 감소', '피곤/무기력', '혈변'],
+      '소화기과': ['구토', '설사', '복부 팽만', '식욕 감소', '변비'],
+      '호흡기과': ['기침', '호흡 곤란', '코 분비물', '재채기', '숨소리 이상'],
+      '감염내과': ['발열', '무기력', '식욕 감소', '구토/설사', '림프절 부종']
+    },
+    cat: {
+      '내과': ['식욕 감소', '구토', '설사', '체중 감소', '탈수'],
+      '외과': ['절뚝거림', '점프 회피', '만지면 아파함', '상처/출혈', '활동량 급감'],
+      '피부과': ['가려움증', '털 빠짐', '비듬', '피부 발적', '과도한 그루밍'],
+      '안과': ['눈물/눈곱', '눈 충혈', '눈 부어보임', '눈 찡그림', '빛에 민감'],
+      '치과': ['침 흘림', '턱 만지면 싫어함', '입 냄새', '딱딱한 사료 거부', '한쪽으로 씹기'],
+      '정형외과': ['절뚝거림', '점프 감소', '뒷다리 약화', '계속 누워있음', '움직임 둔화'],
+      '비뇨기과': ['화장실 자주 감', '소변 잘 안 나옴', '소변할 때 울음', '소변에 피', '배 만지면 싫어함'],
+      '신경과': ['뒤뚱거리며 걸음', '균형 잃음', '비틀거림', '발작/경련', '숨고 이상행동'],
+      '종양과': ['만져지는 혹', '체중 감소', '식욕 감소', '핏빛 변/소변', '무기력']
+    },
+    rabbit: {
+      '내과': ['식욕 감소', '무기력', '체중 감소', '배변 감소', '코 분비물'],
+      '피부과': ['털 빠짐', '피부 각질', '귀 가려움', '발바닥 염증', '진드기'],
+      '치과': ['식욕 감소', '침 흘림', '턱 부종', '이갈이', '음식 흘림'],
+      '안과': ['눈물 과다', '눈곱', '눈 충혈', '눈꺼풀 부종', '눈 찡그림'],
+      '소화기과': ['설사', '변비', '복부 팽만', '식욕 감소', '이상한 변']
+    },
+    hamster: {
+      '내과': ['식욕 감소', '무기력', '체중 감소', '털 푸석', '숨기만 함'],
+      '피부과': ['털 빠짐', '피부 발적', '가려움', '딱지', '진드기'],
+      '치과': ['식욕 감소', '침 흘림', '이빨 과다성장', '입 주변 젖음', '음식 못 먹음'],
+      '종양과': ['만져지는 혹', '복부 팽만', '체중 감소', '무기력', '출혈']
+    },
+    bird: {
+      '조류 전문': ['깃털 빠짐', '식욕 감소', '무기력', '호흡 이상', '배변 이상'],
+      '내과': ['식욕 감소', '구토', '설사', '체중 감소', '무기력'],
+      '피부과': ['깃털 뽑기', '깃털 이상', '피부 발적', '발 이상', '부리 이상'],
+      '호흡기과': ['호흡 곤란', '입 벌리고 숨쉼', '코 분비물', '재채기', '소리 변화']
+    },
+    hedgehog: {
+      '특수동물과': ['식욕 감소', '무기력', '가시 빠짐', '피부 문제', '배변 이상'],
+      '피부과': ['가시 빠짐', '피부 각질', '진드기', '곰팡이', '피부 발적'],
+      '내과': ['식욕 감소', '체중 감소', '무기력', '설사', '구토'],
+      '감염내과': ['발열', '무기력', '식욕 감소', '콧물', '눈곱']
+    },
+    reptile: {
+      '파충류 전문': ['식욕 감소', '탈피 문제', '무기력', '호흡 이상', '배변 이상'],
+      '피부과': ['탈피 불완전', '피부 변색', '종기', '진드기', '곰팡이'],
+      '내과': ['식욕 감소', '체중 감소', '무기력', '구토', '설사'],
+      '호흡기과': ['입 벌리고 숨쉼', '콧물', '거품', '호흡음 이상', '무기력']
+    },
+    other: {
+      '특수동물과': ['식욕 감소', '무기력', '배변 이상', '피부 문제', '호흡 이상'],
+      '내과': ['식욕 감소', '구토', '설사', '무기력', '체중 감소'],
+      '외과': ['상처', '출혈', '부종', '통증', '움직임 이상'],
+      '피부과': ['털/피부 이상', '가려움', '발적', '탈모', '각질']
+    }
   };
 
   // 반려동물 등록 확인
@@ -1125,7 +1198,8 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
   }
 
   const currentDepartments = DEPARTMENTS[petData.species] || DEPARTMENTS.other;
-  const currentSymptoms = COMMON_SYMPTOMS[petData.species] || COMMON_SYMPTOMS.other;
+  const animalSymptoms = SYMPTOMS_BY_DEPT[petData.species] || SYMPTOMS_BY_DEPT.other;
+  const currentSymptoms = selectedDepartment ? (animalSymptoms[selectedDepartment] || []) : [];
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -1147,7 +1221,11 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
   };
 
   const handleSubmit = () => {
-    if (!symptomText.trim() && selectedSymptoms.length === 0 && images.length === 0) {
+    if (!selectedDepartment) {
+      alert('진료과목을 선택해주세요.');
+      return;
+    }
+    if (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0) {
       alert('증상을 선택하거나 설명해주세요.');
       return;
     }
@@ -1183,6 +1261,16 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
     );
   };
 
+  // 진료과목 선택 핸들러
+  const handleDepartmentSelect = (dept) => {
+    if (selectedDepartment === dept) {
+      setSelectedDepartment('');
+    } else {
+      setSelectedDepartment(dept);
+      setSelectedSymptoms([]); // 과목 바꾸면 증상 초기화
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -1193,69 +1281,82 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
           </button>
         </div>
         <h1 className="text-xl font-bold text-slate-900">AI 증상 진단</h1>
-        <p className="text-sm text-slate-500 mt-1">질문을 입력하면 AI가 증상을 분석합니다</p>
+        <p className="text-sm text-slate-500 mt-1">{petData.name}의 증상을 알려주세요</p>
       </div>
 
       <div className="px-4 pt-4 pb-32 space-y-4">
         {/* 진료과목 선택 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-3 text-sm">진료과목 선택</h3>
-          <div className="flex flex-wrap gap-2">
-            {currentDepartments.map(dept => (
-              <button
-                key={dept}
-                onClick={() => setSelectedDepartment(selectedDepartment === dept ? '' : dept)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedDepartment === dept
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {dept}
-              </button>
-            ))}
+          <h3 className="font-bold text-slate-800 mb-1 text-sm">어디가 불편해 보이나요? *</h3>
+          <p className="text-xs text-slate-500 mb-3">진료과목을 선택해주세요</p>
+          <div className="grid grid-cols-2 gap-2">
+            {currentDepartments.map(dept => {
+              const info = DEPARTMENT_INFO[dept] || { icon: '🏥', desc: '일반 진료' };
+              const isSelected = selectedDepartment === dept;
+              return (
+                <button
+                  key={dept}
+                  onClick={() => handleDepartmentSelect(dept)}
+                  className={`p-3 rounded-xl text-left transition-all border-2 ${
+                    isSelected
+                      ? 'bg-sky-50 border-sky-500'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{info.icon}</span>
+                    <span className={`font-bold text-sm ${isSelected ? 'text-sky-700' : 'text-slate-800'}`}>
+                      {dept}
+                    </span>
+                  </div>
+                  <p className={`text-xs ${isSelected ? 'text-sky-600' : 'text-slate-500'}`}>
+                    {info.desc}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 증상 선택 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-3 text-sm">
-            {petData.species === 'dog' ? '강아지' :
-             petData.species === 'cat' ? '고양이' :
-             petData.species === 'rabbit' ? '토끼' :
-             petData.species === 'hamster' ? '햄스터' :
-             petData.species === 'bird' ? '새' :
-             petData.species === 'hedgehog' ? '고슴도치' :
-             petData.species === 'reptile' ? '파충류' : '반려동물'} 대표 증상
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {currentSymptoms.map(symptom => (
-              <button
-                key={symptom}
-                onClick={() => toggleSymptom(symptom)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedSymptoms.includes(symptom)
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {symptom}
-              </button>
-            ))}
-          </div>
-          {selectedSymptoms.length > 0 && (
-            <div className="mt-3 p-3 bg-sky-50 rounded-lg">
-              <p className="text-xs text-sky-700">선택됨: {selectedSymptoms.join(', ')}</p>
+        {/* 증상 선택 - 진료과목 선택 후 표시 */}
+        {selectedDepartment && currentSymptoms.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <h3 className="font-bold text-slate-800 mb-1 text-sm">
+              {selectedDepartment} 관련 증상
+            </h3>
+            <p className="text-xs text-slate-500 mb-3">해당하는 증상을 모두 선택해주세요</p>
+            <div className="flex flex-wrap gap-2">
+              {currentSymptoms.map(symptom => (
+                <button
+                  key={symptom}
+                  onClick={() => toggleSymptom(symptom)}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
+                    selectedSymptoms.includes(symptom)
+                      ? 'bg-sky-500 text-white border-sky-500'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-sky-300'
+                  }`}
+                >
+                  {symptom}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+            {selectedSymptoms.length > 0 && (
+              <div className="mt-3 p-3 bg-sky-50 rounded-xl">
+                <p className="text-xs text-sky-700 font-medium">
+                  ✓ 선택됨: {selectedSymptoms.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 증상 상세 설명 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-3 text-sm">증상 상세 설명</h3>
+          <h3 className="font-bold text-slate-800 mb-1 text-sm">증상 상세 설명</h3>
+          <p className="text-xs text-slate-500 mb-3">추가로 설명하고 싶은 내용이 있다면 적어주세요</p>
           <textarea
-            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[100px] text-sm resize-none"
-            placeholder="증상에 대해 더 자세히 설명해주세요 (언제부터, 어떤 상황에서, 빈도 등)"
+            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[80px] text-sm resize-none"
+            placeholder="예: 3일 전부터 밥을 잘 안 먹고, 자꾸 구석에 숨어요..."
             value={symptomText}
             onChange={(e) => setSymptomText(e.target.value)}
           />
