@@ -81,7 +81,7 @@ ${symptomData.images?.length > 0 ? `사진 ${symptomData.images.length}장이 �
       const result = JSON.parse(jsonMatch[0]);
       return {
         json: result,
-        message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${petData.species === 'dog' ? '개' : '고양이'}\n• 품종: ${petData.breed || '미등록'}\n\n증상 요약: ${result.summary_kor}\n\n→ Information Agent에게 전달합니다.`
+        message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${petData.species === 'dog' ? '개' : '고양이'}\n• 품종: ${petData.breed || '미등록'}\n\n증상: ${result.summary_kor}\n\n증상 상담실로 안내해 드릴게요.`
       };
     }
     
@@ -100,7 +100,7 @@ ${symptomData.images?.length > 0 ? `사진 ${symptomData.images.length}장이 �
         missing_information: [],
         next_step_brief: 'AI 수의사에게 종합 진단을 받아보는 것이 좋겠습니다.'
       },
-      message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n→ Information Agent에게 전달합니다.`
+      message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n증상 상담실로 안내해 드릴게요.`
     };
   }
 };

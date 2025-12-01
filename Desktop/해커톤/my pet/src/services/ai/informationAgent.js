@@ -248,6 +248,6 @@ export const callInformationAgent = async (petData, symptomData, csSummary) => {
       related_past_cases_summary: '',
       notes_for_medical_agent: `증상 패턴 분석 완료. ${keywords.join(', ')} 관련 증상이 확인되었습니다. Medical Agent의 종합 진단을 기다립니다.`
     },
-    message: `증상 정보 수집 완료.\n${symptomData.images?.length > 0 ? '📷 이미지 분석: 증상 부위 확인 중...\n' : ''}🔎 유사 케이스 검색: 데이터베이스 검색 중...\n📋 이전 진료 기록: 관련 기록 확인 중...\n📊 증상 패턴 분석: AI 모델 분석 중...\n\n→ 분석 완료. Veterinarian Agent에게 전달합니다.`
+    message: `증상 정보 수집을 완료했어요.\n\n${symptomData.images?.length > 0 ? '📷 이미지에서 증상 부위를 확인했습니다.\n' : ''}🔎 유사 케이스를 검색했습니다.\n📊 증상 패턴 분석을 마쳤습니다.\n\n담당 수의사 선생님께 진료를 요청할게요.`
   };
 };

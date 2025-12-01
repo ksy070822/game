@@ -2078,78 +2078,74 @@ ${userQuestion}
               key={room.id}
               className={`agent-room-card ${status}`}
               style={{
-                background: status === 'completed' ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' :
-                           status === 'processing' ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' :
+                background: status === 'completed' ? 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' :
+                           status === 'processing' ? 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)' :
                            '#f8fafc',
-                borderRadius: '16px',
-                padding: '16px',
-                border: status === 'completed' ? '2px solid #22c55e' :
-                        status === 'processing' ? '2px solid #3b82f6' :
+                borderRadius: '12px',
+                padding: '12px',
+                border: status === 'completed' ? '1px solid #a7f3d0' :
+                        status === 'processing' ? '1px solid #c7d2fe' :
                         '1px solid #e2e8f0',
-                boxShadow: status === 'processing' ? '0 4px 12px rgba(59, 130, 246, 0.15)' :
-                          status === 'completed' ? '0 2px 8px rgba(34, 197, 94, 0.1)' :
-                          '0 1px 3px rgba(0,0,0,0.05)',
+                boxShadow: status === 'processing' ? '0 4px 12px rgba(99, 102, 241, 0.12)' :
+                          status === 'completed' ? '0 2px 8px rgba(16, 185, 129, 0.08)' :
+                          '0 1px 2px rgba(0,0,0,0.04)',
                 transition: 'all 0.3s ease',
-                opacity: status === 'pending' ? 0.5 : 1
+                opacity: status === 'pending' ? 0.6 : 1
               }}
             >
               {/* 카드 헤더 */}
               <div style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
+                alignItems: 'flex-start',
+                gap: '10px',
                 marginBottom: isActive && roomMessages.length > 0 ? '12px' : '0'
               }}>
                 {/* 아이콘 */}
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: status === 'completed' ? '#22c55e' :
-                             status === 'processing' ? '#3b82f6' :
-                             '#94a3b8',
+                  width: '40px',
+                  height: '40px',
+                  minWidth: '40px',
+                  borderRadius: '10px',
+                  background: status === 'completed' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' :
+                             status === 'processing' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' :
+                             '#cbd5e1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '24px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  fontSize: '20px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
                 }}>
                   {room.icon}
                 </div>
 
                 {/* 텍스트 */}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: '16px',
+                    fontSize: '14px',
                     fontWeight: '700',
                     color: '#1e293b',
-                    marginBottom: '2px'
+                    marginBottom: '2px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}>
                     {room.name}
                   </div>
                   <div style={{
-                    fontSize: '12px',
-                    color: status === 'completed' ? '#16a34a' : status === 'processing' ? '#2563eb' : '#64748b',
+                    fontSize: '11px',
+                    color: status === 'completed' ? '#059669' : status === 'processing' ? '#4f46e5' : '#64748b',
                     fontWeight: '500'
                   }}>
                     {room.role}
                   </div>
-                  {room.description && (
-                    <div style={{
-                      fontSize: '11px',
-                      color: '#94a3b8',
-                      marginTop: '2px'
-                    }}>
-                      {room.description}
-                    </div>
-                  )}
                 </div>
 
                 {/* 상태 표시 */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '4px',
+                  flexShrink: 0
                 }}>
                   {status === 'completed' && (
                     <>
@@ -2159,50 +2155,52 @@ ${userQuestion}
                           [room.id]: !prev[room.id]
                         }))}
                         style={{
-                          background: 'transparent',
-                          border: '1px solid #22c55e',
-                          color: '#22c55e',
-                          padding: '4px 10px',
-                          borderRadius: '16px',
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          border: 'none',
+                          color: '#059669',
+                          padding: '6px 10px',
+                          borderRadius: '8px',
                           fontSize: '11px',
                           fontWeight: '600',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '3px',
                           transition: 'all 0.2s ease'
                         }}
                       >
-                        {expandedRooms[room.id] ? '▲ 접기' : '▼ 펼치기'}
+                        {expandedRooms[room.id] ? '▲' : '▼'}
                       </button>
                       <div style={{
-                        background: '#22c55e',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                         color: 'white',
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
+                        padding: '6px 10px',
+                        borderRadius: '8px',
+                        fontSize: '11px',
                         fontWeight: '600',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px'
+                        gap: '3px',
+                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
                       }}>
-                        <span>✓</span> 완료
+                        ✓ 완료
                       </div>
                     </>
                   )}
                   {status === 'processing' && (
                     <div style={{
-                      background: '#3b82f6',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                       color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: '600',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '5px',
+                      boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
                     }}>
-                      <div className="typing-dots" style={{ display: 'flex', gap: '3px' }}>
+                      <div className="typing-dots" style={{ display: 'flex', gap: '2px' }}>
                         <div style={{
                           width: '4px',
                           height: '4px',
@@ -2233,14 +2231,14 @@ ${userQuestion}
                   )}
                   {status === 'pending' && (
                     <div style={{
-                      background: '#e2e8f0',
-                      color: '#64748b',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
+                      background: '#f1f5f9',
+                      color: '#94a3b8',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
                       fontWeight: '600'
                     }}>
-                      대기중
+                      대기
                     </div>
                   )}
                 </div>
@@ -2251,10 +2249,10 @@ ${userQuestion}
                 <div style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px',
-                  marginTop: '12px',
-                  paddingTop: '12px',
-                  borderTop: '1px solid rgba(0,0,0,0.08)'
+                  gap: '6px',
+                  marginTop: '10px',
+                  paddingTop: '10px',
+                  borderTop: '1px solid rgba(0,0,0,0.06)'
                 }}>
                   {roomMessages.map((msg, msgIdx) => {
                     const isUserMessage = msg.agent === '사용자';
@@ -2262,28 +2260,28 @@ ${userQuestion}
                       <div
                         key={msgIdx}
                         style={{
-                          background: isUserMessage ? 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)' : 'rgba(255,255,255,0.85)',
-                          borderRadius: '12px',
-                          padding: '10px 14px',
-                          fontSize: '14px',
+                          background: isUserMessage ? 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)' : 'rgba(255,255,255,0.9)',
+                          borderRadius: '10px',
+                          padding: '8px 12px',
+                          fontSize: '13px',
                           color: '#334155',
-                          lineHeight: '1.6',
-                          borderLeft: isUserMessage ? '3px solid #0ea5e9' : '3px solid #22c55e',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                          lineHeight: '1.5',
+                          borderLeft: isUserMessage ? '3px solid #0ea5e9' : '3px solid #10b981',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                         }}
                       >
                         {isUserMessage && (
                           <div style={{
-                            fontSize: '11px',
+                            fontSize: '10px',
                             color: '#0369a1',
                             fontWeight: '600',
-                            marginBottom: '4px'
+                            marginBottom: '3px'
                           }}>
-                            👤 보호자
+                            보호자
                           </div>
                         )}
                         {msg.content.split('\n').map((line, lineIdx) => (
-                          <div key={lineIdx} style={{ marginBottom: line ? '4px' : '0' }}>{line}</div>
+                          <div key={lineIdx} style={{ marginBottom: line ? '3px' : '0' }}>{line}</div>
                         ))}
                       </div>
                     );
@@ -2295,14 +2293,14 @@ ${userQuestion}
               {status === 'completed' && roomMessages.length > 0 && !expandedRooms[room.id] && (
                 <div style={{
                   marginTop: '8px',
-                  padding: '8px 12px',
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  color: '#16a34a',
+                  padding: '6px 10px',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#059669',
                   fontWeight: '500'
                 }}>
-                  ✓ {roomMessages.length}개의 메시지 (클릭하여 상세 내용 확인)
+                  {roomMessages.length}개의 대화 내용이 있어요
                 </div>
               )}
             </div>

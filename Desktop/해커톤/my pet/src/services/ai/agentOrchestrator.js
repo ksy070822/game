@@ -68,7 +68,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '접수 · 예약 센터',
       icon: '🏥',
       type: 'cs',
-      content: '🔍 증상 사전 상담실로 이관합니다. 간호팀에서 초기 상담 진행해 주세요.',
+      content: '증상 상담실로 안내해 드릴게요. 간호팀에서 자세한 증상을 여쭤볼 거예요.',
       timestamp: Date.now()
     });
 
@@ -106,7 +106,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '증상 사전 상담실',
       icon: '💉',
       type: 'info',
-      content: '👨‍⚕️ 초기 증상 평가 완료했습니다. 담당 수의사 선생님께 진료 의뢰드립니다.',
+      content: '초기 상담을 마쳤어요. 이제 담당 수의사 선생님께서 직접 진찰해 주실 거예요.',
       timestamp: Date.now()
     });
 
@@ -144,7 +144,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '전문 진료실',
       icon: '👨‍⚕️',
       type: 'medical',
-      content: '🚨 응급의학팀에 위급도 평가 요청드립니다. 진단 소견 전달해 드릴게요.',
+      content: '진찰을 마쳤습니다. 응급의학팀에서 위급도를 평가해 드릴게요.',
       timestamp: Date.now()
     });
 
@@ -218,7 +218,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '치료 계획 수립실',
       icon: '📋',
       type: 'data',
-      content: '💊 Pet 약국으로 처방 정보 전달합니다. 복용 안내 부탁드려요.',
+      content: '치료 계획을 세웠어요. 약국에서 처방약과 복용법을 안내해 드릴게요.',
       timestamp: Date.now()
     });
 
@@ -261,7 +261,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '처방 · 약물 관리실',
       icon: '💊',
       type: 'care',
-      content: '📄 진료 요약실로 케어 정보 전달합니다. 최종 요약 부탁드려요.',
+      content: '약 안내를 마쳤어요. 진료 요약실에서 전체 내용을 정리해 드릴게요.',
       timestamp: Date.now()
     });
 
