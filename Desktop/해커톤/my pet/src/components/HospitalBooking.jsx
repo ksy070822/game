@@ -911,13 +911,9 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     href="https://service.kakaomobility.com/launch/kakaot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-2.5 text-center bg-[#1E1B4B] text-white rounded-xl text-sm font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-1"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="24" height="24" rx="4" fill="#1E1B4B"/>
-                      <path d="M4 7H20V9H4V7Z" fill="#FACC15"/>
-                      <path d="M10 9H14V20H10V9Z" fill="#FACC15"/>
-                    </svg>
+                    <span className="text-[#FACC15] font-black">T</span>
                     펫택시
                   </a>
                   <button
@@ -1060,24 +1056,26 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     <div
                       className={`rounded-xl p-4 border-2 cursor-pointer transition-all ${
                         attachDiagnosis
-                          ? 'border-primary bg-primary/5'
-                          : 'border-slate-200 bg-slate-50'
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                          : 'border-slate-300 bg-slate-50'
                       }`}
                       onClick={() => setAttachDiagnosis(!attachDiagnosis)}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
-                          attachDiagnosis ? 'bg-primary' : 'bg-slate-200'
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center border-2 ${
+                          attachDiagnosis ? 'bg-primary border-primary' : 'bg-white border-slate-300'
                         }`}>
-                          {attachDiagnosis && (
-                            <span className="material-symbols-outlined text-white text-sm">check</span>
+                          {attachDiagnosis ? (
+                            <span className="material-symbols-outlined text-white text-lg font-bold">check</span>
+                          ) : (
+                            <span className="w-4 h-4"></span>
                           )}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="material-symbols-outlined text-primary text-lg">description</span>
                             <span className="font-bold text-slate-800">AI 사전 진단서 첨부</span>
-                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">권장</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${attachDiagnosis ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{attachDiagnosis ? '✓ 첨부됨' : '권장'}</span>
                           </div>
                           <p className="text-sm text-slate-600 mb-2">
                             병원에서 사전에 진료 계획을 세울 수 있어요

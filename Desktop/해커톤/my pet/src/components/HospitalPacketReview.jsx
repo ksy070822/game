@@ -157,6 +157,24 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
           </div>
         </div>
 
+        {/* AI 진단명 (주요 질환) */}
+        {diagnosis.possible_diseases && diagnosis.possible_diseases.length > 0 && (
+          <div className="mb-6 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined">diagnosis</span>
+              <span className="font-bold">AI 진단명</span>
+            </div>
+            <p className="text-2xl font-bold">
+              {diagnosis.possible_diseases[0]?.name || diagnosis.possible_diseases[0]}
+            </p>
+            {diagnosis.possible_diseases[0]?.probability && (
+              <p className="text-white/80 text-sm mt-1">
+                AI 예측 확률: {diagnosis.possible_diseases[0].probability}%
+              </p>
+            )}
+          </div>
+        )}
+
         {/* 방문 이유 & 증상 타임라인 */}
         {diagnosis.symptom && (
           <div className="mb-6 rounded-lg bg-surface-light p-4 shadow-soft">

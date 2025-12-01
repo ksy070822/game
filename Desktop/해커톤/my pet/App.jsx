@@ -876,7 +876,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       {/* Header */}
       <div className="bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-6">
         <p className="text-sky-100 text-xs font-medium mb-1">🐾 PetMedical.AI</p>
-        <h1 className="text-xl font-bold text-white">PetMedical.AI에 오신 것을 환영합니다</h1>
+        <h1 className="text-xl font-bold text-white">{petData?.petName || petData?.name || '보호자'}님 입장하셨습니다</h1>
         <p className="text-sm text-sky-100 mt-1">AI 기반 반려동물 건강 관리 서비스</p>
       </div>
 
@@ -3383,11 +3383,7 @@ function App() {
                     rel="noopener noreferrer"
                     className="flex-1 py-3 bg-[#1E1B4B] text-white font-bold rounded-lg hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-2"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <rect width="24" height="24" rx="4" fill="#1E1B4B"/>
-                      <path d="M4 7H20V9H4V7Z" fill="#FACC15"/>
-                      <path d="M10 9H14V20H10V9Z" fill="#FACC15"/>
-                    </svg>
+                    <span className="text-[#FACC15] font-black text-lg">T</span>
                     펫택시
                   </a>
                 </div>
