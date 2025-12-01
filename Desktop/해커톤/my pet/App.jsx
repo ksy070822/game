@@ -1585,7 +1585,11 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [expandedRooms, setExpandedRooms] = useState({}); // 완료된 룸의 상세보기 확장 상태
+  const [expandedRooms, setExpandedRooms] = useState({
+    medical: true,  // 전문진료실 - 기본 펼침
+    triage: true,   // 응급도판정실 - 기본 펼침
+    care: true      // 처방약물관리실 - 기본 펼침
+  }); // 완료된 룸의 상세보기 확장 상태
   const [diagnosisResult, setDiagnosisResult] = useState(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const [userInput, setUserInput] = useState('');
