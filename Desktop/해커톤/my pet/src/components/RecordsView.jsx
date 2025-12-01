@@ -43,27 +43,59 @@ const DUMMY_VISITS = [
   }
 ];
 
-// 더미 데이터 - 의약품
+// 더미 데이터 - 의약품 (모가 샘플 데이터 포함)
 const DUMMY_MEDICATIONS = [
   {
     id: 'med_1',
-    date: '2024-11-15',
-    medications: ['아포퀠정 16mg', '피부영양제', '소염연고'],
+    date: '2024-11-28',
+    medications: ['피부연고 (히드로코르티손)', '항히스타민제'],
     pharmacyName: '행복한동물병원',
-    daysSupply: '14일분',
-    status: 'effective'
-  },
-  {
-    id: 'med_2',
-    date: '2024-10-20',
-    medications: ['프로바이오틱스', '장영양제', '지사제'],
-    pharmacyName: '24시 강남동물의료센터',
     daysSupply: '7일분',
     status: 'effective'
   },
   {
+    id: 'med_2',
+    date: '2024-11-20',
+    medications: ['아목시실린 (항생제)', '소염진통제'],
+    pharmacyName: '24시 강남동물의료센터',
+    daysSupply: '5일분',
+    status: 'effective'
+  },
+  {
     id: 'med_3',
-    date: '2024-08-10',
+    date: '2024-11-15',
+    medications: ['감기약 (콧물/기침)', '면역강화제'],
+    pharmacyName: '행복한동물병원',
+    daysSupply: '3일분',
+    status: 'side_effect'
+  },
+  {
+    id: 'med_4',
+    date: '2024-11-10',
+    medications: ['귀연고 (항균)', '귀세정제'],
+    pharmacyName: '24시 강남동물의료센터',
+    daysSupply: '10일분',
+    status: 'effective'
+  },
+  {
+    id: 'med_5',
+    date: '2024-11-05',
+    medications: ['프로바이오틱스', '장영양제'],
+    pharmacyName: '행복한동물병원',
+    daysSupply: '14일분',
+    status: 'none'
+  },
+  {
+    id: 'med_6',
+    date: '2024-10-28',
+    medications: ['안연고 (항생제)', '인공눈물'],
+    pharmacyName: '24시 강남동물의료센터',
+    daysSupply: '7일분',
+    status: 'none'
+  },
+  {
+    id: 'med_7',
+    date: '2024-10-15',
     medications: ['넥스가드 스펙트라'],
     pharmacyName: '행복한동물병원',
     daysSupply: '1회분',

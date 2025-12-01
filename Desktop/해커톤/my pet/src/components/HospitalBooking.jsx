@@ -272,8 +272,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     }
   };
 
-  // AI 진단서 첨부 여부
-  const [attachDiagnosis, setAttachDiagnosis] = useState(true);
+  // AI 진단서 첨부 여부 (디폴트: 해제)
+  const [attachDiagnosis, setAttachDiagnosis] = useState(false);
 
   const handleConfirmBooking = async () => {
     if (!bookingDate || !bookingTime) {
@@ -886,7 +886,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   )}
                 </div>
 
-                {/* 버튼 */}
+                {/* 버튼 - 순서: 전화, 예약하기, 길찾기, 펫택시 */}
                 <div className="flex gap-2">
                   {hospital.phone && (
                     <a
@@ -896,6 +896,12 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                       📞 전화
                     </a>
                   )}
+                  <button
+                    onClick={() => handleBookAppointment(hospital)}
+                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors"
+                  >
+                    예약하기
+                  </button>
                   <a
                     href={userLocation
                       ? `https://map.kakao.com/link/from/내위치,${userLocation.lat},${userLocation.lng}/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`
@@ -916,12 +922,6 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     <span className="text-[#FACC15] font-black">T</span>
                     펫택시
                   </a>
-                  <button
-                    onClick={() => handleBookAppointment(hospital)}
-                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors"
-                  >
-                    예약하기
-                  </button>
                 </div>
               </div>
             ))

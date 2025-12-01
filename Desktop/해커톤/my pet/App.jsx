@@ -875,8 +875,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-6">
-        <p className="text-sky-100 text-xs font-medium mb-1">🐾 PetMedical.AI</p>
-        <h1 className="text-xl font-bold text-white">{petData?.petName || petData?.name || '보호자'}님 입장하셨습니다</h1>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-3xl">🐾</span>
+          <span className="text-white text-xl font-bold">PetMedical.AI</span>
+        </div>
+        <h1 className="text-lg font-bold text-white">{petData?.petName || petData?.name || '보호자'}님 입장하셨습니다</h1>
         <p className="text-sm text-sky-100 mt-1">AI 기반 반려동물 건강 관리 서비스</p>
       </div>
 
@@ -3193,6 +3196,12 @@ function App() {
           petData={petData}
           hospital={selectedHospital}
           onBack={() => {
+            setCurrentView(null);
+            setCurrentTab('care');
+            setSelectedHospital(null);
+            setHospitalPacket(null);
+          }}
+          onHome={() => {
             setCurrentView(null);
             setCurrentTab('care');
             setSelectedHospital(null);

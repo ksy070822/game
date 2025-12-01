@@ -30,6 +30,9 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false); // 이메일 로그인 폼 표시 여부
+  const [showPasswordReset, setShowPasswordReset] = useState(false); // 비밀번호 찾기 폼 표시
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   // 페이지 로드 시 리다이렉트 결과 확인 (모바일 구글/카카오 로그인)
   useEffect(() => {
@@ -102,6 +105,25 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       // 사용자 모드 업데이트
       await authService.updateUserMode(result.user.uid, userMode);
       onLogin({ ...result.user, userMode });
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  // 비밀번호 재설정 핸들러
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setError('이메일을 입력해주세요.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+
+    const result = await authService.sendPasswordReset(resetEmail);
+    if (result.success) {
+      setResetSuccess(true);
     } else {
       setError(result.error);
     }
@@ -227,6 +249,62 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
               '이메일로 시작하기'
             )}
           </button>
+        ) : showPasswordReset ? (
+          /* 비밀번호 찾기 폼 */
+          <div className="space-y-4">
+            {resetSuccess ? (
+              <div className="text-center py-6">
+                <div className="text-5xl mb-4">📧</div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">이메일을 확인해주세요</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  {resetEmail}로 비밀번호 재설정 링크를 보냈습니다.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowPasswordReset(false);
+                    setResetSuccess(false);
+                    setResetEmail('');
+                  }}
+                  className="w-full py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors"
+                >
+                  로그인으로 돌아가기
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handlePasswordReset} className="space-y-3">
+                <div className="text-center mb-4">
+                  <div className="text-4xl mb-2">🔐</div>
+                  <h3 className="font-bold text-slate-800">비밀번호 찾기</h3>
+                  <p className="text-sm text-slate-500">가입한 이메일로 재설정 링크를 보내드려요</p>
+                </div>
+                <input
+                  type="email"
+                  placeholder="가입한 이메일"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50"
+                >
+                  {loading ? '전송 중...' : '재설정 링크 보내기'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordReset(false);
+                    setError('');
+                  }}
+                  className="w-full py-2 text-slate-500 text-sm hover:text-slate-700"
+                >
+                  ← 뒤로
+                </button>
+              </form>
+            )}
+          </div>
         ) : (
           /* 이메일 로그인 폼 */
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -264,13 +342,25 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 '로그인'
               )}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowEmailForm(false)}
-              className="w-full py-2 text-slate-500 text-sm hover:text-slate-700"
-            >
-              ← 뒤로
-            </button>
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(false)}
+                className="text-slate-500 text-sm hover:text-slate-700"
+              >
+                ← 뒤로
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPasswordReset(true);
+                  setError('');
+                }}
+                className="text-sky-600 text-sm hover:underline"
+              >
+                비밀번호 찾기
+              </button>
+            </div>
           </form>
         )}
 

@@ -12,7 +12,8 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { userService } from './firestore';
 
@@ -219,6 +220,23 @@ export const authService = {
     } catch (error) {
       console.error('리다이렉트 결과 처리 오류:', error);
       return { success: false, error: '구글 로그인 처리 중 오류가 발생했습니다.' };
+    }
+  },
+
+  // 비밀번호 재설정 이메일 발송
+  async sendPasswordReset(email) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return { success: true };
+    } catch (error) {
+      console.error('비밀번호 재설정 오류:', error);
+      let errorMessage = '비밀번호 재설정 이메일 발송에 실패했습니다.';
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = '등록되지 않은 이메일입니다.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = '유효하지 않은 이메일 형식입니다.';
+      }
+      return { success: false, error: errorMessage };
     }
   },
 

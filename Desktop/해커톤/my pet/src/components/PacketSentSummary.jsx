@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function PacketSentSummary({ petData, hospital, onBack, onGetDirections }) {
+export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate, onBack, onGetDirections, onHome }) {
   const [registrationCode, setRegistrationCode] = useState('');
   const [estimatedArrival, setEstimatedArrival] = useState('');
 
@@ -9,15 +9,23 @@ export function PacketSentSummary({ petData, hospital, onBack, onGetDirections }
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     setRegistrationCode(code);
 
-    // 예상 도착 시간 계산 (현재 시간 + 30분)
-    const now = new Date();
-    now.setMinutes(now.getMinutes() + 30);
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const ampm = hours >= 12 ? '오후' : '오전';
-    const displayHours = hours > 12 ? hours - 12 : hours;
-    setEstimatedArrival(`${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`);
-  }, []);
+    // 예상 도착 시간 - 예약 시간 사용
+    if (bookingTime) {
+      const [hour, minute] = bookingTime.split(':').map(Number);
+      const ampm = hour >= 12 ? '오후' : '오전';
+      const displayHours = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      setEstimatedArrival(`${ampm} ${displayHours}:${minute.toString().padStart(2, '0')}`);
+    } else {
+      // 예약 시간이 없으면 현재 시간 + 30분
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 30);
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const ampm = hours >= 12 ? '오후' : '오전';
+      const displayHours = hours > 12 ? hours - 12 : hours;
+      setEstimatedArrival(`${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`);
+    }
+  }, [bookingTime]);
 
   if (!petData || !hospital) {
     return null;
@@ -102,8 +110,8 @@ export function PacketSentSummary({ petData, hospital, onBack, onGetDirections }
         </div>
       </div>
 
-      {/* Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-slate-200">
+      {/* Bottom Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-slate-200 space-y-2">
         <button
           onClick={onGetDirections}
           className="w-full bg-primary text-white font-bold py-4 px-6 rounded-lg text-base hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 flex items-center justify-center gap-2"
@@ -111,9 +119,18 @@ export function PacketSentSummary({ petData, hospital, onBack, onGetDirections }
           <span className="material-symbols-outlined">directions</span>
           <span>길찾기</span>
         </button>
+        <a
+          href="https://service.kakaomobility.com/launch/kakaot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full bg-[#1E1B4B] text-white font-bold py-4 px-6 rounded-lg text-base hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="text-[#FACC15] font-black text-xl">T</span>
+          <span>Kakao T 펫택시 이용하기</span>
+        </a>
         <button
-          onClick={onBack}
-          className="w-full text-slate-500 font-medium py-3 px-6 rounded-lg text-sm hover:text-slate-700 transition-colors mt-2"
+          onClick={onHome || onBack}
+          className="w-full text-slate-600 font-medium py-3 px-6 rounded-lg text-sm hover:text-slate-800 hover:bg-slate-100 transition-colors"
         >
           홈으로 돌아가기
         </button>
