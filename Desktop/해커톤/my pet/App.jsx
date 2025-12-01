@@ -2278,8 +2278,7 @@ ${userQuestion}
             )}
           </div>
         )}
-      </div>
-      
+
       {showResult && diagnosisResult && (
         <div className="diagnosis-result">
           <div className="result-header">
