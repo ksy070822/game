@@ -312,7 +312,25 @@ function ProfileRegistration({ onComplete, userId }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="registration-form">
-            {/* 프로필 사진/캐릭터 선택 */}
+            {/* 1. 종류 선택 - 가장 먼저 */}
+            <div className="form-group">
+              <label>종류 *</label>
+              <div className="species-grid">
+                {SPECIES_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={`species-btn ${formData.species === option.id ? 'active' : ''}`}
+                    onClick={() => handleSpeciesChange(option.id)}
+                  >
+                    <span className="species-emoji">{option.emoji}</span>
+                    <span className="species-label">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. 프로필 사진/캐릭터 선택 */}
             <div className="form-group">
               <label>프로필 사진 또는 캐릭터 *</label>
               <div className="profile-selector">
@@ -335,10 +353,10 @@ function ProfileRegistration({ onComplete, userId }) {
                   ) : (
                     <div
                       className="profile-preview character"
-                      style={{ backgroundColor: PET_CHARACTERS[formData.species].find(c => c.id === formData.character)?.color + '40' }}
+                      style={{ backgroundColor: PET_CHARACTERS[formData.species]?.find(c => c.id === formData.character)?.color + '40' }}
                     >
                       <span className="character-emoji">
-                        {PET_CHARACTERS[formData.species].find(c => c.id === formData.character)?.emoji}
+                        {PET_CHARACTERS[formData.species]?.find(c => c.id === formData.character)?.emoji}
                       </span>
                     </div>
                   )}
@@ -360,7 +378,7 @@ function ProfileRegistration({ onComplete, userId }) {
 
                 {/* 캐릭터 선택 */}
                 <div className="character-grid">
-                  {PET_CHARACTERS[formData.species].map(char => (
+                  {PET_CHARACTERS[formData.species]?.map(char => (
                     <button
                       key={char.id}
                       type="button"
@@ -379,6 +397,7 @@ function ProfileRegistration({ onComplete, userId }) {
               </div>
             </div>
 
+            {/* 3. 반려동물 이름 */}
             <div className="form-group">
               <label>반려동물 이름 *</label>
               <input
@@ -390,24 +409,7 @@ function ProfileRegistration({ onComplete, userId }) {
               />
             </div>
 
-            <div className="form-group">
-              <label>종류 *</label>
-              <div className="species-grid">
-                {SPECIES_OPTIONS.map(option => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={`species-btn ${formData.species === option.id ? 'active' : ''}`}
-                    onClick={() => handleSpeciesChange(option.id)}
-                  >
-                    <span className="species-emoji">{option.emoji}</span>
-                    <span className="species-label">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 개/고양이인 경우에만 품종 선택 표시 */}
+            {/* 4. 품종 - 개/고양이인 경우에만 표시 */}
             {(formData.species === 'dog' || formData.species === 'cat') && (
               <div className="form-group">
                 <label>품종</label>
