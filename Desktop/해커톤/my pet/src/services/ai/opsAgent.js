@@ -1,11 +1,11 @@
-// Ops Agent - Claude 3.5 Sonnet (JSON 구조화/기록 최강)
+// Ops Agent - Gemini (JSON 구조화/기록 - CORS 이슈로 Anthropic에서 Gemini로 변경)
 import { COMMON_CONTEXT } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callOpsAgent = async (petData, symptomData, medicalDiagnosis, triageResult, csSummary, infoSummary) => {
-  const apiKey = getApiKey(API_KEY_TYPES.ANTHROPIC);
+  const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
   if (!apiKey) {
-    throw new Error('Anthropic API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
+    throw new Error('Gemini API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
   const prompt = `${COMMON_CONTEXT}
@@ -116,28 +116,27 @@ ${JSON.stringify(triageResult, null, 2)}
 - 출력은 반드시 JSON만 반환하세요.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 3000,
-        messages: [
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }]
+        })
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`Anthropic API 오류: ${response.status}`);
+      throw new Error(`Gemini API 오류: ${response.status}`);
     }
 
     const data = await response.json();
-    const text = data.content[0].text;
+    const text = data.candidates[0].content.parts[0].text;
     
     // JSON 추출
     const jsonMatch = text.match(/\{[\s\S]*\}/);
