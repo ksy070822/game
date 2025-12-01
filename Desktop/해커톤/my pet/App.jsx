@@ -301,7 +301,7 @@ function ProfileRegistration({ onComplete, userId }) {
     <div className="registration-container">
       <div className="registration-card">
         <div className="header-gradient">
-          <h1>🐾 PetLink AI</h1>
+          <h1>🐾 PetMedical.AI</h1>
           <p>반려동물 건강 관리의 시작</p>
         </div>
         
@@ -1397,7 +1397,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
       <div className="fixed bottom-16 left-0 right-0 bg-white/95 backdrop-blur-sm p-4 border-t border-slate-100">
         <button
           onClick={handleSubmit}
-          disabled={loading || (!symptomText.trim() && images.length === 0)}
+          disabled={loading || (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0)}
           className="w-full bg-sky-500 text-white py-4 px-6 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
         >
           {loading ? (

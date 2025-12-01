@@ -16,6 +16,26 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
   let opsResult = null;
   let careResult = null;
 
+  // petData 정규화 - petName/name 호환성 보장
+  const normalizedPetData = {
+    ...petData,
+    petName: petData.petName || petData.name || '반려동물',
+    name: petData.name || petData.petName || '반려동물',
+    species: petData.species || 'dog',
+    breed: petData.breed || '미등록',
+    age: petData.age || '미상',
+    weight: petData.weight || null
+  };
+
+  // symptomData 정규화
+  const normalizedSymptomData = {
+    ...symptomData,
+    symptomText: symptomData?.symptomText || symptomData?.description || symptomData?.userDescription || '증상 정보 없음',
+    selectedSymptoms: symptomData?.selectedSymptoms || [],
+    department: symptomData?.department || '내과',
+    images: symptomData?.images || []
+  };
+
   try {
     // 1. CS Agent (Gemini Flash)
     onLogReceived({
@@ -29,7 +49,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    csResult = await callCSAgent(petData, symptomData);
+    csResult = await callCSAgent(normalizedPetData, normalizedSymptomData);
     logs.push({
       agent: 'CS Agent',
       role: '상담 간호사',
@@ -66,7 +86,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    infoResult = await callInformationAgent(petData, symptomData, csResult.json);
+    infoResult = await callInformationAgent(normalizedPetData, normalizedSymptomData, csResult.json);
     
     logs.push({
       agent: 'Information Agent',
@@ -104,7 +124,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    medicalResult = await callMedicalAgent(petData, symptomData, csResult.json, infoResult.json);
+    medicalResult = await callMedicalAgent(normalizedPetData, normalizedSymptomData, csResult.json, infoResult.json);
     
     logs.push({
       agent: 'Veterinarian Agent',
@@ -143,7 +163,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      triageResult = await calculateTriageScore(petData, symptomData, medicalResult.json, csResult.json);
+      triageResult = await calculateTriageScore(normalizedPetData, normalizedSymptomData, medicalResult.json, csResult.json);
       logs.push({
         agent: 'Triage Engine',
         role: '응급도 평가',
@@ -172,11 +192,11 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     await new Promise(resolve => setTimeout(resolve, 800));
 
     opsResult = await callOpsAgent(
-      petData, 
-      symptomData, 
-      medicalResult.json, 
-      triageResult, 
-      csResult.json, 
+      normalizedPetData,
+      normalizedSymptomData,
+      medicalResult.json,
+      triageResult,
+      csResult.json,
       infoResult.json
     );
     
@@ -217,9 +237,9 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     await new Promise(resolve => setTimeout(resolve, 800));
 
     careResult = await callCareAgent(
-      petData, 
-      opsResult.json, 
-      medicalResult.json, 
+      normalizedPetData,
+      opsResult.json,
+      medicalResult.json,
       triageResult
     );
     
@@ -253,8 +273,8 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     const finalDiagnosis = {
       id: Date.now().toString(),
       created_at: Date.now(),
-      petId: petData.id,
-      petName: petData.petName,
+      petId: normalizedPetData.id,
+      petName: normalizedPetData.petName,
       diagnosis: medicalLog.possible_diseases?.[0]?.name_kor || '일반 건강 이상',
       probability: medicalLog.possible_diseases?.[0]?.probability || 0.6,
       riskLevel: medicalLog.risk_level || 'moderate',

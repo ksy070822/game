@@ -37,6 +37,10 @@ jobs:
       - name: Build
         working-directory: './Desktop/해커톤/my pet'
         run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
