@@ -131,12 +131,44 @@ export const authService = {
         };
       }
 
-      // 모든 환경에서 redirect 방식 사용 (COOP 정책 문제 해결)
-      sessionStorage.setItem('pendingUserMode', userMode);
-      sessionStorage.setItem('pendingGoogleLogin', 'true');
-      console.log('구글 로그인 리다이렉트 시작');
-      await signInWithRedirect(auth, googleProvider);
-      return { success: false, redirecting: true };
+      // popup 방식 사용 (COOP 경고가 나와도 작동함)
+      try {
+        console.log('구글 로그인 팝업 시작');
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        // Firestore에 사용자 정보 저장
+        let userData = {};
+        try {
+          const existingUser = await userService.getUser(user.uid);
+          userData = existingUser.data || {};
+          if (!existingUser.data) {
+            await userService.saveUser(user.uid, {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              userMode,
+              createdAt: new Date().toISOString()
+            });
+          }
+        } catch (e) {
+          console.warn('Firestore 오류 (무시):', e);
+        }
+
+        return {
+          success: true,
+          user: {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            userMode: userData.userMode || userMode
+          }
+        };
+      } catch (popupError) {
+        console.error('팝업 로그인 실패:', popupError);
+        return { success: false, error: '구글 로그인에 실패했습니다: ' + popupError.message };
+      }
     } catch (error) {
       console.error('구글 로그인 오류:', error);
       return { success: false, error: '구글 로그인에 실패했습니다: ' + error.message };
