@@ -975,7 +975,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-900">{petData.petName}</h3>
+                    <h3 className="font-bold text-gray-900">{petData.petName || petData.name || '반려동물'}</h3>
                     <p className="text-xs text-gray-500">{getSpeciesDisplay()} • {calculateAge(petData.birthDate)}</p>
                   </div>
                 </div>
@@ -1042,7 +1042,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             {/* PC용 헤더 */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900">
-                {petData ? `${petData.petName}의 건강 대시보드` : '반려동물을 등록해주세요'}
+                {petData ? `${petData.petName || petData.name || '반려동물'}의 건강 대시보드` : '반려동물을 등록해주세요'}
               </h2>
               <p className="text-gray-500 mt-1">AI가 24시간 함께하는 스마트 건강관리</p>
             </div>
@@ -1181,7 +1181,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                               : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:shadow-lg'
                           }`}
                         >
-                          {careSaved ? '저장 완료!' : `오늘 ${petData.petName} 케어 완료`}
+                          {careSaved ? '저장 완료!' : `오늘 ${petData.petName || petData.name || '반려동물'} 케어 완료`}
                         </button>
                       </div>
                     </div>
@@ -4617,15 +4617,17 @@ function App() {
         </div>
       )}
 
-      {/* 하단 탭 네비게이션 - 보호자 모드에서만 표시, AI문진에서도 표시 */}
-      {userMode === 'guardian' && currentTab && (!currentView || currentView === 'ai-consultation') && (
-        <BottomTabNavigation
-          currentTab={currentTab}
-          onTabChange={handleTabChange}
-          onModeSwitch={() => handleModeSwitch('clinic')}
-          showModeSwitch={!!currentUser}
-        />
-      )}
+      {/* 하단 탭 네비게이션 - 보호자 모드에서만 표시, PC에서는 숨김 */}
+      <div className="lg:hidden">
+        {userMode === 'guardian' && currentTab && (!currentView || currentView === 'ai-consultation') && (
+          <BottomTabNavigation
+            currentTab={currentTab}
+            onTabChange={handleTabChange}
+            onModeSwitch={() => handleModeSwitch('clinic')}
+            showModeSwitch={!!currentUser}
+          />
+        )}
+      </div>
         </>
       )}
     </div>
