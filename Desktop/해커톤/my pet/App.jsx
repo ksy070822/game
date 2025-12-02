@@ -1165,7 +1165,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             {/* PC용 헤더 */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900">
-                {petData ? `${petData.petName}의 건강 대시보드` : '반려동물을 등록해주세요'}
+                {petData ? `${petData?.petName || petData?.name || '반려동물'}의 건강 대시보드` : '반려동물을 등록해주세요'}
               </h2>
               <p className="text-gray-500 mt-2 text-lg">AI가 24시간 함께하는 스마트 건강관리</p>
             </div>
