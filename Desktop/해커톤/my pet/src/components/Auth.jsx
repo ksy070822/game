@@ -214,7 +214,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6 pt-12">
       {/* 로고 */}
       <div className="text-center mb-8">
         <div className="w-20 h-20 bg-white rounded-2xl shadow-lg mx-auto mb-4 flex items-center justify-center">
@@ -606,7 +606,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6 pt-12">
       {/* 로고 */}
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-white rounded-2xl shadow-lg mx-auto mb-3 flex items-center justify-center">
