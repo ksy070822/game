@@ -225,16 +225,40 @@ export const bookingService = {
   // 예약 생성
   async createBooking(bookingData) {
     try {
-      const docRef = await addDoc(collection(db, COLLECTIONS.BOOKINGS), {
+      const bookingDoc = {
         ...bookingData,
-        status: 'pending',
+        status: bookingData.status || 'pending',
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        // 타임스탬프를 ISO 문자열로도 보관 (조회 편의성)
+        createdAtISO: new Date().toISOString(),
+        updatedAtISO: new Date().toISOString()
+      };
+      
+      console.log('[예약 생성] Firestore 저장 시작:', {
+        clinicId: bookingDoc.clinicId,
+        clinicName: bookingDoc.clinicName,
+        date: bookingDoc.date,
+        time: bookingDoc.time
       });
+      
+      const docRef = await addDoc(collection(db, COLLECTIONS.BOOKINGS), bookingDoc);
+      
+      console.log('[예약 생성] ✅ Firestore 저장 성공:', docRef.id);
+      
       return { success: true, id: docRef.id };
     } catch (error) {
-      console.error('예약 생성 오류:', error);
-      return { success: false, error };
+      console.error('[예약 생성] ❌ Firestore 저장 오류:', error);
+      console.error('[예약 생성] 오류 상세:', {
+        message: error.message,
+        code: error.code,
+        bookingData: {
+          clinicId: bookingData.clinicId,
+          clinicName: bookingData.clinicName,
+          date: bookingData.date
+        }
+      });
+      return { success: false, error: error.message || error };
     }
   },
 

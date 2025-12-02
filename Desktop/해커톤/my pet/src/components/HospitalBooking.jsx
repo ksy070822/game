@@ -469,10 +469,21 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       };
       const result = await bookingService.createBooking(firestoreBookingData);
       if (result.success) {
-        console.log('예약 Firestore 저장 완료:', result.id, 'clinicId:', actualClinicId);
+        console.log('✅ 예약 Firestore 저장 완료:', result.id, 'clinicId:', actualClinicId);
+        console.log('📋 예약 데이터:', {
+          clinicId: actualClinicId,
+          clinicName: bookingHospital.name,
+          date: bookingDate,
+          time: bookingTime,
+          petName: petData?.petName
+        });
+      } else {
+        console.error('❌ 예약 Firestore 저장 실패:', result.error);
+        alert('예약 저장에 실패했습니다. 다시 시도해주세요.');
       }
     } catch (firestoreError) {
-      console.warn('예약 Firestore 저장 실패 (로컬 저장은 완료):', firestoreError);
+      console.error('❌ 예약 Firestore 저장 오류:', firestoreError);
+      alert('예약 저장 중 오류가 발생했습니다: ' + firestoreError.message);
     }
 
     setSelectedHospital(bookingHospital);

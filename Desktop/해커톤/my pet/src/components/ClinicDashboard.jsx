@@ -9,7 +9,9 @@ import {
   getClinicStats,
   migrateExistingClinicUser
 } from '../services/clinicService';
-import { userService } from '../services/firestore';
+import { userService, bookingService } from '../services/firestore';
+import { db } from '../lib/firebase';
+import { collection, query, where, onSnapshot, orderBy, getDoc, doc } from 'firebase/firestore';
 
 export function ClinicDashboard({ currentUser, onBack }) {
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,136 @@ export function ClinicDashboard({ currentUser, onBack }) {
       loadClinicData();
     }
   }, [currentClinic]);
+
+  // 실시간 예약 구독 (오늘 예약만) - Firestore 실시간 업데이트
+  useEffect(() => {
+    if (!currentClinic?.id) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    console.log('[실시간 구독 시작] clinicId:', currentClinic.id, '병원명:', currentClinic.name, '날짜:', today);
+    
+    const unsubscribes = [];
+
+    // 1. clinics ID로 실시간 구독 (메인)
+    try {
+      const q1 = query(
+        collection(db, 'bookings'),
+        where('clinicId', '==', currentClinic.id),
+        where('date', '==', today),
+        orderBy('time', 'asc')
+      );
+
+      const unsubscribe1 = onSnapshot(q1, async (snapshot) => {
+        console.log('[실시간] clinics ID 구독 업데이트:', snapshot.docs.length, '개');
+        
+        const bookings = [];
+        for (const bookingDoc of snapshot.docs) {
+          const bookingData = bookingDoc.data();
+          
+          // 펫 정보 가져오기
+          let pet = null;
+          if (bookingData.petId) {
+            try {
+              const petDoc = await getDoc(doc(db, 'pets', bookingData.petId));
+              pet = petDoc.exists() ? petDoc.data() : bookingData.pet || bookingData.petProfile || null;
+            } catch (e) {
+              pet = bookingData.pet || bookingData.petProfile || null;
+            }
+          }
+          
+          // 보호자 정보 가져오기
+          let owner = null;
+          if (bookingData.userId) {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', bookingData.userId));
+              owner = userDoc.exists() ? userDoc.data() : bookingData.owner || null;
+            } catch (e) {
+              owner = bookingData.owner || null;
+            }
+          }
+
+          bookings.push({
+            id: bookingDoc.id,
+            ...bookingData,
+            pet,
+            owner
+          });
+        }
+
+        // 시간순 정렬
+        bookings.sort((a, b) => {
+          const timeA = a.time || '00:00';
+          const timeB = b.time || '00:00';
+          return timeA.localeCompare(timeB);
+        });
+
+        setTodayBookings(bookings);
+        console.log('[실시간] ✅ 오늘 예약 업데이트 완료:', bookings.length, '개');
+      }, (error) => {
+        console.error('[실시간] ❌ clinics ID 구독 오류:', error);
+      });
+
+      unsubscribes.push(unsubscribe1);
+    } catch (error) {
+      console.error('[실시간] clinics ID 쿼리 생성 오류:', error);
+    }
+
+    // 2. 병원명으로도 구독 (하위 호환 - orderBy 없이)
+    if (currentClinic.name) {
+      try {
+        const q2 = query(
+          collection(db, 'bookings'),
+          where('clinicName', '==', currentClinic.name),
+          where('date', '==', today)
+        );
+
+        const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+          console.log('[실시간] 병원명 구독 업데이트:', snapshot.docs.length, '개');
+          
+          setTodayBookings(prev => {
+            const existingIds = new Set(prev.map(b => b.id));
+            const newBookings = [];
+            
+            for (const bookingDoc of snapshot.docs) {
+              if (!existingIds.has(bookingDoc.id)) {
+                const bookingData = bookingDoc.data();
+                newBookings.push({
+                  id: bookingDoc.id,
+                  ...bookingData,
+                  pet: bookingData.pet || bookingData.petProfile || null,
+                  owner: bookingData.owner || null
+                });
+              }
+            }
+
+            if (newBookings.length > 0) {
+              const combined = [...prev, ...newBookings];
+              combined.sort((a, b) => {
+                const timeA = a.time || '00:00';
+                const timeB = b.time || '00:00';
+                return timeA.localeCompare(timeB);
+              });
+              console.log('[실시간] ✅ 병원명으로 추가 예약:', newBookings.length, '개');
+              return combined;
+            }
+            return prev;
+          });
+        }, (error) => {
+          console.error('[실시간] ❌ 병원명 구독 오류:', error);
+        });
+
+        unsubscribes.push(unsubscribe2);
+      } catch (error) {
+        console.error('[실시간] 병원명 쿼리 생성 오류:', error);
+      }
+    }
+
+    // cleanup
+    return () => {
+      console.log('[실시간 구독 종료]');
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [currentClinic?.id, currentClinic?.name]);
 
   // 월이 변경되면 월별 예약 다시 로드
   useEffect(() => {
