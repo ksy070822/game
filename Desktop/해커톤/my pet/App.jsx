@@ -938,7 +938,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white pb-20 max-w-lg mx-auto">
+    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white pb-20 max-w-lg mx-auto shadow-xl">
       {/* Header - 회사명 가운데 정렬 */}
       <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
         <div className="flex items-center justify-center gap-2">
@@ -1221,6 +1222,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }
