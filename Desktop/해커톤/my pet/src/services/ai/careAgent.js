@@ -1,5 +1,5 @@
 // Care Agent - Gemini Pro (홈케어 가이드 작성 특화)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callCareAgent = async (petData, opsData, medicalDiagnosis, triageResult) => {
@@ -28,7 +28,7 @@ export const callCareAgent = async (petData, opsData, medicalDiagnosis, triageRe
 
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 
 Medical Agent 진단:

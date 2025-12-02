@@ -1,5 +1,5 @@
 // AI Triage Engine - Claude Sonnet (신중한 응급도 판정)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const calculateTriageScore = async (petData, symptomData, medicalDiagnosis, csSummary) => {
@@ -66,7 +66,7 @@ export const calculateTriageScore = async (petData, symptomData, medicalDiagnosi
 
   const userPrompt = `반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 나이: ${petData.age || '미등록'}세
 
 증상: ${symptomData?.symptomText || '증상 정보 없음'}

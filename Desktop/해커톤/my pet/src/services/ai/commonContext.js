@@ -10,3 +10,19 @@ export const COMMON_CONTEXT = `
 - 출력은 반드시 지정된 JSON 형식만 사용합니다. 여분의 설명 텍스트를 붙이지 마십시오.
 `;
 
+// 동물 종류 한글 이름 매핑
+export const getSpeciesDisplayName = (species) => {
+  const speciesMap = {
+    'dog': '개',
+    'cat': '고양이',
+    'rabbit': '토끼',
+    'hamster': '햄스터',
+    'bird': '새',
+    'hedgehog': '고슴도치',
+    'reptile': '파충류',
+    'etc': '기타 동물',
+    'other': '기타 동물'
+  };
+  return speciesMap[species] || species || '미상';
+};
+

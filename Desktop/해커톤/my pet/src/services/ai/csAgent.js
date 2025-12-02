@@ -1,5 +1,5 @@
 // CS Agent - Gemini Flash (빠르고 저렴, 문진/요약 특화)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callCSAgent = async (petData, symptomData) => {
@@ -24,7 +24,7 @@ export const callCSAgent = async (petData, symptomData) => {
 
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 - 나이: ${petData.age || '미등록'}세
 ${petData.weight ? `- 체중: ${petData.weight}kg` : ''}
@@ -81,7 +81,7 @@ ${symptomData.images?.length > 0 ? `사진 ${symptomData.images.length}장이 �
       const result = JSON.parse(jsonMatch[0]);
       return {
         json: result,
-        message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${petData.species === 'dog' ? '개' : '고양이'}\n• 품종: ${petData.breed || '미등록'}\n\n증상: ${result.summary_kor}\n\n증상 상담실로 안내해 드릴게요.`
+        message: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${getSpeciesDisplayName(petData.species)}\n• 품종: ${petData.breed || '미등록'}\n\n증상: ${result.summary_kor}\n\n증상 상담실로 안내해 드릴게요.`
       };
     }
     

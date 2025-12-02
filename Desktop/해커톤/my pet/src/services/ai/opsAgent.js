@@ -1,5 +1,5 @@
 // Ops Agent - Claude Sonnet (JSON 구조화/기록 최강)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 export const callOpsAgent = async (petData, symptomData, medicalDiagnosis, triageResult, csSummary, infoSummary) => {
@@ -65,7 +65,7 @@ export const callOpsAgent = async (petData, symptomData, medicalDiagnosis, triag
       "name": "${petData.petName}",
       "species": "${petData.species}",
       "breed": "${petData.breed || '미등록'}",
-      "age_info": "예: 만 ${petData.age || '?'}세 추정, ${petData.species === 'dog' ? '개' : '고양이'}",
+      "age_info": "예: 만 ${petData.age || '?'}세 추정, ${getSpeciesDisplayName(petData.species)}",
       "sex_neutered": "예: ${petData.sex === 'M' ? '수컷' : '암컷'}"
     },
     "visit_reason": "이번에 병원을 방문하게 되는 주된 이유를 한 문장으로 요약",
@@ -102,7 +102,7 @@ export const callOpsAgent = async (petData, symptomData, medicalDiagnosis, triag
 
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 
 CS Agent 요약:

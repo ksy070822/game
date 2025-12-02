@@ -5,6 +5,18 @@ import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
 import { bookingService } from '../services/firestore';
 
+// 동물 종류별 메인 캐릭터 이미지 매핑
+const ANIMAL_CHARACTER_IMAGES = {
+  dog: '/icon/main-image/dog_main-removebg-preview.png',
+  cat: '/icon/main-image/Cat_main-removebg-preview.png',
+  rabbit: '/icon/main-image/rabbit_main-removebg-preview.png',
+  hamster: '/icon/main-image/hamster_main-removebg-preview.png',
+  bird: '/icon/main-image/bird_main-removebg-preview.png',
+  hedgehog: '/icon/main-image/hedgehog_main-removebg-preview.png',
+  reptile: '/icon/main-image/reptile_main-removebg-preview.png',
+  etc: '/icon/main-image/etc_main-removebg-preview.png'
+};
+
 // 나이 계산 함수
 const calculateAge = (birthDate) => {
   if (!birthDate) return '';
@@ -654,8 +666,16 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
               <div className="p-4 space-y-4">
                 {/* 반려동물 정보 */}
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center text-2xl">
-                    {petData?.species === 'dog' ? '🐕' : '🐈'}
+                  <div className="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center overflow-hidden">
+                    <img
+                      src={petData?.profileImage || ANIMAL_CHARACTER_IMAGES[petData?.species] || ANIMAL_CHARACTER_IMAGES.etc}
+                      alt={petData?.petName || '반려동물'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<span class="text-2xl">${petData?.species === 'dog' ? '🐕' : petData?.species === 'cat' ? '🐈' : '🐾'}</span>`;
+                      }}
+                    />
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900">{petData?.petName || '반려동물'}</h4>

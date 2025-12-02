@@ -35,6 +35,7 @@ import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
 import { diagnosisService, bookingService, petService } from './src/services/firestore'
 import { getUserClinics } from './src/services/clinicService'
+import { getSpeciesDisplayName } from './src/services/ai/commonContext'
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -953,12 +954,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       {/* Header - 회사명 가운데 정렬 */}
       <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
         <div className="flex items-center justify-center gap-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-            <span className="text-lg">🐾</span>
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+            <span className="text-xl">🐾</span>
           </div>
           <div className="text-center">
-            <h1 className="text-lg font-bold tracking-tight">PetMedical.AI</h1>
-            <p className="text-sky-100 text-[10px] font-medium">AI 기반 반려동물 건강 관리 서비스</p>
+            <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
+            <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
           </div>
         </div>
       </header>
@@ -1000,9 +1001,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                 <div className="flex-1 flex flex-col justify-between py-1">
                   <div>
-                    <p className="text-sm font-bold text-gray-800 whitespace-nowrap">AI 전문 의료진이,</p>
-                    <p className="text-sm font-bold text-gray-800 whitespace-nowrap">24시간 {petData.petName}를 지켜줄게요 ❤️</p>
-                    <p className="text-xs text-sky-700 font-semibold mt-1 whitespace-nowrap">
+                    <p className="text-base font-bold text-gray-800 whitespace-nowrap">AI 전문 의료진이,</p>
+                    <p className="text-base font-bold text-gray-800 whitespace-nowrap">24시간 {petData.petName}를 지켜줄게요 ❤️</p>
+                    <p className="text-sm text-sky-700 font-semibold mt-1 whitespace-nowrap">
                       오늘도 든든한 {petData.petName} 케어 시작!
                     </p>
                   </div>
@@ -1116,7 +1117,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             </div>
 
             {/* 오늘의 기록 - 원형 아이콘 */}
-            <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-200 mb-4">
+            <div className="bg-white rounded-2xl p-5 shadow-lg border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-bold text-gray-800">오늘의 기록</h3>
                 <span className="text-xs text-gray-400">{new Date().toISOString().split('T')[0]}</span>
@@ -1930,7 +1931,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
             role: '상담 간호사',
             icon: '💬',
             type: 'cs',
-            content: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${petData.species === 'dog' ? '개' : '고양이'}\n• 품종: ${petData.breed || '미등록'}\n\n증상:\n${symptomText}\n${hasImages ? `\n사진 ${symptomData.images.length}장 확인 완료\n` : ''}\n→ Information Agent에게 전달합니다.`
+            content: `안녕하세요, ${petData.petName} 보호자님.\n\n접수 완료했습니다.\n\n환자 정보:\n• 이름: ${petData.petName}\n• 종류: ${getSpeciesDisplayName(petData.species)}\n• 품종: ${petData.breed || '미등록'}\n\n증상:\n${symptomText}\n${hasImages ? `\n사진 ${symptomData.images.length}장 확인 완료\n` : ''}\n→ Information Agent에게 전달합니다.`
           },
           {
             agent: 'Information Agent',
@@ -2190,7 +2191,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
 
       const userPrompt = `[반려동물 정보]
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 - 나이: ${petData.age || '미등록'}세
 ${petData.weight ? `- 체중: ${petData.weight}kg` : ''}

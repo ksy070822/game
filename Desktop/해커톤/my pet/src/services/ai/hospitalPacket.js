@@ -1,5 +1,6 @@
 // 병원 진단 패킷 생성 - Ops Agent 결과 활용
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
+import { getSpeciesDisplayName } from './commonContext';
 
 export const generateHospitalPacket = async (petData, diagnosisResult, symptomData, requestNote = '') => {
   // 이미 Ops Agent에서 hospital_previsit_packet을 생성했으므로 그것을 사용
@@ -16,7 +17,7 @@ export const generateHospitalPacket = async (petData, diagnosisResult, symptomDa
 
 [환자 정보]
 이름: ${packet.pet_profile_brief.name}
-종류/품종: ${packet.pet_profile_brief.species === 'dog' ? '개' : '고양이'} / ${packet.pet_profile_brief.breed}
+종류/품종: ${getSpeciesDisplayName(packet.pet_profile_brief.species)} / ${packet.pet_profile_brief.breed}
 ${packet.pet_profile_brief.age_info ? `나이: ${packet.pet_profile_brief.age_info}` : ''}
 ${packet.pet_profile_brief.sex_neutered ? `성별: ${packet.pet_profile_brief.sex_neutered}` : ''}
 
@@ -70,7 +71,7 @@ ${ownerRequest || '- 없음'}
 
 환자 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 - 나이: ${petData.age || '미등록'}세
 ${petData.weight ? `- 체중: ${petData.weight}kg` : ''}
@@ -88,7 +89,7 @@ ${JSON.stringify(diagnosisResult, null, 2)}
 
 [환자 정보]
 이름: ${petData.petName}
-종류/품종: ${petData.species === 'dog' ? '개' : '고양이'} / ${petData.breed || '미등록'}
+종류/품종: ${getSpeciesDisplayName(petData.species)} / ${petData.breed || '미등록'}
 나이/체중: ${petData.age || '미등록'}세 / ${petData.weight || '미등록'}kg
 
 [증상 요약]

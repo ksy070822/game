@@ -1,5 +1,5 @@
 // Medical Agent - Claude Sonnet (수의학 진단 정확도 최강)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 import { buildAIContext } from './dataContextService';
 
@@ -46,7 +46,7 @@ export const callMedicalAgent = async (petData, symptomData, csSummary, infoSumm
 
   const userPrompt = `반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 - 나이: ${petData.age || '미등록'}세
 ${petData.weight ? `- 체중: ${petData.weight}kg` : ''}

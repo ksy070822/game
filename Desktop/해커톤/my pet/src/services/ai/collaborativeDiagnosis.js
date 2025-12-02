@@ -2,7 +2,7 @@
 // 여러 AI 모델이 협력하여 진단하고, 서로의 의견을 검증하는 시스템
 
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 
 /**
  * 진단 결과 간 불일치 검출
@@ -102,7 +102,7 @@ export const crossValidateDiagnosis = async (petData, symptomData, medicalResult
   const userPrompt = `
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 - 나이: ${petData.age || '미상'}
 - 체중: ${petData.weight || '미상'}
@@ -200,7 +200,7 @@ export const getSecondOpinion = async (petData, symptomData, medicalResult, tria
 - 최종 진단의 신뢰도를 높이는 데 기여합니다.`;
 
   const userPrompt = `
-반려동물: ${petData.petName} (${petData.species === 'dog' ? '개' : '고양이'}, ${petData.breed || '미등록'})
+반려동물: ${petData.petName} (${getSpeciesDisplayName(petData.species)}, ${petData.breed || '미등록'})
 증상: ${symptomData.symptomText}
 ${symptomData.guardianResponsesSummary ? `
 ★ 보호자 추가 문진: ${symptomData.guardianResponsesSummary}

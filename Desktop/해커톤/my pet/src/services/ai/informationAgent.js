@@ -1,5 +1,5 @@
 // Information Agent - GPT-4o Vision (이미지 기반 증상 분석 + 정보 수집)
-import { COMMON_CONTEXT } from './commonContext';
+import { COMMON_CONTEXT, getSpeciesDisplayName } from './commonContext';
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
 
 // 보호자에게 물어볼 질문 생성
@@ -14,7 +14,7 @@ export const generateFollowUpQuestions = async (petData, symptomData, csSummary)
 
 [반려동물 정보]
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 
 [보호자가 설명한 증상]
@@ -153,7 +153,7 @@ export const analyzeOwnerResponse = async (petData, symptomData, ownerResponses,
   const userPrompt = `
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 
 CS Agent 요약:

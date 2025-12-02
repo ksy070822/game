@@ -1,5 +1,6 @@
 // 건강 패턴 분석 - Gemini Flash 활용
 import { getApiKey, API_KEY_TYPES } from '../apiKeyManager';
+import { getSpeciesDisplayName } from './commonContext';
 
 export const analyzeHealthPattern = async (petData, dailyLogs) => {
   const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
@@ -29,7 +30,7 @@ export const analyzeHealthPattern = async (petData, dailyLogs) => {
 
 반려동물 정보:
 - 이름: ${petData.petName}
-- 종류: ${petData.species === 'dog' ? '개' : '고양이'}
+- 종류: ${getSpeciesDisplayName(petData.species)}
 - 품종: ${petData.breed || '미등록'}
 
 최근 7일 건강 기록:
