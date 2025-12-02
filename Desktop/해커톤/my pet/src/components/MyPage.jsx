@@ -264,15 +264,6 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
               <span className="material-symbols-outlined text-2xl">home</span>
             </button>
           )}
-          {onClinicMode && (
-            <button
-              onClick={onClinicMode}
-              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full"
-              title="병원 모드"
-            >
-              <span className="material-symbols-outlined text-2xl">local_hospital</span>
-            </button>
-          )}
         </div>
       </div>
 
