@@ -691,6 +691,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
     meal: 0,
     water: 0,
     walk: 0,
+    treats: 0,
     grooming: 0,
     play: 0
   });
@@ -1121,11 +1122,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 <span className="text-xs text-gray-400">{new Date().toISOString().split('T')[0]}</span>
               </div>
 
-              <div className="grid grid-cols-4 gap-3 mb-4">
+              <div className="grid grid-cols-5 gap-2 mb-4">
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <button
-                      className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                       onClick={() => {
                         setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
                         setHealthPoints(prev => {
@@ -1135,21 +1136,21 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         });
                       }}
                     >
-                      <span className="text-2xl">🍚</span>
+                      <span className="text-xl">🍚</span>
                     </button>
                     {careActions.meal > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md">
                         {careActions.meal}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 mt-2">식사</span>
+                  <span className="text-[10px] font-semibold text-gray-500 mt-1">식사</span>
                 </div>
 
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <button
-                      className="w-14 h-14 bg-sky-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="w-12 h-12 bg-sky-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                       onClick={() => {
                         setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
                         setHealthPoints(prev => {
@@ -1159,21 +1160,21 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         });
                       }}
                     >
-                      <span className="text-2xl">💧</span>
+                      <span className="text-xl">💧</span>
                     </button>
                     {careActions.water > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md">
                         {careActions.water}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 mt-2">물</span>
+                  <span className="text-[10px] font-semibold text-gray-500 mt-1">물</span>
                 </div>
 
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <button
-                      className="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                       onClick={() => {
                         setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
                         setHealthPoints(prev => {
@@ -1183,21 +1184,45 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         });
                       }}
                     >
-                      <span className="text-2xl">🩴</span>
+                      <span className="text-xl">🩴</span>
                     </button>
                     {careActions.walk > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md">
                         {careActions.walk}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 mt-2">산책</span>
+                  <span className="text-[10px] font-semibold text-gray-500 mt-1">산책</span>
                 </div>
 
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <button
-                      className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      onClick={() => {
+                        setCareActions(prev => ({ ...prev, treats: prev.treats + 1 }));
+                        setHealthPoints(prev => {
+                          const newPoints = Math.min(100, prev + 2);
+                          if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                          return newPoints;
+                        });
+                      }}
+                    >
+                      <span className="text-xl">🍖</span>
+                    </button>
+                    {careActions.treats > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md">
+                        {careActions.treats}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-500 mt-1">간식</span>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <button
+                      className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                       onClick={() => {
                         setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
                         setHealthPoints(prev => {
@@ -1207,15 +1232,15 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         });
                       }}
                     >
-                      <span className="text-2xl">🗑️</span>
+                      <span className="text-xl">🗑️</span>
                     </button>
                     {careActions.grooming > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-md">
                         {careActions.grooming}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 mt-2">배변</span>
+                  <span className="text-[10px] font-semibold text-gray-500 mt-1">배변</span>
                 </div>
               </div>
 
@@ -3624,6 +3649,22 @@ function App() {
       // 기존 반려동물 데이터 사용
       setPets(existingPets);
       setPetData(existingPets[0]);
+
+      // 해당 반려동물의 최신 진단 기록 로드
+      try {
+        const stored = localStorage.getItem(DIAGNOSIS_KEY);
+        if (stored) {
+          const allDiagnoses = JSON.parse(stored);
+          const petDiagnoses = allDiagnoses
+            .filter(d => d.petId === existingPets[0].id)
+            .sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
+          if (petDiagnoses.length > 0) {
+            setLastDiagnosis(petDiagnoses[0]);
+          }
+        }
+      } catch (err) {
+        console.error('진단 기록 로드 실패:', err);
+      }
     } else {
       // 기본 반려동물 자동 등록 (테스트 편의성)
       const defaultPet = {
@@ -3688,6 +3729,24 @@ function App() {
     setPetData(pet);
     setCurrentView(null);
     setCurrentTab('care');
+
+    // 해당 반려동물의 최신 진단 기록 로드
+    if (pet?.id) {
+      try {
+        const stored = localStorage.getItem(DIAGNOSIS_KEY);
+        if (stored) {
+          const allDiagnoses = JSON.parse(stored);
+          const petDiagnoses = allDiagnoses
+            .filter(d => d.petId === pet.id)
+            .sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
+          if (petDiagnoses.length > 0) {
+            setLastDiagnosis(petDiagnoses[0]);
+          }
+        }
+      } catch (err) {
+        console.error('진단 기록 로드 실패:', err);
+      }
+    }
   };
 
   const handleSymptomSubmit = (data) => {

@@ -418,31 +418,38 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
             <span className="text-xs text-slate-400">{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '')}</span>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-5 gap-3">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
                 <span className="text-lg">🍚</span>
                 <span className="text-[10px] text-slate-600">2회</span>
               </div>
               <span className="text-xs text-slate-500 mt-1">식사</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
                 <span className="text-lg">💧</span>
                 <span className="text-[10px] text-slate-600">3회</span>
               </div>
               <span className="text-xs text-slate-500 mt-1">물</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
-                <span className="text-lg">🚶</span>
+              <div className="w-11 h-11 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">🩴</span>
                 <span className="text-[10px] text-slate-600">2회</span>
               </div>
               <span className="text-xs text-slate-500 mt-1">산책</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
-                <span className="text-lg">💩</span>
+              <div className="w-11 h-11 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">🍖</span>
+                <span className="text-[10px] text-slate-600">1회</span>
+              </div>
+              <span className="text-xs text-slate-500 mt-1">간식</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-11 h-11 rounded-xl bg-slate-50 flex flex-col items-center justify-center">
+                <span className="text-lg">🗑️</span>
                 <span className="text-[10px] text-slate-600">2회</span>
               </div>
               <span className="text-xs text-slate-500 mt-1">배변</span>
@@ -877,7 +884,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
               <div className="grid grid-cols-5 gap-2">
                 <div className="text-center">
                   <div className="text-2xl mb-1">🍚</div>
-                  <p className="text-xs text-slate-500">밥</p>
+                  <p className="text-xs text-slate-500">식사</p>
                   <p className="text-sm font-bold text-slate-800">
                     {careRecords.reduce((sum, r) => sum + (r.meals || 0), 0)}회
                   </p>
@@ -890,7 +897,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">🦮</div>
+                  <div className="text-2xl mb-1">🩴</div>
                   <p className="text-xs text-slate-500">산책</p>
                   <p className="text-sm font-bold text-slate-800">
                     {careRecords.reduce((sum, r) => sum + (r.walks || 0), 0)}회
@@ -904,8 +911,8 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-1">✨</div>
-                  <p className="text-xs text-slate-500">그루밍</p>
+                  <div className="text-2xl mb-1">🗑️</div>
+                  <p className="text-xs text-slate-500">배변</p>
                   <p className="text-sm font-bold text-slate-800">
                     {careRecords.reduce((sum, r) => sum + (r.grooming || 0), 0)}회
                   </p>
@@ -948,7 +955,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                       )}
                       {record.walks > 0 && (
                         <span className="flex items-center gap-1">
-                          <span className="text-lg">🦮</span>
+                          <span className="text-lg">🩴</span>
                           <span className="text-slate-700">{record.walks}</span>
                         </span>
                       )}
@@ -960,7 +967,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                       )}
                       {record.grooming > 0 && (
                         <span className="flex items-center gap-1">
-                          <span className="text-lg">✨</span>
+                          <span className="text-lg">🗑️</span>
                           <span className="text-slate-700">{record.grooming}</span>
                         </span>
                       )}
