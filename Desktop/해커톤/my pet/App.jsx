@@ -1632,7 +1632,7 @@ const generateAIQuestion = (symptomText, conversationHistory) => {
 };
 
 // ============ 멀티에이전트 진료 (핵심!) ============
-function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagnosisResult }) {
+function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagnosisResult, currentUser }) {
   const [messages, setMessages] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
@@ -1708,7 +1708,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
           setChatMode(true);
           
           // 진단서 저장
-          saveDiagnosisToStorage(result.finalDiagnosis);
+          saveDiagnosisToStorage(result.finalDiagnosis, currentUser?.uid);
           
           // 부모 컴포넌트에 진단 결과 전달
           if (onDiagnosisResult) {
@@ -1773,7 +1773,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
                 setShowResult(true);
                 setIsProcessing(false);
                 setChatMode(true);
-                saveDiagnosisToStorage(finalDiagnosis);
+                saveDiagnosisToStorage(finalDiagnosis, currentUser?.uid);
                 if (onDiagnosisResult) {
                   onDiagnosisResult(finalDiagnosis);
                 }
@@ -1806,8 +1806,8 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
       conversationHistory: conversationHistory,
       ...analysis
     };
-    saveDiagnosisToStorage(savedDiagnosis);
-    
+    saveDiagnosisToStorage(savedDiagnosis, currentUser?.uid);
+
     // 부모 컴포넌트에 진단 결과 전달
     if (onDiagnosisResult) {
       onDiagnosisResult(analysis);
@@ -3263,9 +3263,10 @@ function App() {
       )}
       
       {currentView === 'diagnosis' && petData && symptomData && (
-        <MultiAgentDiagnosis 
+        <MultiAgentDiagnosis
           petData={petData}
           symptomData={symptomData}
+          currentUser={currentUser}
           onComplete={(action) => handleDiagnosisComplete(action, lastDiagnosis)}
           onBack={() => setCurrentView('symptom-input')}
           onDiagnosisResult={(result) => setLastDiagnosis(result)}
@@ -3303,6 +3304,7 @@ function App() {
           petData={petData}
           diagnosis={lastDiagnosis || null}
           symptomData={symptomData || null}
+          currentUser={currentUser}
           onBack={() => {
             setCurrentView(null);
             setCurrentTab('care');
@@ -3638,6 +3640,7 @@ function App() {
                 petData={petData}
                 diagnosis={lastDiagnosis || null}
                 symptomData={symptomData || null}
+                currentUser={currentUser}
                 onBack={() => setCurrentTab('care')}
                 onHome={handleGoHome}
                 onSelectHospital={async (hospital) => {

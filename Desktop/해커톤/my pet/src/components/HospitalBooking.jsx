@@ -14,7 +14,7 @@ const calculateAge = (birthDate) => {
   return `${age}세`;
 };
 
-export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome }) {
+export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser }) {
   const [hospitalPacket, setHospitalPacket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedHospital, setSelectedHospital] = useState(null);
@@ -355,7 +355,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
     try {
       const firestoreBookingData = {
         ...bookingData,
-        userId: petData?.userId || null,
+        userId: currentUser?.uid || petData?.userId || null,
         clinicId: bookingHospital.id,
         clinicName: bookingHospital.name
       };
