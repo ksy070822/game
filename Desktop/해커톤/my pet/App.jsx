@@ -4266,7 +4266,7 @@ function App() {
           currentTab={currentTab}
           onTabChange={handleTabChange}
           onModeSwitch={() => handleModeSwitch('clinic')}
-          showModeSwitch={currentUser && hasClinicAccess}
+          showModeSwitch={!!currentUser}
         />
       )}
         </>
