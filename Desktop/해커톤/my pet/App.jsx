@@ -1328,8 +1328,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
 
           <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
-      {/* Header - 회사명 가운데 정렬 */}
-      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
+      {/* Header - 회사명 가운데 정렬, 노치 영역 확보 */}
+      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-10 md:pt-12 pb-4 shadow-lg">
         <div className="flex items-center justify-center gap-2">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
             <span className="text-xl">🐾</span>
