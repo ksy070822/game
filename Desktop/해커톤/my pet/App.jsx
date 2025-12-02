@@ -1035,25 +1035,26 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <button
                 onClick={() => onNavigate('symptom-input')}
-                className="w-full mt-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="w-full mt-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
               >
-                <span className="text-xs font-medium">PetMedical.AI 종합 의료센터 &gt;</span>
-                <span className="text-sm font-bold ml-1">입장하기</span>
+                PetMedical.AI 종합의료센터 바로 방문 &gt;
               </button>
             </div>
 
-            {/* AI 건강 문진 카드 - 가운데 정렬 */}
-            <div className="bg-amber-50 rounded-2xl p-5 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
-              <div className="relative flex flex-col items-center text-center">
-                <div className="w-14 h-14 flex items-center justify-center mb-2">
-                  <span className="text-4xl">🤖</span>
+            {/* AI 건강 문진 카드 - 컴팩트 레이아웃 */}
+            <div className="bg-amber-50 rounded-2xl p-4 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
+              <div className="relative flex items-center gap-3">
+                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">🤖</span>
                 </div>
-                <h3 className="text-gray-800 font-bold text-base mb-1">AI 건강 문진</h3>
-                <p className="text-gray-600 text-xs">{petData.petName}의 7일 케어기록을 분석합니다.</p>
+                <div className="flex-1">
+                  <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
+                  <p className="text-gray-600 text-xs">{petData.petName} 건강기록 주요알림</p>
+                </div>
               </div>
               <button
                 onClick={() => onNavigate('ai-consultation')}
-                className="w-full mt-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                className="w-full mt-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-2.5 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
               >
                 7일 케어기록으로 AI 문진하기 &gt;
               </button>
@@ -1122,75 +1123,99 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="flex flex-col items-center">
-                  <button
-                    className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mb-1 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                    onClick={() => {
-                      setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
-                      setHealthPoints(prev => {
-                        const newPoints = Math.min(100, prev + 5);
-                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                        return newPoints;
-                      });
-                    }}
-                  >
-                    <span className="text-2xl">🍚</span>
-                  </button>
-                  <span className="text-xs font-semibold text-gray-500 mt-1">식사</span>
-                  <span className="text-sm font-bold text-sky-600">{careActions.meal}회</span>
+                  <div className="relative">
+                    <button
+                      className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      onClick={() => {
+                        setCareActions(prev => ({ ...prev, meal: prev.meal + 1 }));
+                        setHealthPoints(prev => {
+                          const newPoints = Math.min(100, prev + 5);
+                          if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                          return newPoints;
+                        });
+                      }}
+                    >
+                      <span className="text-2xl">🍚</span>
+                    </button>
+                    {careActions.meal > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                        {careActions.meal}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 mt-2">식사</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <button
-                    className="w-14 h-14 bg-sky-50 rounded-full flex items-center justify-center mb-1 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                    onClick={() => {
-                      setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
-                      setHealthPoints(prev => {
-                        const newPoints = Math.min(100, prev + 3);
-                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                        return newPoints;
-                      });
-                    }}
-                  >
-                    <span className="text-2xl">💧</span>
-                  </button>
-                  <span className="text-xs font-semibold text-gray-500 mt-1">물</span>
-                  <span className="text-sm font-bold text-sky-600">{careActions.water}회</span>
+                  <div className="relative">
+                    <button
+                      className="w-14 h-14 bg-sky-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      onClick={() => {
+                        setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
+                        setHealthPoints(prev => {
+                          const newPoints = Math.min(100, prev + 3);
+                          if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                          return newPoints;
+                        });
+                      }}
+                    >
+                      <span className="text-2xl">💧</span>
+                    </button>
+                    {careActions.water > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                        {careActions.water}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 mt-2">물</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <button
-                    className="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center mb-1 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                    onClick={() => {
-                      setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
-                      setHealthPoints(prev => {
-                        const newPoints = Math.min(100, prev + 10);
-                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                        return newPoints;
-                      });
-                    }}
-                  >
-                    <span className="text-2xl">🩴</span>
-                  </button>
-                  <span className="text-xs font-semibold text-gray-500 mt-1">산책</span>
-                  <span className="text-sm font-bold text-sky-600">{careActions.walk}회</span>
+                  <div className="relative">
+                    <button
+                      className="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      onClick={() => {
+                        setCareActions(prev => ({ ...prev, walk: prev.walk + 1 }));
+                        setHealthPoints(prev => {
+                          const newPoints = Math.min(100, prev + 10);
+                          if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                          return newPoints;
+                        });
+                      }}
+                    >
+                      <span className="text-2xl">🩴</span>
+                    </button>
+                    {careActions.walk > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                        {careActions.walk}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 mt-2">산책</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <button
-                    className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-1 hover:scale-105 active:scale-95 transition-all shadow-sm"
-                    onClick={() => {
-                      setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
-                      setHealthPoints(prev => {
-                        const newPoints = Math.min(100, prev + 7);
-                        if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
-                        return newPoints;
-                      });
-                    }}
-                  >
-                    <span className="text-2xl">🗑️</span>
-                  </button>
-                  <span className="text-xs font-semibold text-gray-500 mt-1">배변</span>
-                  <span className="text-sm font-bold text-sky-600">{careActions.grooming}회</span>
+                  <div className="relative">
+                    <button
+                      className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      onClick={() => {
+                        setCareActions(prev => ({ ...prev, grooming: prev.grooming + 1 }));
+                        setHealthPoints(prev => {
+                          const newPoints = Math.min(100, prev + 7);
+                          if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                          return newPoints;
+                        });
+                      }}
+                    >
+                      <span className="text-2xl">🗑️</span>
+                    </button>
+                    {careActions.grooming > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-md">
+                        {careActions.grooming}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 mt-2">배변</span>
                 </div>
               </div>
 
@@ -2822,19 +2847,20 @@ ${userQuestion}
                 border: 'none',
                 background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
                 color: 'white',
-                fontSize: '15px',
+                fontSize: '14px',
                 fontWeight: '700',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: '6px',
                 boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
             >
-              <span>답변 제출하고 진료 계속하기</span>
-              <span style={{ fontSize: '18px' }}>→</span>
+              <span>답변 제출 후 진료 계속</span>
+              <span style={{ fontSize: '16px' }}>→</span>
             </button>
             </div>
           )}
@@ -4276,8 +4302,8 @@ function App() {
         </div>
       )}
 
-      {/* 하단 탭 네비게이션 - 보호자 모드에서만 표시 */}
-      {userMode === 'guardian' && currentTab && !currentView && (
+      {/* 하단 탭 네비게이션 - 보호자 모드에서만 표시, AI문진에서도 표시 */}
+      {userMode === 'guardian' && currentTab && (!currentView || currentView === 'ai-consultation') && (
         <BottomTabNavigation
           currentTab={currentTab}
           onTabChange={handleTabChange}

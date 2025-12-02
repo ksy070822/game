@@ -10,11 +10,22 @@ export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate,
     setRegistrationCode(code);
 
     // 예상 도착 시간 - 예약 시간 사용
-    if (bookingTime) {
-      const [hour, minute] = bookingTime.split(':').map(Number);
-      const ampm = hour >= 12 ? '오후' : '오전';
-      const displayHours = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      setEstimatedArrival(`${ampm} ${displayHours}:${minute.toString().padStart(2, '0')}`);
+    if (bookingTime && bookingTime.includes(':')) {
+      const parts = bookingTime.split(':');
+      const hour = parseInt(parts[0], 10);
+      const minute = parseInt(parts[1], 10);
+
+      if (!isNaN(hour) && !isNaN(minute)) {
+        const ampm = hour >= 12 ? '오후' : '오전';
+        let displayHours = hour % 12;
+        if (displayHours === 0) displayHours = 12;
+        setEstimatedArrival(`${ampm} ${displayHours}시 ${minute.toString().padStart(2, '0')}분`);
+      } else {
+        setEstimatedArrival(bookingTime); // 파싱 실패 시 원본 표시
+      }
+    } else if (bookingTime) {
+      // 콜론이 없는 경우 원본 그대로 표시
+      setEstimatedArrival(bookingTime);
     } else {
       // 예약 시간이 없으면 현재 시간 + 30분
       const now = new Date();
@@ -22,8 +33,9 @@ export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate,
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const ampm = hours >= 12 ? '오후' : '오전';
-      const displayHours = hours > 12 ? hours - 12 : hours;
-      setEstimatedArrival(`${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`);
+      let displayHours = hours % 12;
+      if (displayHours === 0) displayHours = 12;
+      setEstimatedArrival(`${ampm} ${displayHours}시 ${minutes.toString().padStart(2, '0')}분`);
     }
   }, [bookingTime]);
 

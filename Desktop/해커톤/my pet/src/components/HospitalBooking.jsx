@@ -815,30 +815,30 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
             filteredHospitals.map(hospital => (
               <div key={hospital.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 {/* 병원명과 거리 */}
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
-                      <a
-                        href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-xs font-bold rounded hover:bg-[#F5E100] transition-colors"
-                      >
-                        상세정보
-                      </a>
-                      {hospital.is24Hours && (
-                        <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">24시</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">{hospital.roadAddress || hospital.address}</p>
+                <div className="mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
+                    <a
+                      href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-xs font-bold rounded hover:bg-[#F5E100] transition-colors"
+                    >
+                      상세정보
+                    </a>
+                    {hospital.is24Hours && (
+                      <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">24시</span>
+                    )}
                   </div>
-                  <span className="text-sm text-slate-500">{formatDistance(hospital.distance)}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-slate-500">{hospital.roadAddress || hospital.address}</p>
+                    {hospital.distance && (
+                      <span className="text-sm font-bold text-red-500">{formatDistance(hospital.distance)}</span>
+                    )}
+                  </div>
                 </div>
 
-
-
-                {/* AI 병원 특징 요약 */}
+                {/* AI 병원 특징 요약 - 강조 스타일 */}
                 <div className="mb-4">
                   {loadingReviews[hospital.id] ? (
                     <div className="text-xs text-slate-400 flex items-center gap-1">
@@ -846,19 +846,20 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                       병원 정보 분석 중...
                     </div>
                   ) : reviewSummaries[hospital.id] ? (
-                    <div className="bg-gradient-to-r from-slate-50 to-sky-50 rounded-lg p-3 text-xs">
-                      <div className="flex items-center gap-1 text-sky-600 font-medium mb-1.5">
-                        <span>🤖</span>
-                        <span>AI가 요약한 병원 특징</span>
+                    <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl p-3 border border-sky-200 shadow-sm">
+                      <div className="flex items-center gap-1.5 text-sky-700 font-bold text-sm mb-2">
+                        <span className="text-lg">🤖</span>
+                        <span>AI 병원 분석</span>
                       </div>
-                      <p className="text-slate-700">{reviewSummaries[hospital.id]}</p>
+                      <p className="text-slate-700 text-sm leading-relaxed">{reviewSummaries[hospital.id]}</p>
                     </div>
                   ) : (
                     <button
                       onClick={() => generateReviewSummary(hospital)}
-                      className="text-xs text-slate-500 hover:text-sky-500 font-medium flex items-center gap-1"
+                      className="text-sm text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1.5 bg-sky-50 px-3 py-2 rounded-lg hover:bg-sky-100 transition-colors"
                     >
-                      🤖 AI가 요약한 병원 특징 보기
+                      <span className="text-base">🤖</span>
+                      AI 병원 분석 보기
                     </button>
                   )}
                 </div>
