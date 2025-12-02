@@ -61,7 +61,9 @@ export const authService = {
           uid: user.uid,
           email: user.email,
           displayName,
-          userMode
+          userMode,
+          roles: [],
+          defaultClinicId: null
         }
       };
     } catch (error) {
@@ -94,7 +96,9 @@ export const authService = {
           uid: user.uid,
           email: user.email,
           displayName: user.displayName || userData.displayName,
-          userMode: userData.userMode || 'guardian'
+          userMode: userData.userMode || 'guardian',
+          roles: userData.roles || [],
+          defaultClinicId: userData.defaultClinicId || null
         }
       };
     } catch (error) {
@@ -163,7 +167,9 @@ export const authService = {
             email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL,
-            userMode: userData.userMode || userMode
+            userMode: userData.userMode || userMode,
+            roles: userData.roles || [],
+            defaultClinicId: userData.defaultClinicId || null
           }
         };
       } catch (popupError) {
@@ -212,7 +218,9 @@ export const authService = {
             email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL,
-            userMode: userData.userMode || userMode
+            userMode: userData.userMode || userMode,
+            roles: userData.roles || [],
+            defaultClinicId: userData.defaultClinicId || null
           }
         };
       }
@@ -279,7 +287,9 @@ export const authService = {
           email: user.email,
           displayName: user.displayName || userData.displayName,
           photoURL: user.photoURL,
-          userMode: userData.userMode || 'guardian'
+          userMode: userData.userMode || 'guardian',
+          roles: userData.roles || [],
+          defaultClinicId: userData.defaultClinicId || null
         });
       } else {
         callback(null);

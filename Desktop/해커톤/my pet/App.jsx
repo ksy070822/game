@@ -28,6 +28,7 @@ import { getApiKey, API_KEY_TYPES } from './src/services/apiKeyManager'
 import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from './src/components/Auth'
 import { OCRUpload } from './src/components/OCRUpload'
 import { ClinicAdmin } from './src/components/ClinicAdmin'
+import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
 import { diagnosisService, bookingService, petService } from './src/services/firestore'
@@ -3191,9 +3192,10 @@ function App() {
       {/* 플로팅 배경 효과 */}
       <FloatingBackground variant="default" />
 
-      {/* 병원 모드일 때 ClinicAdmin 표시 */}
-      {userMode === 'clinic' && !currentView && (
-        <ClinicAdmin
+      {/* 병원 모드일 때 ClinicDashboard 표시 */}
+      {userMode === 'clinic' && !currentView && currentUser && (
+        <ClinicDashboard
+          currentUser={currentUser}
           onBack={() => {
             // 보호자 모드로 전환
             handleModeSwitch('guardian');
@@ -3765,7 +3767,7 @@ function App() {
           currentTab={currentTab}
           onTabChange={handleTabChange}
           onModeSwitch={() => handleModeSwitch('clinic')}
-          showModeSwitch={true}
+          showModeSwitch={currentUser && (currentUser.userMode === 'both' || (currentUser.roles && currentUser.roles.length > 0))}
         />
       )}
         </>
