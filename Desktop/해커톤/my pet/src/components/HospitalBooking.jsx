@@ -817,15 +817,20 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                 {/* 병원명과 거리 */}
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
-                    <a
-                      href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-bold text-sky-600 text-base hover:text-sky-700 hover:underline cursor-pointer inline-flex items-center gap-1"
-                    >
-                      {hospital.name}
-                      <span className="text-xs text-slate-400">↗</span>
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
+                      <a
+                        href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-xs font-bold rounded hover:bg-[#F5E100] transition-colors"
+                      >
+                        상세정보
+                      </a>
+                      {hospital.is24Hours && (
+                        <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">24시</span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500 mt-1">{hospital.roadAddress || hospital.address}</p>
                   </div>
                   <span className="text-sm text-slate-500">{formatDistance(hospital.distance)}</span>
@@ -878,16 +883,6 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   <p className="text-xs text-slate-500 mb-2">📞 {hospital.phone}</p>
                 )}
 
-                {/* 태그 */}
-                <div className="flex gap-2 mb-3 flex-wrap">
-                  {hospital.is24Hours && (
-                    <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">24시 응급</span>
-                  )}
-                  <span className="px-2 py-1 bg-sky-100 text-sky-600 text-xs font-medium rounded">동물병원</span>
-                  {hospital.rating && parseFloat(hospital.rating) >= 4.5 && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">⭐ 인기</span>
-                  )}
-                </div>
 
                 {/* AI 병원 특징 요약 */}
                 <div className="mb-4">
@@ -922,7 +917,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   )}
                 </div>
 
-                {/* 버튼 - 순서: 전화, 예약하기, 카카오맵, 길찾기 */}
+                {/* 버튼 - 순서: 전화, 예약하기, 길찾기, T펫택시 */}
                 <div className="flex gap-2 flex-wrap">
                   {hospital.phone && (
                     <a
@@ -939,14 +934,6 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     예약하기
                   </button>
                   <a
-                    href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 min-w-[80px] py-2.5 text-center bg-[#FFEB00] text-[#3C1E1E] rounded-xl text-sm font-bold hover:bg-[#F5E100] transition-colors"
-                  >
-                    🗺️ 상세보기
-                  </a>
-                  <a
                     href={userLocation
                       ? `https://map.kakao.com/link/from/내위치,${userLocation.lat},${userLocation.lng}/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`
                       : `https://map.kakao.com/link/to/${encodeURIComponent(hospital.name)},${hospital.lat},${hospital.lng}`
@@ -955,7 +942,16 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     rel="noopener noreferrer"
                     className="flex-1 min-w-[70px] py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                   >
-                    🚗 길찾기
+                    🗺️ 길찾기
+                  </a>
+                  <a
+                    href="https://service.kakaomobility.com/launch/kakaot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[80px] py-2.5 text-center bg-[#1E1B4B] rounded-xl text-sm font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span className="text-[#FACC15] font-black">T</span>
+                    <span className="text-white">펫택시</span>
                   </a>
                 </div>
               </div>
