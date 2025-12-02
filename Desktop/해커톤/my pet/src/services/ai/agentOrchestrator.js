@@ -9,7 +9,7 @@ import { convertHealthFlagsFormat } from '../../utils/healthFlagsMapper';
 import { buildAIContext } from './dataContextService';
 import { runCollaborativeDiagnosis } from './collaborativeDiagnosis';
 
-export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived) => {
+export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived, onWaitForGuardianResponse = null) => {
   const logs = [];
   let csResult = null;
   let infoResult = null;
@@ -108,7 +108,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       role: '증상 사전 상담실',
       icon: '💉',
       type: 'info',
-      content: '정확한 진단을 위해 몇 가지 추가 정보가 필요합니다. 보호자님께 질문 드릴게요:',
+      content: '정확한 진단을 위해 몇 가지 추가 정보가 필요합니다. 아래 질문에 답변해 주세요:',
       timestamp: Date.now()
     });
 
@@ -117,43 +117,90 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     // 필수 질문들 생성
     const questions = [
       {
+        id: 'symptom_start',
         question: '언제부터 증상이 시작되었나요?',
         options: ['오늘', '어제', '2-3일 전', '일주일 이상'],
         type: 'single'
       },
       {
+        id: 'appetite',
         question: '식욕은 어떤가요?',
         options: ['평소와 같음', '약간 감소', '거의 안 먹음', '전혀 안 먹음'],
         type: 'single'
       },
       {
+        id: 'activity',
         question: '활동량은 평소와 비교해 어떤가요?',
         options: ['평소와 같음', '약간 감소', '많이 감소', '거의 움직이지 않음'],
         type: 'single'
       },
       {
+        id: 'other_symptoms',
         question: '다른 동반 증상이 있나요? (복수 선택 가능)',
         options: ['구토', '설사', '기침', '재채기', '호흡곤란', '발열', '없음'],
         type: 'multiple'
       }
     ];
 
-    // 각 질문을 순차적으로 전송
-    for (const q of questions) {
+    // 보호자 답변 대기 (콜백이 제공된 경우)
+    let guardianResponses = {};
+
+    if (onWaitForGuardianResponse) {
+      // 질문 메시지와 함께 대기 시작
       onLogReceived({
         agent: 'Information Agent',
         role: '증상 사전 상담실',
         icon: '💉',
         type: 'info',
-        content: q.question,
-        isQuestion: true,
-        questionData: q,
+        content: '',
+        isQuestionPhase: true,
+        questions: questions,
         timestamp: Date.now()
       });
+
+      // 보호자 답변 대기
+      guardianResponses = await onWaitForGuardianResponse(questions);
+
+      // 답변 완료 메시지
+      onLogReceived({
+        agent: 'Information Agent',
+        role: '증상 사전 상담실',
+        icon: '💉',
+        type: 'info',
+        content: '답변해 주셔서 감사합니다. 입력하신 정보를 바탕으로 분석을 진행하겠습니다.',
+        timestamp: Date.now()
+      });
+
       await new Promise(resolve => setTimeout(resolve, 800));
+    } else {
+      // 콜백이 없으면 기존 방식으로 질문만 표시 (백워드 호환)
+      for (const q of questions) {
+        onLogReceived({
+          agent: 'Information Agent',
+          role: '증상 사전 상담실',
+          icon: '💉',
+          type: 'info',
+          content: q.question,
+          isQuestion: true,
+          questionData: q,
+          timestamp: Date.now()
+        });
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      await new Promise(resolve => setTimeout(resolve, 1200));
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    // 보호자 응답을 symptomData에 추가
+    const enrichedSymptomData = {
+      ...normalizedSymptomData,
+      guardianResponses: guardianResponses,
+      guardianResponsesSummary: Object.entries(guardianResponses)
+        .map(([key, value]) => {
+          const q = questions.find(q => q.id === key);
+          return `${q?.question || key}: ${Array.isArray(value) ? value.join(', ') : value}`;
+        })
+        .join('\n')
+    };
 
     // 증상 상담실 → 전문 진료실 이관
     onLogReceived({
@@ -182,7 +229,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     // Firestore에서 FAQ와 과거 진료기록 컨텍스트 조회
     let dataContext = '';
     try {
-      dataContext = await buildAIContext(normalizedPetData, normalizedSymptomData);
+      dataContext = await buildAIContext(normalizedPetData, enrichedSymptomData);
       if (dataContext) {
         console.log('AI 컨텍스트 로드 완료:', dataContext.length, '자');
       }
@@ -190,7 +237,8 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       console.warn('AI 컨텍스트 로드 실패 (진단은 계속 진행):', contextError);
     }
 
-    medicalResult = await callMedicalAgent(normalizedPetData, normalizedSymptomData, csResult.json, infoResult.json, dataContext);
+    // 보호자 응답 정보를 Medical Agent에 전달
+    medicalResult = await callMedicalAgent(normalizedPetData, enrichedSymptomData, csResult.json, infoResult.json, dataContext);
 
     logs.push({
       agent: 'Veterinarian Agent',
@@ -229,7 +277,7 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      triageResult = await calculateTriageScore(normalizedPetData, normalizedSymptomData, medicalResult.json, csResult.json);
+      triageResult = await calculateTriageScore(normalizedPetData, enrichedSymptomData, medicalResult.json, csResult.json);
       logs.push({
         agent: 'Triage Engine',
         role: '응급도 판정실',

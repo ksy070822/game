@@ -1650,6 +1650,13 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
   const [showDiagnosisReport, setShowDiagnosisReport] = useState(false); // 진단서 표시 여부
   const messagesEndRef = useRef(null); // 자동 스크롤을 위한 ref
 
+  // 보호자 응답 관련 상태
+  const [guardianQuestions, setGuardianQuestions] = useState([]); // 현재 질문들
+  const [guardianResponses, setGuardianResponses] = useState({}); // 보호자 응답
+  const [isWaitingForGuardian, setIsWaitingForGuardian] = useState(false); // 보호자 응답 대기 중
+  const [additionalComment, setAdditionalComment] = useState(''); // 추가 코멘트
+  const guardianResolveRef = useRef(null); // Promise resolve 함수 저장
+
   // 자동 스크롤: 메시지가 추가될 때마다 맨 아래로 스크롤
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -1666,12 +1673,32 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
         setMessages([]);
         setCurrentStep(0);
 
+        // 보호자 응답 대기 콜백 함수
+        const handleWaitForGuardianResponse = (questions) => {
+          return new Promise((resolve) => {
+            if (!isMounted) {
+              resolve({});
+              return;
+            }
+            setGuardianQuestions(questions);
+            setGuardianResponses({});
+            setIsWaitingForGuardian(true);
+            setAdditionalComment('');
+            guardianResolveRef.current = resolve;
+          });
+        };
+
         // 실제 AI API 호출
         const result = await runMultiAgentDiagnosis(
           petData,
           symptomData,
           (log) => {
             if (!isMounted) return; // 컴포넌트가 언마운트되었으면 무시
+
+            // 질문 단계 메시지는 별도 처리 (UI에 표시하지 않음)
+            if (log.isQuestionPhase) {
+              return;
+            }
 
             // 모든 메시지를 유지하되, 완전히 동일한 중복 메시지만 제거
             setMessages(prev => {
@@ -1695,7 +1722,8 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
               }];
             });
             setCurrentStep(prev => prev + 1);
-          }
+          },
+          handleWaitForGuardianResponse
         );
         
         if (!isMounted) return; // 컴포넌트가 언마운트되었으면 무시
@@ -1791,6 +1819,78 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
       isMounted = false;
     };
   }, [petData?.id, symptomData?.symptomText]); // 의존성 배열 최적화
+
+  // 보호자 응답 선택 핸들러
+  const handleGuardianOptionSelect = (questionId, option, isMultiple) => {
+    setGuardianResponses(prev => {
+      if (isMultiple) {
+        const currentSelections = prev[questionId] || [];
+        if (currentSelections.includes(option)) {
+          // 이미 선택된 경우 제거
+          return { ...prev, [questionId]: currentSelections.filter(o => o !== option) };
+        } else {
+          // 없음 선택시 다른 옵션 제거
+          if (option === '없음') {
+            return { ...prev, [questionId]: ['없음'] };
+          }
+          // 다른 옵션 선택시 없음 제거
+          const filtered = currentSelections.filter(o => o !== '없음');
+          return { ...prev, [questionId]: [...filtered, option] };
+        }
+      } else {
+        return { ...prev, [questionId]: option };
+      }
+    });
+  };
+
+  // 보호자 응답 제출 핸들러
+  const handleGuardianResponseSubmit = () => {
+    // 모든 질문에 답변했는지 확인
+    const allAnswered = guardianQuestions.every(q => {
+      const response = guardianResponses[q.id];
+      if (q.type === 'multiple') {
+        return response && response.length > 0;
+      }
+      return response && response.length > 0;
+    });
+
+    if (!allAnswered) {
+      alert('모든 질문에 답변해 주세요.');
+      return;
+    }
+
+    // 추가 코멘트가 있으면 응답에 추가
+    const finalResponses = {
+      ...guardianResponses,
+      additionalComment: additionalComment.trim() || ''
+    };
+
+    // 보호자 응답 메시지를 채팅에 추가
+    const responsesSummary = guardianQuestions.map(q => {
+      const response = guardianResponses[q.id];
+      const responseText = Array.isArray(response) ? response.join(', ') : response;
+      return `• ${q.question}\n  → ${responseText}`;
+    }).join('\n\n');
+
+    setMessages(prev => [...prev, {
+      agent: '사용자',
+      role: '보호자',
+      icon: '👤',
+      type: 'user',
+      content: `📝 증상 문진 응답\n\n${responsesSummary}${additionalComment ? `\n\n💬 추가 정보: ${additionalComment}` : ''}`,
+      isUser: true,
+      timestamp: Date.now()
+    }]);
+
+    // Promise resolve 호출하여 진행 재개
+    if (guardianResolveRef.current) {
+      guardianResolveRef.current(finalResponses);
+      guardianResolveRef.current = null;
+    }
+
+    setIsWaitingForGuardian(false);
+    setGuardianQuestions([]);
+  };
 
   const showFinalDiagnosis = (analysis, symptomText, hasImages) => {
     setDiagnosisResult(analysis);
@@ -2428,12 +2528,200 @@ ${userQuestion}
           </div>
         )}
 
+        {/* 보호자 응답 폼 */}
+        {isWaitingForGuardian && guardianQuestions.length > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            borderRadius: '16px',
+            padding: '20px',
+            margin: '12px 0',
+            border: '2px solid #0ea5e9',
+            boxShadow: '0 4px 12px rgba(14, 165, 233, 0.15)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '16px'
+            }}>
+              <span style={{ fontSize: '24px' }}>📋</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0369a1' }}>
+                  증상 문진
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#0284c7' }}>
+                  정확한 진단을 위해 아래 질문에 답변해 주세요
+                </p>
+              </div>
+            </div>
+
+            {guardianQuestions.map((question, qIndex) => {
+              const isMultiple = question.type === 'multiple';
+              const currentResponse = guardianResponses[question.id] || (isMultiple ? [] : '');
+
+              return (
+                <div key={question.id} style={{
+                  marginBottom: '20px',
+                  padding: '16px',
+                  background: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    marginBottom: '12px'
+                  }}>
+                    <span style={{
+                      background: '#0ea5e9',
+                      color: 'white',
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      flexShrink: 0
+                    }}>
+                      {qIndex + 1}
+                    </span>
+                    <div>
+                      <p style={{
+                        margin: 0,
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#1e293b'
+                      }}>
+                        {question.question}
+                      </p>
+                      {isMultiple && (
+                        <span style={{
+                          fontSize: '11px',
+                          color: '#64748b',
+                          marginTop: '4px',
+                          display: 'block'
+                        }}>
+                          복수 선택 가능
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px'
+                  }}>
+                    {question.options.map((option, optIndex) => {
+                      const isSelected = isMultiple
+                        ? currentResponse.includes(option)
+                        : currentResponse === option;
+
+                      return (
+                        <button
+                          key={optIndex}
+                          onClick={() => handleGuardianOptionSelect(question.id, option, isMultiple)}
+                          style={{
+                            padding: '10px 16px',
+                            borderRadius: '20px',
+                            border: isSelected ? '2px solid #0ea5e9' : '2px solid #e2e8f0',
+                            background: isSelected ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : 'white',
+                            color: isSelected ? 'white' : '#475569',
+                            fontSize: '13px',
+                            fontWeight: isSelected ? '600' : '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: isSelected ? '0 2px 8px rgba(14, 165, 233, 0.3)' : 'none'
+                          }}
+                        >
+                          {isSelected && <span style={{ marginRight: '4px' }}>✓</span>}
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* 추가 코멘트 입력 */}
+            <div style={{
+              marginBottom: '16px',
+              padding: '16px',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '10px'
+              }}>
+                <span style={{ fontSize: '16px' }}>💬</span>
+                <p style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#1e293b'
+                }}>
+                  추가로 알려주실 내용이 있나요? (선택사항)
+                </p>
+              </div>
+              <textarea
+                value={additionalComment}
+                onChange={(e) => setAdditionalComment(e.target.value)}
+                placeholder="예: 어제 산책 중에 풀을 많이 먹었어요 / 최근 사료를 바꿨어요 등"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '14px',
+                  minHeight: '80px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* 제출 버튼 */}
+            <button
+              onClick={handleGuardianResponseSubmit}
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                color: 'white',
+                fontSize: '15px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <span>답변 제출하고 진료 계속하기</span>
+              <span style={{ fontSize: '18px' }}>→</span>
+            </button>
+          </div>
+        )}
+
         {/* 자동 스크롤을 위한 참조 지점 */}
         <div ref={messagesEndRef} />
       </div>
 
       {/* 메시지 입력창 */}
-      {!showResult && (
+      {!showResult && !isWaitingForGuardian && (
         <div style={{
           padding: '16px',
           borderTop: '1px solid #e2e8f0',
