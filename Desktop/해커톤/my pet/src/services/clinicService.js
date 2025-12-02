@@ -129,7 +129,7 @@ export async function getClinicStaff(clinicId) {
 
 /**
  * 오늘 예약 목록 조회
- * @param {string} clinicId - 병원 ID
+ * @param {string} clinicId - 병원 ID (clinics 컬렉션의 문서 ID)
  * @returns {Promise<Array>} 오늘 예약 목록
  */
 export async function getTodayBookings(clinicId) {
@@ -141,31 +141,88 @@ export async function getTodayBookings(clinicId) {
 
     const todayStr = today.toISOString().split('T')[0];
 
-    const bookingsQuery = query(
+    // clinics 정보 가져오기 (병원명 확인용)
+    const clinicDoc = await getDoc(doc(db, 'clinics', clinicId));
+    const clinicData = clinicDoc.exists() ? clinicDoc.data() : null;
+    const clinicName = clinicData?.name;
+
+    // 1. clinics ID로 직접 조회
+    const bookingsQuery1 = query(
       collection(db, 'bookings'),
       where('clinicId', '==', clinicId),
       where('date', '==', todayStr),
       orderBy('time', 'asc')
     );
 
-    const snapshot = await getDocs(bookingsQuery);
+    // 2. 병원명으로도 조회 (하위 호환 - animal_hospitals ID로 저장된 예약)
+    let bookingsQuery2 = null;
+    if (clinicName) {
+      bookingsQuery2 = query(
+        collection(db, 'bookings'),
+        where('clinicName', '==', clinicName),
+        where('date', '==', todayStr)
+      );
+    }
+
+    // 3. animalHospitalId로도 조회 (새로 추가된 필드)
+    let bookingsQuery3 = null;
+    if (clinicData?.animalHospitalId) {
+      bookingsQuery3 = query(
+        collection(db, 'bookings'),
+        where('animalHospitalId', '==', clinicData.animalHospitalId),
+        where('date', '==', todayStr)
+      );
+    }
+
+    // 병렬로 모든 쿼리 실행
+    const queries = [getDocs(bookingsQuery1)];
+    if (bookingsQuery2) queries.push(getDocs(bookingsQuery2));
+    if (bookingsQuery3) queries.push(getDocs(bookingsQuery3));
+    
+    const snapshots = await Promise.all(queries);
+    
+    // 중복 제거를 위한 Map 사용
+    const bookingMap = new Map();
+    
+    for (const snapshot of snapshots) {
+      for (const bookingDoc of snapshot.docs) {
+        if (!bookingMap.has(bookingDoc.id)) {
+          bookingMap.set(bookingDoc.id, bookingDoc);
+        }
+      }
+    }
+
     const bookings = [];
 
-    for (const bookingDoc of snapshot.docs) {
+    for (const bookingDoc of bookingMap.values()) {
       const bookingData = bookingDoc.data();
 
       // 펫 정보 가져오기
-      const petDoc = await getDoc(doc(db, 'pets', bookingData.petId));
+      let petDoc = null;
+      if (bookingData.petId) {
+        petDoc = await getDoc(doc(db, 'pets', bookingData.petId));
+      }
+      
       // 보호자 정보 가져오기
-      const userDoc = await getDoc(doc(db, 'users', bookingData.userId));
+      let userDoc = null;
+      if (bookingData.userId) {
+        userDoc = await getDoc(doc(db, 'users', bookingData.userId));
+      }
 
       bookings.push({
         id: bookingDoc.id,
         ...bookingData,
-        pet: petDoc.exists() ? petDoc.data() : null,
-        owner: userDoc.exists() ? userDoc.data() : null
+        pet: petDoc?.exists() ? petDoc.data() : bookingData.pet || bookingData.petProfile || null,
+        owner: userDoc?.exists() ? userDoc.data() : bookingData.owner || null
       });
     }
+
+    // 시간순 정렬
+    bookings.sort((a, b) => {
+      const timeA = a.time || '00:00';
+      const timeB = b.time || '00:00';
+      return timeA.localeCompare(timeB);
+    });
 
     return bookings;
   } catch (error) {
@@ -176,7 +233,7 @@ export async function getTodayBookings(clinicId) {
 
 /**
  * 월별 예약 목록 조회
- * @param {string} clinicId - 병원 ID
+ * @param {string} clinicId - 병원 ID (clinics 컬렉션의 문서 ID)
  * @param {number} year - 연도
  * @param {number} month - 월 (1-12)
  * @returns {Promise<Array>} 예약 목록
@@ -188,7 +245,13 @@ export async function getMonthlyBookings(clinicId, year, month) {
       ? `${year + 1}-01-01`
       : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
-    const bookingsQuery = query(
+    // clinics 정보 가져오기
+    const clinicDoc = await getDoc(doc(db, 'clinics', clinicId));
+    const clinicData = clinicDoc.exists() ? clinicDoc.data() : null;
+    const clinicName = clinicData?.name;
+
+    // 1. clinics ID로 직접 조회
+    const bookingsQuery1 = query(
       collection(db, 'bookings'),
       where('clinicId', '==', clinicId),
       where('date', '>=', startDate),
@@ -197,11 +260,60 @@ export async function getMonthlyBookings(clinicId, year, month) {
       orderBy('time', 'asc')
     );
 
-    const snapshot = await getDocs(bookingsQuery);
-    return snapshot.docs.map(doc => ({
+    // 2. 병원명으로도 조회 (하위 호환)
+    let bookingsQuery2 = null;
+    if (clinicName) {
+      bookingsQuery2 = query(
+        collection(db, 'bookings'),
+        where('clinicName', '==', clinicName),
+        where('date', '>=', startDate),
+        where('date', '<', endDate)
+      );
+    }
+
+    // 3. animalHospitalId로도 조회
+    let bookingsQuery3 = null;
+    if (clinicData?.animalHospitalId) {
+      bookingsQuery3 = query(
+        collection(db, 'bookings'),
+        where('animalHospitalId', '==', clinicData.animalHospitalId),
+        where('date', '>=', startDate),
+        where('date', '<', endDate)
+      );
+    }
+
+    // 병렬로 모든 쿼리 실행
+    const queries = [getDocs(bookingsQuery1)];
+    if (bookingsQuery2) queries.push(getDocs(bookingsQuery2));
+    if (bookingsQuery3) queries.push(getDocs(bookingsQuery3));
+    
+    const snapshots = await Promise.all(queries);
+    
+    // 중복 제거를 위한 Map 사용
+    const bookingMap = new Map();
+    
+    for (const snapshot of snapshots) {
+      for (const bookingDoc of snapshot.docs) {
+        if (!bookingMap.has(bookingDoc.id)) {
+          bookingMap.set(bookingDoc.id, bookingDoc);
+        }
+      }
+    }
+
+    // 배열로 변환 및 정렬
+    const bookings = Array.from(bookingMap.values()).map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // 날짜 및 시간순 정렬
+    bookings.sort((a, b) => {
+      const dateCompare = (a.date || '').localeCompare(b.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (a.time || '00:00').localeCompare(b.time || '00:00');
+    });
+
+    return bookings;
   } catch (error) {
     console.error('월별 예약 조회 실패:', error);
     throw error;

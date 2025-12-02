@@ -4,6 +4,8 @@ import { getCurrentPosition, searchAnimalHospitals, initKakaoMap, addMarker, loa
 import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
 import { bookingService } from '../services/firestore';
+import { db } from '../lib/firebase';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 // 동물 종류별 메인 캐릭터 이미지 매핑
 const ANIMAL_CHARACTER_IMAGES = {
@@ -365,15 +367,39 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
 
     // Firestore에도 저장
     try {
+      // clinics 컬렉션에서 병원명으로 clinics ID 찾기
+      let actualClinicId = bookingHospital.id; // 기본값은 animal_hospitals ID
+      let animalHospitalId = bookingHospital.id; // 원본 ID 보관
+      
+      try {
+        const clinicsQuery = query(
+          collection(db, 'clinics'),
+          where('name', '==', bookingHospital.name),
+          limit(1)
+        );
+        const clinicsSnapshot = await getDocs(clinicsQuery);
+        
+        if (!clinicsSnapshot.empty) {
+          actualClinicId = clinicsSnapshot.docs[0].id;
+          console.log('[예약] clinics ID 찾음:', actualClinicId, '병원명:', bookingHospital.name);
+        } else {
+          console.warn('[예약] clinics에서 병원을 찾을 수 없음, animal_hospitals ID 사용:', bookingHospital.id);
+        }
+      } catch (clinicSearchError) {
+        console.warn('[예약] clinics 검색 오류:', clinicSearchError);
+      }
+      
       const firestoreBookingData = {
         ...bookingData,
         userId: currentUser?.uid || petData?.userId || null,
-        clinicId: bookingHospital.id,
-        clinicName: bookingHospital.name
+        clinicId: actualClinicId, // clinics 컬렉션의 ID 사용
+        clinicName: bookingHospital.name,
+        animalHospitalId: animalHospitalId, // 원본 ID 보관 (하위 호환)
+        hospitalId: animalHospitalId // 추가 필드로 보관
       };
       const result = await bookingService.createBooking(firestoreBookingData);
       if (result.success) {
-        console.log('예약 Firestore 저장 완료:', result.id);
+        console.log('예약 Firestore 저장 완료:', result.id, 'clinicId:', actualClinicId);
       }
     } catch (firestoreError) {
       console.warn('예약 Firestore 저장 실패 (로컬 저장은 완료):', firestoreError);
