@@ -215,14 +215,14 @@ const PET_CHARACTERS = {
 
 // 동물 종류 옵션
 const SPECIES_OPTIONS = [
-  { id: 'dog', label: '강아지', emoji: '🐕', icon: '/icon/dog.png' },
-  { id: 'cat', label: '고양이', emoji: '🐈', icon: '/icon/cat.png' },
-  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: '/icon/rabbit.png' },
-  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: '/icon/hamster.png' },
-  { id: 'bird', label: '새', emoji: '🦜', icon: '/icon/bird.png' },
-  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: '/icon/hedgehog.png' },
-  { id: 'reptile', label: '파충류', emoji: '🦎', icon: '/icon/reptile.png' },
-  { id: 'other', label: '기타', emoji: '🐾', icon: '/icon/etc.png' },
+  { id: 'dog', label: '강아지', emoji: '🐕', icon: '/ai-factory/icon/dog.png' },
+  { id: 'cat', label: '고양이', emoji: '🐈', icon: '/ai-factory/icon/cat.png' },
+  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: '/ai-factory/icon/rabbit.png' },
+  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: '/ai-factory/icon/hamster.png' },
+  { id: 'bird', label: '새', emoji: '🦜', icon: '/ai-factory/icon/bird.png' },
+  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: '/ai-factory/icon/hedgehog.png' },
+  { id: 'reptile', label: '파충류', emoji: '🦎', icon: '/ai-factory/icon/reptile.png' },
+  { id: 'other', label: '기타', emoji: '🐾', icon: '/ai-factory/icon/etc.png' },
 ];
 
 // 개/고양이 대표 품종 목록
