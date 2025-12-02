@@ -28,19 +28,13 @@ import { getApiKey, API_KEY_TYPES } from './src/services/apiKeyManager'
 import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from './src/components/Auth'
 import { OCRUpload } from './src/components/OCRUpload'
 import { ClinicAdmin } from './src/components/ClinicAdmin'
-<<<<<<< HEAD
 import { seedGuardianData, seedClinicData } from './src/utils/seedTestDataUtils'
 import { auth } from './src/lib/firebase'
-=======
 import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
 import { diagnosisService, bookingService, petService } from './src/services/firestore'
 import { getUserClinics } from './src/services/clinicService'
-
-// 테스트 데이터 시드 유틸리티 (브라우저 콘솔에서 window.seedGuardianData, window.seedClinicData 사용 가능)
-import './src/utils/seedTestData'
->>>>>>> 9bdfb635130de009bf8ca88f7364abcb59a3807d
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -3363,7 +3357,6 @@ function App() {
           setPetData(userPets[0]);
         }
       }
-<<<<<<< HEAD
     }
     // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
     setCurrentTab('care');
@@ -3392,13 +3385,6 @@ function App() {
     };
     console.log('💡 테스트 데이터 시드 함수가 등록되었습니다.');
     console.log('   사용법: const user = window.auth.currentUser; await window.seedGuardianData(user.uid, user.email);');
-=======
-      // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
-      setCurrentTab('care');
-    };
-
-    loadSession();
->>>>>>> 9bdfb635130de009bf8ca88f7364abcb59a3807d
   }, []);
 
   // 로그인 성공 핸들러
