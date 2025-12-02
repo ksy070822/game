@@ -940,17 +940,271 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200 md:flex md:items-center md:justify-center md:p-8">
-      {/* 모바일 프레임 (PC에서만 보임) */}
-      <div className="hidden md:block fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200">
+      {/* PC 레이아웃 (lg 이상) */}
+      <div className="hidden lg:flex min-h-screen">
+        {/* 사이드바 */}
+        <aside className="w-72 bg-white shadow-xl flex flex-col fixed h-full z-40">
+          {/* 로고 영역 */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🐾</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">PetMedical.AI</h1>
+                <p className="text-xs text-gray-500">AI 반려동물 건강관리</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 펫 프로필 */}
+          {petData && (
+            <div className="p-4 border-b border-gray-100">
+              <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center">
+                    <img
+                      src={getMainCharacterImage()}
+                      alt={petData.petName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<span class="text-3xl">${petData.species === 'dog' ? '🐕' : petData.species === 'cat' ? '🐈' : '🐾'}</span>`;
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900">{petData.petName}</h3>
+                    <p className="text-xs text-gray-500">{getSpeciesDisplay()} • {calculateAge(petData.birthDate)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onNavigate('profile-list')}
+                  className="w-full mt-3 py-2 text-sm text-sky-600 font-medium hover:bg-sky-50 rounded-lg transition-colors"
+                >
+                  반려동물 변경
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 네비게이션 메뉴 */}
+          <nav className="flex-1 p-4 space-y-2">
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-50 text-sky-700 font-medium"
+            >
+              <span className="text-xl">🏠</span>
+              <span>홈</span>
+            </button>
+            <button
+              onClick={() => onNavigate('symptom-input')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+            >
+              <span className="text-xl">🩺</span>
+              <span>AI 진단</span>
+            </button>
+            <button
+              onClick={() => onNavigate('hospital-booking')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+            >
+              <span className="text-xl">🏥</span>
+              <span>병원 예약</span>
+            </button>
+            <button
+              onClick={() => onNavigate('records')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+            >
+              <span className="text-xl">📋</span>
+              <span>건강 기록</span>
+            </button>
+            <button
+              onClick={() => onNavigate('mypage')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+            >
+              <span className="text-xl">👤</span>
+              <span>마이페이지</span>
+            </button>
+          </nav>
+
+          {/* 하단 정보 */}
+          <div className="p-4 border-t border-gray-100">
+            <div className="text-xs text-gray-400 text-center">
+              © 2025 PetMedical.AI
+            </div>
+          </div>
+        </aside>
+
+        {/* 메인 컨텐츠 (PC) */}
+        <main className="flex-1 ml-72 p-8">
+          <div className="max-w-4xl mx-auto">
+            {/* PC용 헤더 */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {petData ? `${petData.petName}의 건강 대시보드` : '반려동물을 등록해주세요'}
+              </h2>
+              <p className="text-gray-500 mt-1">AI가 24시간 함께하는 스마트 건강관리</p>
+            </div>
+
+            {/* 컨텐츠 영역 */}
+            <div className="space-y-6">
+              {!petData ? (
+                <div className="bg-white rounded-2xl p-8 shadow-lg">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">🐾</div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">반려동물을 등록해주세요</h3>
+                    <p className="text-gray-500 mb-6">맞춤형 AI 건강관리 서비스를 시작하세요</p>
+                    <button
+                      onClick={() => onNavigate('profile-registration')}
+                      className="px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                    >
+                      반려동물 등록하기
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* 빠른 액션 카드 */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => onNavigate('symptom-input')}
+                      className="bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
+                    >
+                      <span className="text-3xl mb-3 block">🏥</span>
+                      <h3 className="text-lg font-bold">AI 종합진료센터</h3>
+                      <p className="text-sky-100 text-sm mt-1">증상을 입력하고 AI 진단받기</p>
+                    </button>
+                    <button
+                      onClick={() => onNavigate('ai-consultation')}
+                      className="bg-gradient-to-br from-amber-400 to-yellow-500 text-gray-900 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
+                    >
+                      <span className="text-3xl mb-3 block">🤖</span>
+                      <h3 className="text-lg font-bold">AI 건강 문진</h3>
+                      <p className="text-amber-800 text-sm mt-1">7일 케어기록 기반 분석</p>
+                    </button>
+                  </div>
+
+                  {/* 케어 주요알림 + 오늘의 기록 */}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* 케어 주요알림 */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                          <span>🔔</span> 케어 주요알림
+                        </h3>
+                        <button onClick={() => onNavigate('records')} className="text-sm text-sky-600 font-medium">
+                          전체보기 &gt;
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+                          <span className="text-2xl">📅</span>
+                          <div>
+                            <p className="font-medium text-gray-900">병원 예약일</p>
+                            <p className="text-sm text-gray-500">다음 진료: 2025년 12월 15일</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                          <span className="text-2xl">💉</span>
+                          <div>
+                            <p className="font-medium text-gray-900">접종 예정</p>
+                            <p className="text-sm text-gray-500">광견병 백신 (2주 후)</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
+                          <span className="text-2xl">⚠️</span>
+                          <div>
+                            <p className="font-medium text-gray-900">유의사항</p>
+                            <p className="text-sm text-gray-500">피부 알레르기 주의 필요</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 오늘의 기록 */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900">오늘의 기록</h3>
+                        <span className="text-sm text-gray-400">{new Date().toISOString().split('T')[0]}</span>
+                      </div>
+
+                      <div className="grid grid-cols-5 gap-3 mb-4">
+                        {[
+                          { icon: '🍚', label: '식사', key: 'meal', bg: 'bg-gray-50', points: 5 },
+                          { icon: '💧', label: '물', key: 'water', bg: 'bg-sky-50', points: 3 },
+                          { icon: '🩴', label: '산책', key: 'walk', bg: 'bg-yellow-50', points: 10 },
+                          { icon: '🍖', label: '간식', key: 'treats', bg: 'bg-orange-50', points: 2 },
+                          { icon: '🗑️', label: '배변', key: 'grooming', bg: 'bg-amber-50', points: 7 }
+                        ].map(item => (
+                          <div key={item.key} className="flex flex-col items-center">
+                            <button
+                              className={`w-12 h-12 ${item.bg} rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm relative`}
+                              onClick={() => {
+                                setCareActions(prev => ({ ...prev, [item.key]: prev[item.key] + 1 }));
+                                setHealthPoints(prev => {
+                                  const newPoints = Math.min(100, prev + item.points);
+                                  if (petData?.id) localStorage.setItem(`petMedical_healthPoints_${petData.id}`, newPoints.toString());
+                                  return newPoints;
+                                });
+                              }}
+                            >
+                              <span className="text-xl">{item.icon}</span>
+                              {careActions[item.key] > 0 && (
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                  {careActions[item.key]}
+                                </span>
+                              )}
+                            </button>
+                            <span className="text-xs text-gray-500 mt-1">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">오늘 몸무게 (kg)</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            placeholder="5.2"
+                            value={todayWeight}
+                            onChange={(e) => setTodayWeight(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-sky-400 focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          onClick={saveTodayCare}
+                          className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
+                            careSaved
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:shadow-lg'
+                          }`}
+                        >
+                          {careSaved ? '저장 완료!' : `오늘 ${petData.petName} 케어 완료`}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </main>
       </div>
 
-      <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
-        {/* 노치 (PC에서만) */}
-        <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
+      {/* 태블릿/모바일 레이아웃 (lg 미만) */}
+      <div className="lg:hidden md:flex md:items-center md:justify-center md:p-8 md:min-h-screen">
+        {/* 모바일 프레임 (태블릿에서만 보임) */}
+        <div className="hidden md:block fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200"></div>
+        </div>
 
-        <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
+        <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
+          {/* 노치 (태블릿에서만) */}
+          <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
+
+          <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
       {/* Header - 회사명 가운데 정렬 */}
       <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
         <div className="flex items-center justify-center gap-2">
@@ -1282,6 +1536,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           </>
         )}
       </div>
+          </div>
         </div>
       </div>
     </div>
