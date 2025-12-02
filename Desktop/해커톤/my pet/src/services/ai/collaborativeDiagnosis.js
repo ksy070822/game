@@ -109,6 +109,10 @@ export const crossValidateDiagnosis = async (petData, symptomData, medicalResult
 
 증상:
 ${symptomData.symptomText}
+${symptomData.guardianResponsesSummary ? `
+★★★ 보호자 추가 문진 응답 (매우 중요) ★★★
+${symptomData.guardianResponsesSummary}
+` : ''}
 
 Information Agent 분석:
 ${JSON.stringify(infoResult, null, 2)}
@@ -198,6 +202,9 @@ export const getSecondOpinion = async (petData, symptomData, medicalResult, tria
   const userPrompt = `
 반려동물: ${petData.petName} (${petData.species === 'dog' ? '개' : '고양이'}, ${petData.breed || '미등록'})
 증상: ${symptomData.symptomText}
+${symptomData.guardianResponsesSummary ? `
+★ 보호자 추가 문진: ${symptomData.guardianResponsesSummary}
+` : ''}
 
 1차 진단 (Medical Agent - Claude):
 ${JSON.stringify(medicalResult, null, 2)}

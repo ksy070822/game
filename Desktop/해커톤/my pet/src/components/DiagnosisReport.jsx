@@ -7,6 +7,18 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoT
   const reportRef = useRef(null);
 
   // 반려동물 정보 매핑 (다양한 필드명 지원)
+  // 동물 종류별 메인 캐릭터 이미지 매핑
+  const ANIMAL_CHARACTER_IMAGES = {
+    dog: '/icon/main-image/dog_main-removebg-preview.png',
+    cat: '/icon/main-image/Cat_main-removebg-preview.png',
+    rabbit: '/icon/main-image/rabbit_main-removebg-preview.png',
+    hamster: '/icon/main-image/hamster_main-removebg-preview.png',
+    bird: '/icon/main-image/bird_main-removebg-preview.png',
+    hedgehog: '/icon/main-image/hedgehog_main-removebg-preview.png',
+    reptile: '/icon/main-image/reptile_main-removebg-preview.png',
+    etc: '/icon/main-image/etc_main-removebg-preview.png'
+  };
+
   const getPetInfo = () => {
     if (!petData) return { name: '미등록', age: '미상', weight: '미상', breed: '미상', species: 'dog' };
 
@@ -43,8 +55,8 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoT
     // 성별
     const gender = petData.sex || petData.gender;
 
-    // 프로필 이미지
-    const profileImage = petData.profileImage || null;
+    // 프로필 이미지 (사용자 등록 이미지 또는 동물 종류별 기본 이미지)
+    const profileImage = petData.profileImage || ANIMAL_CHARACTER_IMAGES[species] || ANIMAL_CHARACTER_IMAGES.etc;
     const character = petData.character || null;
 
     return { name, age, weight, breed, species, gender, profileImage, character };
@@ -186,33 +198,45 @@ ${diagnosisResult?.hospitalVisit ? `
             <span className="report-number">No. PMD-{Date.now().toString(36).toUpperCase().slice(-6)}</span>
           </div>
 
-          {/* 환자 정보 */}
+          {/* 환자 정보 - 가로 2줄 레이아웃 */}
           <div className="report-section patient-info">
             <h2>🏥 환자 정보</h2>
-            <div className="patient-grid">
-              <div className="patient-avatar">
-                {petInfo.profileImage ? (
-                  <img src={petInfo.profileImage} alt={petInfo.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                ) : (
-                  petInfo.species === 'cat' ? '🐱' : petInfo.species === 'dog' ? '🐕' : petInfo.species === 'bird' ? '🐦' : petInfo.species === 'hamster' ? '🐹' : petInfo.species === 'rabbit' ? '🐰' : petInfo.species === 'fish' ? '🐠' : petInfo.species === 'turtle' ? '🐢' : '🐾'
-                )}
+            <div className="patient-grid" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div className="patient-avatar" style={{ width: '72px', height: '72px', minWidth: '72px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #e0f2fe' }}>
+                <img
+                  src={petInfo.profileImage}
+                  alt={petInfo.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </div>
-              <div className="patient-details">
-                <div className="detail-row">
-                  <span className="label">이름</span>
-                  <span className="value">{petInfo.name}</span>
+              <div className="patient-details" style={{ flex: 1 }}>
+                {/* 첫째 줄: 이름, 품종 */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <div className="detail-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="label" style={{ color: '#64748b', fontSize: '13px' }}>이름</span>
+                    <span className="value" style={{ fontWeight: '600', color: '#1e293b' }}>{petInfo.name}</span>
+                  </div>
+                  <div className="detail-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="label" style={{ color: '#64748b', fontSize: '13px' }}>품종</span>
+                    <span className="value" style={{ fontWeight: '500', color: '#334155' }}>{petInfo.breed}</span>
+                  </div>
                 </div>
-                <div className="detail-row">
-                  <span className="label">품종</span>
-                  <span className="value">{petInfo.breed}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">나이</span>
-                  <span className="value">{petInfo.age}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">체중</span>
-                  <span className="value">{petInfo.weight}</span>
+                {/* 둘째 줄: 나이, 체중, 성별 */}
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  <div className="detail-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="label" style={{ color: '#64748b', fontSize: '13px' }}>나이</span>
+                    <span className="value" style={{ fontWeight: '500', color: '#334155' }}>{petInfo.age}</span>
+                  </div>
+                  <div className="detail-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="label" style={{ color: '#64748b', fontSize: '13px' }}>체중</span>
+                    <span className="value" style={{ fontWeight: '500', color: '#334155' }}>{petInfo.weight}</span>
+                  </div>
+                  {petInfo.gender && (
+                    <div className="detail-row" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className="label" style={{ color: '#64748b', fontSize: '13px' }}>성별</span>
+                      <span className="value" style={{ fontWeight: '500', color: '#334155' }}>{petInfo.gender === 'M' ? '수컷' : '암컷'}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

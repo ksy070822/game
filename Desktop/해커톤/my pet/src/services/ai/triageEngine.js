@@ -70,6 +70,16 @@ export const calculateTriageScore = async (petData, symptomData, medicalDiagnosi
 - 나이: ${petData.age || '미등록'}세
 
 증상: ${symptomData?.symptomText || '증상 정보 없음'}
+${symptomData?.guardianResponsesSummary ? `
+★★★ 보호자 추가 문진 응답 (매우 중요 - 응급도 평가에 반드시 반영) ★★★
+${symptomData.guardianResponsesSummary}
+
+주의: 위 보호자 문진 결과에서 다음 조건이 해당되면 triage_score를 상향 조정하세요:
+- 증상 지속 기간이 "일주일 이상"이면 +1
+- 식욕이 "거의 안 먹음" 또는 "전혀 안 먹음"이면 +1
+- 활동량이 "거의 움직이지 않음"이면 +1
+- 동반 증상에 "호흡곤란", "발열"이 있으면 +2
+` : ''}
 
 수의사 진단:
 ${JSON.stringify(medicalDiagnosis, null, 2)}

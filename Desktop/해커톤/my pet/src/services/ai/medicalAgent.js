@@ -59,6 +59,11 @@ ${JSON.stringify(infoSummary, null, 2)}
 
 원본 증상 설명:
 ${symptomData.symptomText || '증상 정보 없음'}
+${symptomData.guardianResponsesSummary ? `
+
+보호자 추가 문진 응답 (중요):
+${symptomData.guardianResponsesSummary}
+` : ''}
 ${dataContext ? `
 === 참고 데이터 (Firestore DB) ===
 ${dataContext}
