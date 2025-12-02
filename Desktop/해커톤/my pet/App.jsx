@@ -32,6 +32,7 @@ import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
 import { diagnosisService, bookingService, petService } from './src/services/firestore'
+import { getUserClinics } from './src/services/clinicService'
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -3265,6 +3266,7 @@ function App() {
   const [authScreen, setAuthScreen] = useState('login'); // 'login', 'register', null (로그인됨)
   const [currentUser, setCurrentUser] = useState(null);
   const [userMode, setUserMode] = useState('guardian'); // 'guardian' or 'clinic'
+  const [hasClinicAccess, setHasClinicAccess] = useState(false); // 실제 병원 데이터 접근 가능 여부
 
   const [currentTab, setCurrentTab] = useState('care');
   const [currentView, setCurrentView] = useState(null); // 모달/서브 화면용
@@ -3301,15 +3303,38 @@ function App() {
       if (savedSession) {
         setCurrentUser(savedSession);
 
-        // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+        // 실제 병원 데이터가 있는지 확인
         let mode = savedSession.userMode || 'guardian';
+        let clinicAccess = false;
+
         if ((savedSession.roles && savedSession.roles.length > 0) || savedSession.defaultClinicId) {
-          mode = 'clinic';
+          try {
+            const userClinics = await getUserClinics(savedSession.uid);
+            clinicAccess = userClinics && userClinics.length > 0;
+
+            if (clinicAccess) {
+              mode = 'clinic';
+            } else {
+              console.warn('사용자에게 roles는 있지만 실제 병원 데이터가 없습니다. guardian 모드로 유지합니다.');
+            }
+          } catch (error) {
+            console.error('병원 정보 확인 실패:', error);
+            clinicAccess = false;
+          }
         }
 
+        setHasClinicAccess(clinicAccess);
+
         // localStorage에서 userMode 복원 (우선순위: localStorage > 자동감지 > 기본값)
+        // 단, 병원 모드로 전환하려면 실제 병원 데이터가 있어야 함
         const savedUserMode = localStorage.getItem('petMedical_userMode');
-        setUserMode(savedUserMode || mode);
+        if (savedUserMode === 'clinic' && !clinicAccess) {
+          console.warn('저장된 모드는 clinic이지만 병원 데이터가 없어 guardian 모드로 전환합니다.');
+          setUserMode('guardian');
+        } else {
+          setUserMode(savedUserMode || mode);
+        }
+
         setAuthScreen(null);
 
         // 로그인된 사용자의 반려동물 데이터 로드
@@ -3327,13 +3352,28 @@ function App() {
   }, []);
 
   // 로그인 성공 핸들러
-  const handleLogin = (user) => {
-    // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+  const handleLogin = async (user) => {
+    // 실제 병원 데이터가 있는지 확인
     let mode = user.userMode || 'guardian';
+    let clinicAccess = false;
+
     if ((user.roles && user.roles.length > 0) || user.defaultClinicId) {
-      mode = 'clinic';
+      try {
+        const userClinics = await getUserClinics(user.uid);
+        clinicAccess = userClinics && userClinics.length > 0;
+
+        if (clinicAccess) {
+          mode = 'clinic';
+        } else {
+          console.warn('로그인: 사용자에게 roles는 있지만 실제 병원 데이터가 없습니다. guardian 모드로 유지합니다.');
+        }
+      } catch (error) {
+        console.error('병원 정보 확인 실패:', error);
+        clinicAccess = false;
+      }
     }
 
+    setHasClinicAccess(clinicAccess);
     setCurrentUser(user);
     setUserMode(mode);
     setAuthScreen(null);
@@ -3352,13 +3392,28 @@ function App() {
   };
 
   // 회원가입 성공 핸들러
-  const handleRegister = (user) => {
-    // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+  const handleRegister = async (user) => {
+    // 실제 병원 데이터가 있는지 확인
     let mode = user.userMode || 'guardian';
+    let clinicAccess = false;
+
     if ((user.roles && user.roles.length > 0) || user.defaultClinicId) {
-      mode = 'clinic';
+      try {
+        const userClinics = await getUserClinics(user.uid);
+        clinicAccess = userClinics && userClinics.length > 0;
+
+        if (clinicAccess) {
+          mode = 'clinic';
+        } else {
+          console.warn('회원가입: 사용자에게 roles는 있지만 실제 병원 데이터가 없습니다. guardian 모드로 유지합니다.');
+        }
+      } catch (error) {
+        console.error('병원 정보 확인 실패:', error);
+        clinicAccess = false;
+      }
     }
 
+    setHasClinicAccess(clinicAccess);
     setCurrentUser(user);
     setUserMode(mode);
     setAuthScreen(null);
@@ -3374,6 +3429,7 @@ function App() {
     localStorage.removeItem('petMedical_userMode');
     setCurrentUser(null);
     setUserMode('guardian');
+    setHasClinicAccess(false);
     setPets([]);
     setPetData(null);
     setAuthScreen('login');
@@ -4079,11 +4135,7 @@ function App() {
           currentTab={currentTab}
           onTabChange={handleTabChange}
           onModeSwitch={() => handleModeSwitch('clinic')}
-          showModeSwitch={currentUser && (
-            currentUser.userMode === 'both' ||
-            currentUser.userMode === 'clinic' ||
-            (currentUser.roles && currentUser.roles.length > 0)
-          )}
+          showModeSwitch={currentUser && hasClinicAccess}
         />
       )}
         </>
