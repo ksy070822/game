@@ -4,6 +4,8 @@ import { getCurrentPosition, searchAnimalHospitals, initKakaoMap, addMarker, loa
 import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
 import { bookingService } from '../services/firestore';
+import { db } from '../lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 // 동물 종류별 메인 캐릭터 이미지 매핑
 const ANIMAL_CHARACTER_IMAGES = {
@@ -16,6 +18,56 @@ const ANIMAL_CHARACTER_IMAGES = {
   reptile: '/icon/main-image/reptile_main-removebg-preview.png',
   etc: '/icon/main-image/etc_main-removebg-preview.png'
 };
+
+// 🧪 테스트용 병원 - 행복동물병원 (clinic@happyvet.com과 연동)
+// Firestore에서 실제 clinicId를 동적으로 가져오는 함수
+const fetchHappyVetClinicId = async () => {
+  try {
+    // clinics 컬렉션에서 "행복" 이름을 포함하는 병원 찾기
+    const clinicsRef = collection(db, 'clinics');
+    const snapshot = await getDocs(clinicsRef);
+
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      // 병원 이름에 "행복" 또는 "happyvet"이 포함되어 있으면 해당 clinicId 반환
+      if (data.name && (data.name.includes('행복') || data.name.toLowerCase().includes('happy'))) {
+        console.log('[테스트] 행복동물병원 clinicId 발견:', doc.id, data.name);
+        return doc.id;
+      }
+    }
+
+    // 못 찾으면 첫 번째 병원 ID 반환 (테스트용)
+    if (snapshot.docs.length > 0) {
+      const firstClinic = snapshot.docs[0];
+      console.log('[테스트] 행복동물병원 못 찾음, 첫 번째 병원 사용:', firstClinic.id, firstClinic.data().name);
+      return firstClinic.id;
+    }
+  } catch (error) {
+    console.error('[테스트] clinicId 조회 실패:', error);
+  }
+  return 'happyvet_test_clinic'; // 기본값
+};
+
+// 테스트 병원 객체 생성 함수
+const createTestHospital = (clinicId) => ({
+  id: clinicId,
+  name: '🧪 [테스트] 행복 동물병원',
+  address: '서울특별시 강남구 테헤란로 123',
+  roadAddress: '서울특별시 강남구 테헤란로 123',
+  phone: '02-1234-5678',
+  distance: 0,
+  lat: 37.5012,
+  lng: 127.0396,
+  category: '동물병원',
+  is24Hours: true,
+  rating: '5.0',
+  reviewCount: 999,
+  businessHours: '24시간 운영 (테스트용)',
+  isTestHospital: true
+});
+
+// 기본 테스트 병원 (초기값, 나중에 실제 clinicId로 업데이트됨)
+let TEST_HOSPITAL_HAPPYVET = createTestHospital('happyvet_test_clinic');
 
 // 나이 계산 함수
 const calculateAge = (birthDate) => {
@@ -51,12 +103,28 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
   const [bookingMessage, setBookingMessage] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  // 테스트 병원 state (동적으로 clinicId 업데이트)
+  const [testHospital, setTestHospital] = useState(TEST_HOSPITAL_HAPPYVET);
+
   // 1. 병원 패킷 생성 및 현재 위치 가져오기
   useEffect(() => {
     let isMounted = true;
 
     const init = async () => {
       try {
+        // 🧪 테스트: 실제 clinicId 가져오기
+        try {
+          const realClinicId = await fetchHappyVetClinicId();
+          if (isMounted && realClinicId) {
+            const updatedTestHospital = createTestHospital(realClinicId);
+            setTestHospital(updatedTestHospital);
+            TEST_HOSPITAL_HAPPYVET = updatedTestHospital;
+            console.log('[테스트] 테스트 병원 ID 업데이트:', realClinicId);
+          }
+        } catch (err) {
+          console.error('[테스트] clinicId 조회 실패:', err);
+        }
+
         // 패킷 생성 (diagnosis가 있을 때만)
         if (diagnosis && petData && !hospitalPacket) {
           try {
@@ -92,7 +160,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
 
             if (isMounted && firestoreHospitals.length > 0) {
               console.log('[HospitalBooking] Firestore 병원 데이터:', firestoreHospitals.length, '개');
-              setHospitals(firestoreHospitals);
+              // 🧪 테스트 병원을 최상단에 추가
+              setHospitals([TEST_HOSPITAL_HAPPYVET, ...firestoreHospitals]);
               setDataSource('firestore');
               setMapLoading(false);
               return; // Firestore 성공 시 여기서 종료
@@ -104,7 +173,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
           // Firestore 실패 시 Kakao Map API로 fallback
           const hospitalList = await searchAnimalHospitals(position.lat, position.lng);
           if (isMounted) {
-            setHospitals(hospitalList);
+            // 🧪 테스트 병원을 최상단에 추가
+            setHospitals([TEST_HOSPITAL_HAPPYVET, ...hospitalList]);
             setDataSource('kakao');
             setMapLoading(false);
           }
@@ -119,7 +189,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
             try {
               const firestoreHospitals = await getNearbyHospitalsFromFirestore(defaultLat, defaultLng, 5);
               if (firestoreHospitals.length > 0) {
-                setHospitals(firestoreHospitals);
+                // 🧪 테스트 병원을 최상단에 추가
+                setHospitals([TEST_HOSPITAL_HAPPYVET, ...firestoreHospitals]);
                 setDataSource('firestore');
                 setMapLoading(false);
                 return;
@@ -161,7 +232,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                 businessHours: '24시간 운영',
               }
             ];
-            setHospitals(fallbackHospitals);
+            // 🧪 테스트 병원을 최상단에 추가
+            setHospitals([TEST_HOSPITAL_HAPPYVET, ...fallbackHospitals]);
             setMapLoading(false);
           }
         }
@@ -436,7 +508,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         setLocationError(position.error);
       }
       const hospitalList = await searchAnimalHospitals(position.lat, position.lng);
-      setHospitals(hospitalList);
+      // 🧪 테스트 병원을 최상단에 추가
+      setHospitals([TEST_HOSPITAL_HAPPYVET, ...hospitalList]);
     } catch (error) {
       console.error('위치 갱신 오류:', error);
     } finally {
@@ -539,7 +612,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         setIsSearching(true);
         try {
           const results = await getNearbyHospitalsFromFirestore(userLocation.lat, userLocation.lng, 5);
-          setHospitals(results);
+          // 🧪 테스트 병원을 최상단에 추가
+          setHospitals([TEST_HOSPITAL_HAPPYVET, ...results]);
           setSearchMode('nearby');
         } catch (err) {
           console.error('위치 기반 검색 실패:', err);
@@ -554,7 +628,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       console.log('[HospitalBooking] 지역/병원명 검색:', searchQuery);
       const results = await searchHospitalsByRegion(searchQuery, 50);
       console.log('[HospitalBooking] 검색 결과:', results.length, '개');
-      setHospitals(results);
+      // 🧪 테스트 병원을 최상단에 추가
+      setHospitals([TEST_HOSPITAL_HAPPYVET, ...results]);
       setSearchMode('region');
       setDataSource('firestore');
     } catch (err) {
