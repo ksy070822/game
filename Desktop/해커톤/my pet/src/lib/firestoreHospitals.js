@@ -60,9 +60,10 @@ export async function getNearbyHospitalsFromFirestore(userLat, userLng, radiusKm
       );
 
       if (dist <= radiusKm) {
+        const hospitalName = data.name || data.사업장명 || '이름 없음';
         hospitals.push({
           id: doc.id,
-          name: data.name || data.사업장명 || '이름 없음',
+          name: hospitalName,
           phone: data.phone || data.소재지전화 || null,
           address: data.address_jibun || data.소재지전체주소 || null,
           roadAddress: data.address_road || data.도로명전체주소 || null,
@@ -71,11 +72,11 @@ export async function getNearbyHospitalsFromFirestore(userLat, userLng, radiusKm
           distance: Math.round(dist * 1000), // m 단위
           distanceKm: Number(dist.toFixed(2)),
           category: '동물병원',
+          // 카카오맵 상세페이지 URL (검색 링크로 연결)
+          url: `https://map.kakao.com/link/search/${encodeURIComponent(hospitalName)}`,
           // 추가 정보
           businessStatus: data.영업상태명 || '영업중',
-          is24Hours: (data.name || '').includes('24시') || (data.사업장명 || '').includes('24시'),
-          rating: null, // Firestore 데이터에 없으면 null
-          reviewCount: 0
+          is24Hours: hospitalName.includes('24시') || hospitalName.includes('24') || hospitalName.includes('응급'),
         });
       }
     });
@@ -122,9 +123,10 @@ export async function searchHospitalsByRegion(regionName, maxResults = 50) {
       const name = (data.name || data.사업장명 || '').toLowerCase();
       
       if (address.includes(searchTerm) || roadAddress.includes(searchTerm) || name.includes(searchTerm)) {
+        const hospitalName = data.name || data.사업장명 || '이름 없음';
         hospitals.push({
           id: doc.id,
-          name: data.name || data.사업장명 || '이름 없음',
+          name: hospitalName,
           phone: data.phone || data.소재지전화 || null,
           address: data.address_jibun || data.소재지전체주소 || null,
           roadAddress: data.address_road || data.도로명전체주소 || null,
@@ -132,10 +134,9 @@ export async function searchHospitalsByRegion(regionName, maxResults = 50) {
           lng: data.location?.lng || null,
           distance: null, // 지역 검색은 거리 없음
           category: '동물병원',
+          url: `https://map.kakao.com/link/search/${encodeURIComponent(hospitalName)}`,
           businessStatus: data.영업상태명 || '영업중',
-          is24Hours: (data.name || '').includes('24시') || (data.사업장명 || '').includes('24시'),
-          rating: null,
-          reviewCount: 0
+          is24Hours: hospitalName.includes('24시') || hospitalName.includes('24') || hospitalName.includes('응급'),
         });
       }
     });
@@ -172,9 +173,10 @@ export async function searchHospitalsByName(hospitalName, maxResults = 30) {
       const name = (data.name || data.사업장명 || '').toLowerCase();
       
       if (name.includes(searchTerm)) {
+        const hospitalName = data.name || data.사업장명 || '이름 없음';
         hospitals.push({
           id: doc.id,
-          name: data.name || data.사업장명 || '이름 없음',
+          name: hospitalName,
           phone: data.phone || data.소재지전화 || null,
           address: data.address_jibun || data.소재지전체주소 || null,
           roadAddress: data.address_road || data.도로명전체주소 || null,
@@ -182,10 +184,9 @@ export async function searchHospitalsByName(hospitalName, maxResults = 30) {
           lng: data.location?.lng || null,
           distance: null,
           category: '동물병원',
+          url: `https://map.kakao.com/link/search/${encodeURIComponent(hospitalName)}`,
           businessStatus: data.영업상태명 || '영업중',
-          is24Hours: name.includes('24시'),
-          rating: null,
-          reviewCount: 0
+          is24Hours: hospitalName.includes('24시') || hospitalName.includes('24') || hospitalName.includes('응급'),
         });
       }
     });

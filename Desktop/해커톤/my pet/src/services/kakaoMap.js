@@ -119,10 +119,10 @@ export async function searchAnimalHospitals(lat, lng, radius = 5000) {
             lat: parseFloat(place.y),
             lng: parseFloat(place.x),
             category: place.category_name,
-            url: place.place_url,
+            url: place.place_url, // 카카오맵 상세페이지 URL
             is24Hours: place.place_name.includes('24') || place.place_name.includes('응급'),
-            rating: (4 + Math.random()).toFixed(1), // 임시 평점
-            reviewCount: Math.floor(Math.random() * 200) + 10, // 임시 리뷰 수
+            // 참고: 카카오맵 API는 평점/후기 정보를 제공하지 않습니다
+            // 실제 후기는 place_url에서 확인 가능
           })).sort((a, b) => a.distance - b.distance);
 
           console.log('[KakaoMap] 검색 성공:', hospitals.length, '개 병원 발견');
