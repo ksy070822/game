@@ -3008,30 +3008,34 @@ function App() {
 
   useEffect(() => {
     // 기존 로그인 세션 확인
-    const savedSession = getAuthSession();
-    if (savedSession) {
-      setCurrentUser(savedSession);
+    const loadSession = async () => {
+      const savedSession = await getAuthSession();
+      if (savedSession) {
+        setCurrentUser(savedSession);
 
-      // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
-      let mode = savedSession.userMode || 'guardian';
-      if ((savedSession.roles && savedSession.roles.length > 0) || savedSession.defaultClinicId) {
-        mode = 'clinic';
+        // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+        let mode = savedSession.userMode || 'guardian';
+        if ((savedSession.roles && savedSession.roles.length > 0) || savedSession.defaultClinicId) {
+          mode = 'clinic';
+        }
+
+        // localStorage에서 userMode 복원 (우선순위: localStorage > 자동감지 > 기본값)
+        const savedUserMode = localStorage.getItem('petMedical_userMode');
+        setUserMode(savedUserMode || mode);
+        setAuthScreen(null);
+
+        // 로그인된 사용자의 반려동물 데이터 로드
+        const userPets = getPetsForUser(savedSession.uid);
+        setPets(userPets);
+        if (userPets.length > 0) {
+          setPetData(userPets[0]);
+        }
       }
+      // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
+      setCurrentTab('care');
+    };
 
-      // localStorage에서 userMode 복원 (우선순위: localStorage > 자동감지 > 기본값)
-      const savedUserMode = localStorage.getItem('petMedical_userMode');
-      setUserMode(savedUserMode || mode);
-      setAuthScreen(null);
-
-      // 로그인된 사용자의 반려동물 데이터 로드
-      const userPets = getPetsForUser(savedSession.uid);
-      setPets(userPets);
-      if (userPets.length > 0) {
-        setPetData(userPets[0]);
-      }
-    }
-    // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
-    setCurrentTab('care');
+    loadSession();
   }, []);
 
   // 로그인 성공 핸들러

@@ -10,14 +10,38 @@ export const onAuthStateChange = authService.onAuthStateChange;
 // 로그아웃
 export const clearAuthSession = authService.logout;
 
-// 현재 세션 (호환성 유지 - 실제로는 Firebase auth 사용)
-export const getAuthSession = () => {
+// 현재 세션 (Firestore 데이터 포함)
+export const getAuthSession = async () => {
   const user = authService.getCurrentUser();
-  return user ? {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName
-  } : null;
+  if (!user) return null;
+
+  try {
+    // Firestore에서 사용자 정보 가져오기
+    const userDoc = await userService.getUser(user.uid);
+    const userData = userDoc.data || {};
+
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || userData.displayName,
+      photoURL: user.photoURL,
+      userMode: userData.userMode || 'guardian',
+      roles: userData.roles || [],
+      defaultClinicId: userData.defaultClinicId || null
+    };
+  } catch (error) {
+    console.error('세션 정보 로드 실패:', error);
+    // Firestore 실패 시 기본 정보만 반환
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      userMode: 'guardian',
+      roles: [],
+      defaultClinicId: null
+    };
+  }
 };
 
 // 로그인 화면
