@@ -3012,9 +3012,15 @@ function App() {
     if (savedSession) {
       setCurrentUser(savedSession);
 
-      // localStorage에서 userMode 복원 (우선순위: localStorage > savedSession > 기본값)
+      // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+      let mode = savedSession.userMode || 'guardian';
+      if ((savedSession.roles && savedSession.roles.length > 0) || savedSession.defaultClinicId) {
+        mode = 'clinic';
+      }
+
+      // localStorage에서 userMode 복원 (우선순위: localStorage > 자동감지 > 기본값)
       const savedUserMode = localStorage.getItem('petMedical_userMode');
-      setUserMode(savedUserMode || savedSession.userMode || 'guardian');
+      setUserMode(savedUserMode || mode);
       setAuthScreen(null);
 
       // 로그인된 사용자의 반려동물 데이터 로드
@@ -3030,7 +3036,12 @@ function App() {
 
   // 로그인 성공 핸들러
   const handleLogin = (user) => {
-    const mode = user.userMode || 'guardian';
+    // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+    let mode = user.userMode || 'guardian';
+    if ((user.roles && user.roles.length > 0) || user.defaultClinicId) {
+      mode = 'clinic';
+    }
+
     setCurrentUser(user);
     setUserMode(mode);
     setAuthScreen(null);
@@ -3050,8 +3061,14 @@ function App() {
 
   // 회원가입 성공 핸들러
   const handleRegister = (user) => {
+    // roles가 있거나 defaultClinicId가 있으면 병원 모드로 자동 전환
+    let mode = user.userMode || 'guardian';
+    if ((user.roles && user.roles.length > 0) || user.defaultClinicId) {
+      mode = 'clinic';
+    }
+
     setCurrentUser(user);
-    setUserMode(user.userMode || 'guardian');
+    setUserMode(mode);
     setAuthScreen(null);
 
     // 새 사용자는 데이터 초기화
