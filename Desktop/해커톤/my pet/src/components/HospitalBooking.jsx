@@ -836,36 +836,22 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   <span className="text-sm text-slate-500">{formatDistance(hospital.distance)}</span>
                 </div>
 
-                {/* 영업상태 또는 평점 안내 */}
-                {hospital.businessStatus && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${
+                {/* 영업상태 + 영업시간 (한 줄) */}
+                <div className="flex items-center gap-2 mb-2 text-xs">
+                  {hospital.businessStatus && (
+                    <span className={`font-medium px-2 py-0.5 rounded ${
                       hospital.businessStatus === '영업중' || hospital.businessStatus === '영업/정상'
                         ? 'bg-green-100 text-green-700'
                         : 'bg-slate-100 text-slate-600'
                     }`}>
                       {hospital.businessStatus}
                     </span>
-                    <a
-                      href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-slate-400 hover:text-sky-500"
-                    >
-                      ⭐ 후기 보기
-                    </a>
-                  </div>
-                )}
-
-                {/* 영업시간 */}
-                <div className="mb-2">
+                  )}
                   {hospital.is24Hours ? (
-                    <p className="text-xs text-red-600 font-medium">🕐 24시간 응급진료 가능</p>
-                  ) : hospital.businessHours ? (
-                    <p className="text-xs text-slate-500">🕐 {hospital.businessHours}</p>
+                    <span className="text-red-600 font-medium">영업시간: 24시간</span>
                   ) : (
-                    <p className="text-xs text-slate-400">
-                      🕐 영업시간:
+                    <span className="text-slate-400">
+                      영업시간 -
                       <a
                         href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
                         target="_blank"
@@ -874,14 +860,22 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                       >
                         카카오맵에서 확인
                       </a>
-                    </p>
+                    </span>
                   )}
+                  <span className="text-slate-300">|</span>
+                  <span className="text-yellow-500">⭐</span>
+                  <span className="text-slate-500">
+                    후기 평점 -
+                    <a
+                      href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sky-500 hover:underline ml-1"
+                    >
+                      카카오맵에서 확인
+                    </a>
+                  </span>
                 </div>
-
-                {/* 전화번호 표시 */}
-                {hospital.phone && (
-                  <p className="text-xs text-slate-500 mb-2">📞 {hospital.phone}</p>
-                )}
 
 
                 {/* AI 병원 특징 요약 */}
@@ -895,41 +889,25 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     <div className="bg-gradient-to-r from-slate-50 to-sky-50 rounded-lg p-3 text-xs">
                       <div className="flex items-center gap-1 text-sky-600 font-medium mb-1.5">
                         <span>🤖</span>
-                        <span>AI 추정 정보</span>
+                        <span>AI가 요약한 병원 특징</span>
                       </div>
                       <p className="text-slate-700">{reviewSummaries[hospital.id]}</p>
-                      <a
-                        href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-2 text-sky-500 hover:text-sky-600 hover:underline"
-                      >
-                        실제 후기 보러가기 →
-                      </a>
                     </div>
                   ) : (
                     <button
                       onClick={() => generateReviewSummary(hospital)}
                       className="text-xs text-slate-500 hover:text-sky-500 font-medium flex items-center gap-1"
                     >
-                      🤖 AI 병원 특징 보기
+                      🤖 AI가 요약한 병원 특징 보기
                     </button>
                   )}
                 </div>
 
-                {/* 버튼 - 순서: 전화, 예약하기, 길찾기, T펫택시 */}
-                <div className="flex gap-2 flex-wrap">
-                  {hospital.phone && (
-                    <a
-                      href={`tel:${hospital.phone}`}
-                      className="flex-1 min-w-[70px] py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                    >
-                      📞 전화
-                    </a>
-                  )}
+                {/* 버튼 - 순서: 예약하기, 길찾기, T펫택시 예약 */}
+                <div className="flex gap-2">
                   <button
                     onClick={() => handleBookAppointment(hospital)}
-                    className="flex-1 min-w-[80px] py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors"
+                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors"
                   >
                     예약하기
                   </button>
@@ -940,7 +918,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[70px] py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-2.5 text-center border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                   >
                     🗺️ 길찾기
                   </a>
@@ -948,10 +926,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     href="https://service.kakaomobility.com/launch/kakaot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 min-w-[80px] py-2.5 text-center bg-[#1E1B4B] rounded-xl text-sm font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-2.5 text-center bg-[#1E1B4B] rounded-xl text-sm font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-1"
                   >
                     <span className="text-[#FACC15] font-black">T</span>
-                    <span className="text-white">펫택시</span>
+                    <span className="text-white">펫택시 예약</span>
                   </a>
                 </div>
               </div>
