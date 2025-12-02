@@ -1456,7 +1456,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
           </button>
         </div>
         <h1 className="text-xl font-bold text-slate-900">AI 증상 진단</h1>
-        <p className="text-sm text-slate-500 mt-1">{petData.name}의 증상을 알려주세요</p>
+        <p className="text-sm text-slate-500 mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
       </div>
 
       <div className="px-4 pt-4 pb-32 space-y-4">
@@ -2374,7 +2374,7 @@ ${userQuestion}
       <div className="diagnosis-header">
         <button className="back-btn" onClick={onBack} style={{ position: 'absolute', left: '20px', top: '20px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>←</button>
         <h1>👨‍⚕️ AI 온라인 진료실</h1>
-        <p>AI 의료진이 {petData.petName}를 진료합니다</p>
+        <p>AI 의료진이 {petData?.petName || petData?.name || '반려동물'}를 진료합니다</p>
       </div>
       
       {/* 채팅창 UI */}
