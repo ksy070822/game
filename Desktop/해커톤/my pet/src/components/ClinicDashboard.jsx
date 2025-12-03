@@ -101,6 +101,34 @@ export function ClinicDashboard({ currentUser, onBack }) {
     }
   }, [currentClinic]);
 
+  // booking에 clinicResults 정보를 조인하는 헬퍼 함수
+  const enrichBookingWithResult = async (booking) => {
+    try {
+      const bookingId = booking.bookingId || booking.id;
+      const res = await clinicResultService.getResultByBooking(bookingId);
+      if (res.success && res.data) {
+        return {
+          ...booking,
+          hasResult: true,
+          sharedToGuardian: res.data.sharedToGuardian || false,
+          lastResultId: res.data.id
+        };
+      }
+      return {
+        ...booking,
+        hasResult: false,
+        sharedToGuardian: false
+      };
+    } catch (error) {
+      console.error('[enrichBookingWithResult] 오류:', error);
+      return {
+        ...booking,
+        hasResult: false,
+        sharedToGuardian: false
+      };
+    }
+  };
+
   // 실시간 예약 구독 (오늘 예약만) - Firestore 실시간 업데이트
   useEffect(() => {
     if (!currentClinic?.id) return;
@@ -176,15 +204,18 @@ export function ClinicDashboard({ currentUser, onBack }) {
           bookings.push(booking);
         }
 
-        // 시간순 정렬
-        bookings.sort((a, b) => {
-          const timeA = a.time || '00:00';
-          const timeB = b.time || '00:00';
-          return timeA.localeCompare(timeB);
-        });
+        // clinicResults 조인 (비동기)
+        Promise.all(bookings.map(enrichBookingWithResult)).then(enrichedBookings => {
+          // 시간순 정렬
+          enrichedBookings.sort((a, b) => {
+            const timeA = a.time || '00:00';
+            const timeB = b.time || '00:00';
+            return timeA.localeCompare(timeB);
+          });
 
-        setTodayBookings(bookings);
-        console.log('[실시간] ✅ 오늘 예약 업데이트 완료:', bookings.length, '개');
+          setTodayBookings(enrichedBookings);
+          console.log('[실시간] ✅ 오늘 예약 업데이트 완료:', enrichedBookings.length, '개');
+        });
       }, (error) => {
         console.error('[실시간] ❌ clinics ID 구독 오류:', error);
       });
@@ -203,36 +234,55 @@ export function ClinicDashboard({ currentUser, onBack }) {
           where('date', '==', today)
         );
 
-        const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+        const unsubscribe2 = onSnapshot(q2, async (snapshot) => {
           console.log('[실시간] 병원명 구독 업데이트:', snapshot.docs.length, '개');
           
-          setTodayBookings(prev => {
-            const existingIds = new Set(prev.map(b => b.id));
-            const newBookings = [];
-            
+          // ✅ 기존/새 문서를 통합해서 상태까지 갱신
+          setTodayBookings((prev) => {
+            const map = new Map(prev.map(b => [b.id, b]));
+
             for (const bookingDoc of snapshot.docs) {
-              if (!existingIds.has(bookingDoc.id)) {
-                const bookingData = bookingDoc.data();
-                newBookings.push({
-                  ...bookingData,
-                  id: bookingDoc.id,  // 🔥 spread 후에 설정
-                  pet: bookingData.pet || bookingData.petProfile || null,
-                  owner: bookingData.owner || null
-                });
-              }
+              const bookingData = bookingDoc.data();
+              
+              // 펫 정보 가져오기 (동기적으로 처리, 비동기는 나중에)
+              let pet = bookingData.pet || bookingData.petProfile || null;
+              
+              // 보호자 정보
+              let owner = bookingData.owner || null;
+
+              const enriched = {
+                ...bookingData,
+                id: bookingDoc.id,
+                bookingId: bookingData.bookingId || bookingDoc.id,
+                pet,
+                owner
+              };
+
+              map.set(bookingDoc.id, enriched);  // ✅ 있으면 덮어쓰고, 없으면 추가
             }
 
-            if (newBookings.length > 0) {
-              const combined = [...prev, ...newBookings];
-              combined.sort((a, b) => {
+            const merged = Array.from(map.values());
+            
+            // clinicResults 조인 (비동기 - 별도 처리)
+            Promise.all(merged.map(enrichBookingWithResult)).then(enrichedBookings => {
+              enrichedBookings.sort((a, b) => {
                 const timeA = a.time || '00:00';
                 const timeB = b.time || '00:00';
                 return timeA.localeCompare(timeB);
               });
-              console.log('[실시간] ✅ 병원명으로 추가 예약:', newBookings.length, '개');
-              return combined;
-            }
-            return prev;
+              
+              setTodayBookings(enrichedBookings);
+              console.log('[실시간] ✅ 병원명 구독 병합 완료:', enrichedBookings.length, '개');
+            });
+            
+            // 즉시 반환 (비동기 조인은 위에서 처리)
+            merged.sort((a, b) => {
+              const timeA = a.time || '00:00';
+              const timeB = b.time || '00:00';
+              return timeA.localeCompare(timeB);
+            });
+            
+            return merged;
           });
         }, (error) => {
           console.error('[실시간] ❌ 병원명 구독 오류:', error);
@@ -316,7 +366,10 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
       // 오늘 예약
       const bookings = await getTodayBookings(currentClinic.id);
-      setTodayBookings(bookings);
+      
+      // clinicResults 조인
+      const enrichedBookings = await Promise.all(bookings.map(enrichBookingWithResult));
+      setTodayBookings(enrichedBookings);
 
       // 환자 목록
       const patientList = await getClinicPatients(currentClinic.id, { limit: 50 });
@@ -772,9 +825,34 @@ export function ClinicDashboard({ currentUser, onBack }) {
                       <div className="text-lg font-bold text-gray-900">
                         {booking.time || '시간 미정'}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(booking.status)}`}>
-                        {getStatusLabel(booking.status)}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        {/* 상태별 라벨 */}
+                        {booking.status === 'pending' && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                            확인 대기
+                          </span>
+                        )}
+                        {booking.status === 'confirmed' && !booking.hasResult && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            예약 확정됨
+                          </span>
+                        )}
+                        {booking.status === 'confirmed' && booking.hasResult && !booking.sharedToGuardian && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            진단서 저장됨 (공유 전)
+                          </span>
+                        )}
+                        {booking.status === 'completed' && booking.sharedToGuardian && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            완료
+                          </span>
+                        )}
+                        {!booking.status && (
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(booking.status)}`}>
+                            {getStatusLabel(booking.status)}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3 mb-3">
@@ -829,26 +907,113 @@ export function ClinicDashboard({ currentUser, onBack }) {
           </button>
         </div>
 
-                    {/* Action Buttons */}
+                    {/* Action Buttons - 상태별 분기 */}
                     <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleConfirmBooking(booking)}
-                        className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
-                          ${booking.status === 'confirmed'
-                            ? 'bg-gray-100 text-gray-700 cursor-default'
-                            : 'bg-sky-600 text-white hover:bg-sky-700'}`}
-                        disabled={booking.status === 'confirmed'}
-                      >
-                        <span className="material-symbols-outlined text-lg">check_circle</span>
-                        {booking.status === 'confirmed' ? '예약 확정됨' : '예약 확정'}
-                      </button>
-                      <button
-                        onClick={() => handleStartTreatment(booking.id)}
-                        className="py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-lg">play_arrow</span>
-                        진료 시작
-                      </button>
+                      {/* 좌측 버튼 */}
+                      {booking.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleConfirmBooking(booking)}
+                            className="py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 bg-sky-600 text-white hover:bg-sky-700"
+                          >
+                            <span className="material-symbols-outlined text-lg">check_circle</span>
+                            예약 확정
+                          </button>
+                          <button
+                            onClick={() => {
+                              alert('예약을 먼저 확정해 주세요.');
+                            }}
+                            className="py-2.5 bg-gray-200 text-gray-500 rounded-lg text-sm font-semibold cursor-not-allowed flex items-center justify-center gap-1.5"
+                            disabled
+                          >
+                            <span className="material-symbols-outlined text-lg">play_arrow</span>
+                            진료 시작
+                          </button>
+                        </>
+                      )}
+                      
+                      {booking.status === 'confirmed' && !booking.hasResult && (
+                        <>
+                          <button
+                            className="py-2.5 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 cursor-default flex items-center justify-center gap-1.5"
+                            disabled
+                          >
+                            <span className="material-symbols-outlined text-lg">check_circle</span>
+                            예약 확정됨
+                          </button>
+                          <button
+                            onClick={() => handleStartTreatment(booking.id)}
+                            className="py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-lg">play_arrow</span>
+                            진료 시작
+                          </button>
+                        </>
+                      )}
+                      
+                      {booking.status === 'confirmed' && booking.hasResult && !booking.sharedToGuardian && (
+                        <>
+                          <button
+                            className="py-2.5 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 cursor-default flex items-center justify-center gap-1.5"
+                            disabled
+                          >
+                            <span className="material-symbols-outlined text-lg">check_circle</span>
+                            예약 확정됨
+                          </button>
+                          <button
+                            onClick={() => handleStartTreatment(booking.id)}
+                            className="py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-lg">description</span>
+                            진료 결과 보기 / 보호자에게 공유
+                          </button>
+                        </>
+                      )}
+                      
+                      {booking.status === 'completed' && booking.sharedToGuardian && (
+                        <>
+                          <div className="py-2.5 rounded-lg text-sm font-semibold bg-blue-100 text-blue-800 flex items-center justify-center gap-1.5">
+                            <span className="material-symbols-outlined text-lg">check_circle</span>
+                            완료
+                          </div>
+                          <button
+                            onClick={() => handleStartTreatment(booking.id)}
+                            className="py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-lg">description</span>
+                            진료 결과 보기
+                          </button>
+                        </>
+                      )}
+                      
+                      {/* 기본 fallback (예상치 못한 상태) */}
+                      {!(
+                        (booking.status === 'pending') ||
+                        (booking.status === 'confirmed' && !booking.hasResult) ||
+                        (booking.status === 'confirmed' && booking.hasResult && !booking.sharedToGuardian) ||
+                        (booking.status === 'completed' && booking.sharedToGuardian)
+                      ) && (
+                        <>
+                          <button
+                            onClick={() => handleConfirmBooking(booking)}
+                            className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
+                              ${booking.status === 'confirmed'
+                                ? 'bg-gray-100 text-gray-700 cursor-default'
+                                : 'bg-sky-600 text-white hover:bg-sky-700'}`}
+                            disabled={booking.status === 'confirmed'}
+                          >
+                            <span className="material-symbols-outlined text-lg">check_circle</span>
+                            {booking.status === 'confirmed' ? '예약 확정됨' : '예약 확정'}
+                          </button>
+                          <button
+                            onClick={() => handleStartTreatment(booking.id)}
+                            className="py-2.5 bg-sky-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-700 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-lg">play_arrow</span>
+                            진료 시작
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1245,8 +1410,12 @@ export function ClinicDashboard({ currentUser, onBack }) {
           clinic={currentClinic}
           onClose={() => setActiveTreatmentBooking(null)}
           onSaved={() => {
+            // ✅ 예약 리스트는 갱신하지만 모달은 그대로 둔다
+            loadClinicData();
+          }}
+          onShared={() => {
+            // ✅ 공유까지 끝난 뒤에 모달을 닫고 데이터 리로드
             setActiveTreatmentBooking(null);
-            // 진료 저장 후 데이터 리로드
             loadClinicData();
           }}
         />
