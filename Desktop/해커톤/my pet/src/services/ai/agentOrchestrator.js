@@ -475,33 +475,50 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
         timestamp: Date.now()
       });
 
-      // 보호자 FAQ 선택 대기
-      const faqSelections = await onWaitForGuardianResponse(faqUIData, 'faq');
-
-      // 선택된 FAQ에 대한 답변 생성
-      if (faqSelections && faqSelections.length > 0 && !faqSelections.includes('skip')) {
-        faqAnswers = generateMultipleFAQAnswers(
-          faqSelections,
-          recommendedFAQs,
-          medicalResult.json,
-          normalizedPetData
+      // 보호자 FAQ 선택 대기 (30초 타임아웃)
+      try {
+        const faqPromise = onWaitForGuardianResponse(faqUIData, 'faq');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('FAQ_TIMEOUT')), 30000)
         );
+        const faqSelections = await Promise.race([faqPromise, timeoutPromise]);
 
-        // FAQ 답변 표시
-        if (faqAnswers.length > 0) {
-          const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
-          onLogReceived({
-            agent: 'FAQ Assistant',
-            role: '진료 요약 · 관리실',
-            icon: '📄',
-            type: 'faq_answer',
-            content: faqAnswerMessage,
-            faqAnswers: faqAnswers,
-            timestamp: Date.now()
-          });
+        // 선택된 FAQ에 대한 답변 생성
+        if (faqSelections && faqSelections.length > 0 && !faqSelections.includes('skip')) {
+          faqAnswers = generateMultipleFAQAnswers(
+            faqSelections,
+            recommendedFAQs,
+            medicalResult.json,
+            normalizedPetData
+          );
 
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // FAQ 답변 표시
+          if (faqAnswers.length > 0) {
+            const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
+            onLogReceived({
+              agent: 'FAQ Assistant',
+              role: '진료 요약 · 관리실',
+              icon: '📄',
+              type: 'faq_answer',
+              content: faqAnswerMessage,
+              faqAnswers: faqAnswers,
+              timestamp: Date.now()
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
         }
+      } catch (faqError) {
+        // 타임아웃 또는 오류 시 FAQ 단계 건너뜀
+        console.warn('FAQ 단계 건너뜀:', faqError.message);
+        onLogReceived({
+          agent: 'FAQ Assistant',
+          role: '진료 요약 · 관리실',
+          icon: '📄',
+          type: 'faq_skipped',
+          content: '진단서를 바로 확인하실 수 있습니다.',
+          timestamp: Date.now()
+        });
       }
     }
 
