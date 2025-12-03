@@ -3409,12 +3409,12 @@ ${userQuestion}
         {/* FAQ 선택 UI */}
         {isFAQPhase && faqUIData && (
           <div style={{
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+            background: 'linear-gradient(135deg, #FFF9DB 0%, #FEF3C7 100%)',
             borderRadius: '16px',
             padding: '20px',
             margin: '12px 0',
-            border: '2px solid #22c55e',
-            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15)'
+            border: '2px solid #FCD34D',
+            boxShadow: '0 4px 12px rgba(252, 211, 77, 0.25)'
           }}>
             <div style={{
               display: 'flex',
@@ -3424,10 +3424,10 @@ ${userQuestion}
             }}>
               <span style={{ fontSize: '24px' }}>📚</span>
               <div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#166534' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#92400E' }}>
                   {faqUIData.title}
                 </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#15803d' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#B45309' }}>
                   {faqUIData.subtitle}
                 </p>
               </div>
@@ -3445,15 +3445,15 @@ ${userQuestion}
                       width: '100%',
                       padding: '14px 16px',
                       borderRadius: '12px',
-                      border: isSelected ? '2px solid #22c55e' : '2px solid #e2e8f0',
-                      background: isSelected ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'white',
+                      border: isSelected ? '2px solid #F59E0B' : '2px solid #e2e8f0',
+                      background: isSelected ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'white',
                       color: isSelected ? 'white' : '#1e293b',
                       fontSize: '14px',
                       fontWeight: isSelected ? '600' : '500',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s ease',
-                      boxShadow: isSelected ? '0 2px 8px rgba(34, 197, 94, 0.3)' : '0 1px 4px rgba(0,0,0,0.05)',
+                      boxShadow: isSelected ? '0 2px 8px rgba(245, 158, 11, 0.3)' : '0 1px 4px rgba(0,0,0,0.05)',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: '10px'
@@ -3471,7 +3471,7 @@ ${userQuestion}
                       flexShrink: 0,
                       marginTop: '2px'
                     }}>
-                      {isSelected && <span style={{ color: '#22c55e', fontSize: '14px', fontWeight: 'bold' }}>✓</span>}
+                      {isSelected && <span style={{ color: '#F59E0B', fontSize: '14px', fontWeight: 'bold' }}>✓</span>}
                     </span>
                     <div>
                       <div style={{ marginBottom: '4px' }}>{faq.question}</div>
@@ -3480,8 +3480,8 @@ ${userQuestion}
                           fontSize: '11px',
                           padding: '2px 8px',
                           borderRadius: '10px',
-                          background: isSelected ? 'rgba(255,255,255,0.3)' : '#f1f5f9',
-                          color: isSelected ? 'white' : '#64748b'
+                          background: isSelected ? 'rgba(255,255,255,0.3)' : '#FEF3C7',
+                          color: isSelected ? 'white' : '#92400E'
                         }}>
                           {faq.category}
                         </span>
@@ -3520,14 +3520,14 @@ ${userQuestion}
                   borderRadius: '12px',
                   border: 'none',
                   background: selectedFAQs.length > 0
-                    ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                    ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
                     : '#e2e8f0',
                   color: selectedFAQs.length > 0 ? 'white' : '#94a3b8',
                   fontSize: '13px',
                   fontWeight: '700',
                   cursor: selectedFAQs.length > 0 ? 'pointer' : 'not-allowed',
                   transition: 'all 0.2s ease',
-                  boxShadow: selectedFAQs.length > 0 ? '0 4px 12px rgba(34, 197, 94, 0.3)' : 'none'
+                  boxShadow: selectedFAQs.length > 0 ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none'
                 }}
               >
                 {selectedFAQs.length > 0

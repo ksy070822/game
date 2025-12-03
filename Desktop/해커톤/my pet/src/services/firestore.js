@@ -156,6 +156,27 @@ export const petService = {
 };
 
 // ============ AI 진단 관련 ============
+
+// Firestore에 저장하기 전 undefined 값을 재귀적으로 제거하는 헬퍼 함수
+function removeUndefinedValues(obj) {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefinedValues(item)).filter(item => item !== undefined);
+  }
+  if (typeof obj === 'object') {
+    const cleaned = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = removeUndefinedValues(value);
+      }
+    }
+    return cleaned;
+  }
+  return obj;
+}
+
 export const diagnosisService = {
   // 진단 기록 저장
   async saveDiagnosis(diagnosisData) {
@@ -177,7 +198,10 @@ export const diagnosisService = {
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, COLLECTIONS.DIAGNOSES), docData);
+      // undefined 값 제거 (Firestore는 undefined를 허용하지 않음)
+      const cleanedData = removeUndefinedValues(docData);
+
+      const docRef = await addDoc(collection(db, COLLECTIONS.DIAGNOSES), cleanedData);
       return { success: true, id: docRef.id };
     } catch (error) {
       console.error('진단 저장 오류:', error);

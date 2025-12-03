@@ -113,8 +113,9 @@ service cloud.firestore {
     }
 
     // ============ faqs (자주 묻는 질문) ============
+    // FAQ는 로그인 없이도 읽기 가능
     match /faqs/{faqId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update, delete: if isSignedIn();
     }
   }
