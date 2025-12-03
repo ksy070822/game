@@ -964,7 +964,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-100">
       {/* PC 레이아웃 (임시 비활성화) */}
       <div className="hidden">
         {/* 좌측: 모바일 화면 미리보기 */}
@@ -1401,7 +1401,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       <div className="md:flex md:items-center md:justify-center md:p-8 md:min-h-screen">
         {/* 모바일 프레임 (태블릿에서만 보임) */}
         <div className="hidden md:block fixed inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"></div>
+          <div className="absolute inset-0 bg-slate-100"></div>
         </div>
 
         <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
