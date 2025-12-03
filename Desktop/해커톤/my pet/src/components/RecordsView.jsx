@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { diagnosisService, clinicResultService } from '../services/firestore';
 
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
 const CLINIC_RESULTS_KEY = 'petMedical_clinicResults';
@@ -223,24 +224,60 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
   const [medicationFeedback, setMedicationFeedback] = useState({});
   const [useDummyData, setUseDummyData] = useState(true); // 더미데이터 사용 플래그 - 샘플 데이터 표시
 
-  // 진단 기록 로드
+  // 진단 기록 로드 (Firestore)
   useEffect(() => {
-    const stored = localStorage.getItem(DIAGNOSIS_KEY);
-    if (stored) {
-      const allDiagnoses = JSON.parse(stored);
-      const petDiagnoses = allDiagnoses.filter(d => d.petId === petData?.id);
-      setDiagnoses(petDiagnoses);
-    }
+    const loadDiagnoses = async () => {
+      if (!petData?.id) return;
+
+      try {
+        // Firestore에서 우선 로드
+        const diagRes = await diagnosisService.getDiagnosesByPet(petData.id);
+        if (diagRes.success && diagRes.data.length > 0) {
+          setDiagnoses(diagRes.data);
+          return;
+        }
+      } catch (error) {
+        console.warn('Firestore 진단 기록 로드 오류:', error);
+      }
+
+      // Firestore 실패 시 localStorage 폴백
+      const stored = localStorage.getItem(DIAGNOSIS_KEY);
+      if (stored) {
+        const allDiagnoses = JSON.parse(stored);
+        const petDiagnoses = allDiagnoses.filter(d => d.petId === petData?.id);
+        setDiagnoses(petDiagnoses);
+      }
+    };
+
+    loadDiagnoses();
   }, [petData]);
 
-  // 병원 진료 결과 로드
+  // 병원 진료 결과 로드 (Firestore)
   useEffect(() => {
-    const stored = localStorage.getItem(CLINIC_RESULTS_KEY);
-    if (stored) {
-      const allResults = JSON.parse(stored);
-      const petResults = allResults.filter(r => r.petId === petData?.id);
-      setClinicResults(petResults);
-    }
+    const loadClinicResults = async () => {
+      if (!petData?.id) return;
+
+      try {
+        // Firestore에서 우선 로드
+        const resultRes = await clinicResultService.getResultsByPet(petData.id);
+        if (resultRes.success && resultRes.data.length > 0) {
+          setClinicResults(resultRes.data);
+          return;
+        }
+      } catch (error) {
+        console.warn('Firestore 진료 결과 로드 오류:', error);
+      }
+
+      // Firestore 실패 시 localStorage 폴백
+      const stored = localStorage.getItem(CLINIC_RESULTS_KEY);
+      if (stored) {
+        const allResults = JSON.parse(stored);
+        const petResults = allResults.filter(r => r.petId === petData?.id);
+        setClinicResults(petResults);
+      }
+    };
+
+    loadClinicResults();
   }, [petData]);
 
   // 의약품 피드백 로드

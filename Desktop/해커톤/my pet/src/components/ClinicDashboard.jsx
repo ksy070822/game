@@ -9,10 +9,11 @@ import {
   getClinicStats,
   migrateExistingClinicUser
 } from '../services/clinicService';
-import { userService, bookingService } from '../services/firestore';
+import { userService, bookingService, diagnosisService, clinicResultService } from '../services/firestore';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, getDoc, doc } from 'firebase/firestore';
 import { getPetImage } from '../utils/imagePaths';
+import { TreatmentSheet } from './TreatmentSheet';
 
 // 로컬 타임존 기준으로 YYYY-MM-DD 문자열을 반환
 const getLocalDateString = (date = new Date()) => {
@@ -33,6 +34,15 @@ export function ClinicDashboard({ currentUser, onBack }) {
   const [stats, setStats] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // 진료서 작성 관련 상태
+  const [activeTreatmentBooking, setActiveTreatmentBooking] = useState(null);
+
+  // 상세보기 관련 상태
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [detailModalType, setDetailModalType] = useState(null); // 'previsit' | 'detail' | 'history' | null
+  const [historyData, setHistoryData] = useState({ diagnoses: [], results: [] });
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -298,13 +308,119 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
   // 예약 확정/취소 처리
   const handleConfirmBooking = async (bookingId) => {
-    alert('예약 확정 기능은 구현 중입니다.');
-    // TODO: 실제 확정 로직 구현
+    const ok = window.confirm('이 예약을 확정하시겠습니까?');
+    if (!ok) return;
+
+    const result = await bookingService.updateBookingStatus(bookingId, 'confirmed');
+
+    if (!result?.success) {
+      console.error('예약 확정 오류:', result?.error);
+      alert('예약 확정 중 오류가 발생했습니다.');
+      return;
+    }
+
+    // 로컬 상태도 함께 업데이트 → 상단 "확정" 카운트가 즉시 반영되도록
+    setTodayBookings(prev =>
+      prev.map(b => b.id === bookingId ? { ...b, status: 'confirmed' } : b)
+    );
+
+    alert('예약이 확정되었습니다.');
   };
 
-  const handleStartTreatment = async (bookingId) => {
-    alert('진료 시작 기능은 구현 중입니다.');
-    // TODO: 실제 진료 시작 로직 구현
+  const handleStartTreatment = (bookingId) => {
+    const booking = todayBookings.find(b => b.id === bookingId);
+    if (!booking) {
+      alert('예약 정보를 찾을 수 없습니다.');
+      return;
+    }
+    setActiveTreatmentBooking(booking);
+  };
+
+  // 사전 문진 보기
+  const handleShowPrevisit = async (booking) => {
+    // booking.aiDiagnosis 안에 충분한 정보가 있으면 그걸 우선 사용
+    if (booking.aiDiagnosis) {
+      setSelectedBooking(booking);
+      setDetailModalType('previsit');
+      return;
+    }
+
+    // 없으면 diagnoses 컬렉션에서 diagnosisId로 조회
+    if (booking.diagnosisId) {
+      const res = await diagnosisService.getDiagnosisById(booking.diagnosisId);
+      if (res.success && res.data) {
+        setSelectedBooking({
+          ...booking,
+          aiDiagnosis: res.data
+        });
+        setDetailModalType('previsit');
+        return;
+      }
+    }
+
+    alert('사전 문진 정보가 없습니다.');
+  };
+
+  // 상세보기
+  const handleShowDetail = (booking) => {
+    setSelectedBooking(booking);
+    setDetailModalType('detail');
+  };
+
+  // 과거 기록 보기
+  const handleShowHistory = async (booking) => {
+    if (!booking.petId) {
+      alert('펫 정보가 없습니다.');
+      return;
+    }
+
+    setSelectedBooking(booking);
+    setDetailModalType('history');
+    setHistoryLoading(true);
+
+    try {
+      const [diagRes, resultRes] = await Promise.all([
+        diagnosisService.getDiagnosesByPet(booking.petId),
+        clinicResultService.getResultsByPet(booking.petId)
+      ]);
+
+      setHistoryData({
+        diagnoses: diagRes.success ? diagRes.data : [],
+        results: resultRes.success ? resultRes.data : []
+      });
+    } catch (error) {
+      console.error('과거 기록 로드 실패:', error);
+      alert('과거 기록을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // 보호자에게 진료 결과 전송
+  const handleSendToGuardian = async (patientRecord) => {
+    if (!window.confirm(`${patientRecord.petName}의 진료 결과를 보호자에게 전송하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      // 해당 환자의 가장 최근 진료 결과 찾기
+      const resultRes = await clinicResultService.getResultsByPet(patientRecord.petId);
+      if (!resultRes.success || resultRes.data.length === 0) {
+        alert('보낼 진료 결과가 없습니다.');
+        return;
+      }
+
+      const latestResult = resultRes.data[0]; // 최신 결과
+      const shareRes = await clinicResultService.shareResult(latestResult.id);
+      if (!shareRes.success) {
+        alert('진료 결과 공유 중 오류가 발생했습니다.');
+        return;
+      }
+      alert('보호자에게 진료 결과가 전송되었습니다.');
+    } catch (error) {
+      console.error('진료 결과 전송 오류:', error);
+      alert('진료 결과 전송 중 오류가 발생했습니다.');
+    }
   };
 
   // 캘린더 날짜 선택 핸들러
@@ -575,15 +691,24 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
                     {/* Info Buttons */}
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      <button className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleShowPrevisit(booking)}
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
+                      >
                         <span className="material-symbols-outlined text-xl">smart_toy</span>
                         사전 문진
                       </button>
-                      <button className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleShowDetail(booking)}
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
+                      >
                         <span className="material-symbols-outlined text-xl">description</span>
                         상세보기
                       </button>
-                      <button className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => handleShowHistory(booking)}
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
+                      >
                         <span className="material-symbols-outlined text-xl">history</span>
                         과거 기록
                       </button>
@@ -826,7 +951,10 @@ export function ClinicDashboard({ currentUser, onBack }) {
                         • 마지막 방문: {patient.lastVisitDate || '방문 기록 없음'}<br/>
                         • 마지막 진단: {patient.lastDiagnosis || '진단 기록 없음'}
                       </div>
-                      <button className="w-full text-sm py-3 bg-white text-green-800 border-2 border-green-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-50 transition-colors shadow-sm">
+                      <button
+                        className="w-full text-sm py-3 bg-white text-green-800 border-2 border-green-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-50 transition-colors shadow-sm"
+                        onClick={() => handleSendToGuardian(patient)}
+                      >
                         <span className="material-symbols-outlined text-xl">send</span>
                         보호자에게 보내기
                       </button>
@@ -877,6 +1005,146 @@ export function ClinicDashboard({ currentUser, onBack }) {
           </div>
         )}
       </div>
+
+      {/* 진료서 작성 모달 */}
+      {activeTreatmentBooking && (
+        <TreatmentSheet
+          booking={activeTreatmentBooking}
+          clinic={currentClinic}
+          onClose={() => setActiveTreatmentBooking(null)}
+          onSaved={() => {
+            setActiveTreatmentBooking(null);
+            // 진료 저장 후 데이터 리로드
+            loadClinicData();
+          }}
+        />
+      )}
+
+      {/* 상세보기 모달 - detail */}
+      {detailModalType === 'detail' && selectedBooking && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-4 text-sm">
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-1">
+                {selectedBooking.date} {selectedBooking.time}
+              </div>
+              <div className="text-lg font-bold">
+                {selectedBooking.pet?.name || selectedBooking.petName}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <div className="font-semibold mb-1">펫 정보</div>
+                <div className="text-gray-700">
+                  종: {selectedBooking.pet?.speciesLabelKo || selectedBooking.pet?.species}<br/>
+                  품종: {selectedBooking.pet?.breed}<br/>
+                  생일: {selectedBooking.pet?.birthDate}<br/>
+                  체중: {selectedBooking.pet?.weight ? `${selectedBooking.pet.weight}kg` : '기록 없음'}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-semibold mb-1">보호자 정보</div>
+                <div className="text-gray-700">
+                  이름: {selectedBooking.owner?.name}<br/>
+                  연락처: {selectedBooking.owner?.phone}<br/>
+                  이메일: {selectedBooking.owner?.email}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-semibold mb-1">예약 정보</div>
+                <div className="text-gray-700">
+                  증상 메모: {selectedBooking.symptom || selectedBooking.message || '입력 없음'}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                className="px-3 py-2 border rounded-lg text-xs"
+                onClick={() => { setDetailModalType(null); setSelectedBooking(null); }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 과거 기록 모달 - history */}
+      {detailModalType === 'history' && selectedBooking && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-4 text-sm">
+            <div className="mb-3">
+              <div className="text-lg font-bold mb-1">
+                {selectedBooking.pet?.name || selectedBooking.petName} 과거 기록
+              </div>
+              <div className="text-xs text-gray-500">
+                AI 진단 + 병원 진료 기록
+              </div>
+            </div>
+
+            {historyLoading ? (
+              <div className="py-10 text-center text-gray-400">불러오는 중...</div>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <div className="font-semibold mb-1">AI 진단 기록</div>
+                  {historyData.diagnoses.length === 0 ? (
+                    <div className="text-xs text-gray-400">AI 진단 기록이 없습니다.</div>
+                  ) : (
+                    <ul className="space-y-2 text-xs">
+                      {historyData.diagnoses.map(d => (
+                        <li key={d.id} className="border rounded-lg p-2">
+                          <div className="text-[11px] text-gray-500 mb-1">
+                            {d.createdAt?.toDate ? new Date(d.createdAt.toDate()).toLocaleString('ko-KR') : d.createdAt}
+                          </div>
+                          <div className="font-semibold mb-0.5">{d.diagnosis}</div>
+                          <div className="text-gray-600">{d.symptom}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <div className="font-semibold mb-1">병원 진료 기록</div>
+                  {historyData.results.length === 0 ? (
+                    <div className="text-xs text-gray-400">병원 진료 기록이 없습니다.</div>
+                  ) : (
+                    <ul className="space-y-2 text-xs">
+                      {historyData.results.map(r => (
+                        <li key={r.id} className="border rounded-lg p-2">
+                          <div className="text-[11px] text-gray-500 mb-1">
+                            {r.visitDate} {r.visitTime}
+                          </div>
+                          <div className="font-semibold mb-0.5">
+                            {r.mainDiagnosis || r.diagnosis}
+                          </div>
+                          <div className="text-gray-600">
+                            triage: {r.triageScore ?? '-'}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                className="px-3 py-2 border rounded-lg text-xs"
+                onClick={() => { setDetailModalType(null); setSelectedBooking(null); }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

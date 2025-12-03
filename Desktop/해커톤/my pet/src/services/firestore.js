@@ -432,6 +432,49 @@ export const clinicResultService = {
       console.error('진료 결과 목록 조회 오류:', error);
       return { success: false, error, data: [] };
     }
+  },
+
+  // 진료 결과를 보호자에게 공유 (푸시 알림 전송)
+  async shareResult(resultId) {
+    try {
+      const resultRef = doc(db, COLLECTIONS.CLINIC_RESULTS, resultId);
+      const snap = await getDoc(resultRef);
+      if (!snap.exists()) {
+        return { success: false, error: new Error('결과를 찾을 수 없습니다.') };
+      }
+      const data = snap.data();
+      if (!data.userId) {
+        return { success: false, error: new Error('보호자 정보를 찾을 수 없습니다.') };
+      }
+
+      // 푸시 알림 전송
+      const { sendNotificationToGuardian } = await import('./pushNotificationService');
+      const clinicName = data.clinicName || data.hospitalName || '병원';
+      await sendNotificationToGuardian(
+        data.userId,
+        `${clinicName}에서 진료 결과를 보내왔습니다`,
+        `${data.petName || '반려동물'}의 진료 결과를 확인해주세요.`,
+        {
+          type: 'treatment_completed',
+          resultId,
+          bookingId: data.bookingId,
+          petName: data.petName,
+          clinicName,
+          url: '/records'
+        }
+      );
+
+      // 공유 상태 업데이트
+      await updateDoc(resultRef, {
+        sharedToGuardian: true,
+        sharedAt: serverTimestamp()
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('진료 결과 공유 오류:', error);
+      return { success: false, error };
+    }
   }
 };
 
