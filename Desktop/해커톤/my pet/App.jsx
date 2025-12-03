@@ -1407,11 +1407,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <div className="relative flex items-stretch gap-3">
                 {/* 캐릭터 이미지 - 세로로 길게, 가로 좁게 */}
-                <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white">
+                <div className="flex-shrink-0 w-24 h-36 bg-amber-50 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
                   <img
                     src={getMainCharacterImagePath()}
                     alt={petData?.petName || '반려동물'}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     style={{ objectPosition: 'center', display: 'block' }}
                     onError={(e) => {
                       // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
