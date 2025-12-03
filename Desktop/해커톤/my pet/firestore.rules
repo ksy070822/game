@@ -1,8 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // 공통
+    // 공통 헬퍼
     function isSignedIn() {
       return request.auth != null;
     }

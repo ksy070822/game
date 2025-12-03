@@ -79,6 +79,14 @@ export function ClinicDashboard({ currentUser, onBack }) {
   const [historyData, setHistoryData] = useState({ diagnoses: [], results: [] });
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // 병원 설정 편집 모드
+  const [isEditingClinic, setIsEditingClinic] = useState(false);
+  const [editClinic, setEditClinic] = useState(null);
+
+  // 진단서 상세보기 모달 상태
+  const [selectedResult, setSelectedResult] = useState(null);
+  const [resultModalOpen, setResultModalOpen] = useState(false);
+
   // 초기 데이터 로드
   useEffect(() => {
     if (currentUser?.uid) {
@@ -438,6 +446,29 @@ export function ClinicDashboard({ currentUser, onBack }) {
     setDetailModalType('detail');
   };
 
+  // 진단서(clinicResult) 상세보기
+  const handleShowResultDetail = async (booking) => {
+    if (!booking?.id && !booking?.bookingId) {
+      alert('예약 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    try {
+      const bookingId = booking.bookingId || booking.id;
+      const res = await clinicResultService.getResultByBooking(bookingId);
+      if (!res.success || !res.data) {
+        alert('저장된 진단서가 없습니다.');
+        return;
+      }
+
+      setSelectedResult(res.data);
+      setResultModalOpen(true);
+    } catch (error) {
+      console.error('진단서 상세보기 오류:', error);
+      alert('진단서 정보를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
   // 과거 기록 보기
   const handleShowHistory = async (booking) => {
     if (!booking.petId) {
@@ -780,30 +811,23 @@ export function ClinicDashboard({ currentUser, onBack }) {
                       </div>
                     </div>
 
-                    {/* Info Buttons */}
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <button
-                        onClick={() => handleShowPrevisit(booking)}
-                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-xl">smart_toy</span>
-                        사전 문진
-                      </button>
-                      <button
-                        onClick={() => handleShowDetail(booking)}
-                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-xl">description</span>
-                        상세보기
-                      </button>
-                      <button
-                        onClick={() => handleShowHistory(booking)}
-                        className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-xl">history</span>
-                        과거 기록
-                      </button>
-                    </div>
+        {/* Info Buttons (2개만: 진단서 상세보기, 과거 기록) */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button
+            onClick={() => handleShowResultDetail(booking)}
+            className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-xl">description</span>
+            진단서 상세보기
+          </button>
+          <button
+            onClick={() => handleShowHistory(booking)}
+            className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-xl">history</span>
+            과거 기록
+          </button>
+        </div>
 
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-2">
@@ -1008,6 +1032,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
               <div className="space-y-3">
                 {patients.map((patient, index) => (
                   <div key={patient.id || index} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    {/* 상단 펫 정보 */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-purple-400 overflow-hidden">
                         <img
@@ -1018,17 +1043,18 @@ export function ClinicDashboard({ currentUser, onBack }) {
                         />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                          {patient.petName} ({SPECIES_LABELS[patient.species] || patient.speciesLabelKo || patient.species || '기타'})
-                          {patient.sex && <span className="ml-1">{formatGender(patient.sex)}</span>}
+                        <h3 className="text-base font-semibold text-gray-900">
+                          {patient.petName || patient.name || '이름 미상'} (
+                          {patient.speciesLabelKo || patient.species || '종 정보 없음'}
+                          )
                         </h3>
                         <p className="text-sm text-gray-600">
-                          보호자: {patient.ownerDisplayName || patient.ownerName || '알 수 없음'} · {patient.ownerPhone || ''}
+                          보호자: {patient.ownerName || '-'} · {patient.ownerPhone || '-'}
                         </p>
                       </div>
                     </div>
 
-                    {/* 우리 병원 기록 */}
+                    {/* 우리 병원 기록 섹션 */}
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-xl mb-3">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -1036,11 +1062,12 @@ export function ClinicDashboard({ currentUser, onBack }) {
                           <span className="text-sm font-bold text-green-800">우리 병원</span>
                         </div>
                         <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                          {patient.visitCount || 0}건
+                          {(patient.visitCount || 0)}건
                         </span>
                       </div>
                       <div className="text-xs text-green-800 leading-relaxed mb-3">
-                        • 마지막 방문: {patient.lastVisitDate || '방문 기록 없음'}<br/>
+                        • 마지막 방문: {patient.lastVisitDate || '방문 기록 없음'}
+                        <br />
                         • 마지막 진단: {patient.lastDiagnosis || '진단 기록 없음'}
                       </div>
                       <button
@@ -1052,11 +1079,50 @@ export function ClinicDashboard({ currentUser, onBack }) {
                       </button>
                     </div>
 
-                    {/* 통합 타임라인 버튼 */}
-                    <button className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
-                      <span className="material-symbols-outlined text-2xl">timeline</span>
-                      통합 타임라인 보기
-                    </button>
+                    {/* 보호자 제공 기록 섹션 */}
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl">👤</div>
+                          <span className="text-sm font-bold text-amber-800">보호자 제공</span>
+                        </div>
+                        <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                          {(patient.guardianRecordCount || 0)}건
+                        </span>
+                      </div>
+                      <div className="text-xs text-amber-900 leading-relaxed mb-3">
+                        {patient.guardianRecordPreview && patient.guardianRecordPreview.length > 0 ? (
+                          patient.guardianRecordPreview.slice(0, 3).map((rec, i) => (
+                            <div key={i}>
+                              • {rec.date || '날짜 미상'} {rec.title || rec.summary || ''}
+                            </div>
+                          ))
+                        ) : (
+                          <div>보호자 제공 기록이 없습니다.</div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          className="px-3 py-2 bg-white text-amber-800 border border-amber-400 rounded-lg text-xs font-semibold hover:bg-amber-50"
+                          onClick={() => {
+                            console.log('[환자 기록] 보호자 제공 기록 상세 보기 클릭:', patient);
+                            alert('보호자 제공 기록 전체 보기는 추후 구현 예정입니다.');
+                          }}
+                        >
+                          상세 보기
+                        </button>
+                        <button
+                          className="px-3 py-2 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700"
+                          onClick={() => {
+                            if (window.confirm('보호자 제공 기록을 관리(삭제 등)하는 기능은 추후 제공될 예정입니다.')) {
+                              console.log('[환자 기록] 보호자 제공 기록 관리 요청:', patient);
+                            }
+                          }}
+                        >
+                          기록 관리
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1067,24 +1133,72 @@ export function ClinicDashboard({ currentUser, onBack }) {
         {/* 설정 Tab */}
         {activeTab === 'settings' && (
           <div>
-            <h2 className="font-bold text-gray-900 mb-3">⚙️ 병원 설정</h2>
+            <h2 className="font-bold text-gray-900 mb-3 flex items-center justify-between">
+              <span>⚙️ 병원 설정</span>
+              {!isEditingClinic && (
+                <button
+                  className="px-3 py-1 text-xs rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    setEditClinic({
+                      name: currentClinic?.name || '',
+                      address: currentClinic?.address || '',
+                      phone: currentClinic?.phone || ''
+                    });
+                    setIsEditingClinic(true);
+                  }}
+                >
+                  수정
+                </button>
+              )}
+            </h2>
 
             <div className="bg-white rounded-2xl p-5 shadow-sm space-y-5">
+              {/* 병원명 */}
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">병원명</div>
-                <div className="text-base text-gray-900">{currentClinic?.name}</div>
+                {isEditingClinic ? (
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    value={editClinic?.name || ''}
+                    onChange={e => setEditClinic(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                ) : (
+                  <div className="text-base text-gray-900">{currentClinic?.name}</div>
+                )}
               </div>
 
+              {/* 주소 */}
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">주소</div>
-                <div className="text-base text-gray-600">{currentClinic?.address || '주소 정보 없음'}</div>
+                {isEditingClinic ? (
+                  <textarea
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    rows={2}
+                    value={editClinic?.address || ''}
+                    onChange={e => setEditClinic(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                ) : (
+                  <div className="text-base text-gray-600">{currentClinic?.address || '주소 정보 없음'}</div>
+                )}
               </div>
 
+              {/* 전화번호 */}
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">전화번호</div>
-                <div className="text-base text-gray-600">{currentClinic?.phone || '전화번호 정보 없음'}</div>
+                {isEditingClinic ? (
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    value={editClinic?.phone || ''}
+                    onChange={e => setEditClinic(prev => ({ ...prev, phone: e.target.value }))}
+                  />
+                ) : (
+                  <div className="text-base text-gray-600">{currentClinic?.phone || '전화번호 정보 없음'}</div>
+                )}
               </div>
 
+              {/* 내 역할 */}
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">내 역할</div>
                 <div className="text-base text-gray-600">
@@ -1093,6 +1207,52 @@ export function ClinicDashboard({ currentUser, onBack }) {
                    currentClinic?.staffRole === 'nurse' ? '간호사' : '스태프'}
                 </div>
               </div>
+
+              {/* 편집 모드 액션 버튼 */}
+              {isEditingClinic && (
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    className="px-4 py-2 text-xs rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      setEditClinic(null);
+                      setIsEditingClinic(false);
+                    }}
+                  >
+                    취소
+                  </button>
+                  <button
+                    className="px-4 py-2 text-xs rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+                    onClick={async () => {
+                      if (!currentClinic?.id) return;
+                      try {
+                        const { updateClinicInfo } = await import('../services/clinicService');
+                        const res = await updateClinicInfo(currentClinic.id, {
+                          name: editClinic?.name || '',
+                          address: editClinic?.address || '',
+                          phone: editClinic?.phone || ''
+                        });
+                        if (!res?.success) {
+                          console.error('병원 정보 업데이트 실패:', res?.error);
+                          alert('병원 정보를 수정하는 데 실패했어요. 나중에 다시 시도해 주세요.');
+                          return;
+                        }
+                        setCurrentClinic(prev => ({
+                          ...prev,
+                          name: editClinic?.name || '',
+                          address: editClinic?.address || '',
+                          phone: editClinic?.phone || ''
+                        }));
+                        setIsEditingClinic(false);
+                      } catch (error) {
+                        console.error('병원 정보 업데이트 오류:', error);
+                        alert('병원 정보를 수정하는 데 실패했어요. 나중에 다시 시도해 주세요.');
+                      }
+                    }}
+                  >
+                    저장
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1279,6 +1439,79 @@ export function ClinicDashboard({ currentUser, onBack }) {
               <button
                 className="px-3 py-2 border rounded-lg text-xs"
                 onClick={() => { setDetailModalType(null); setSelectedBooking(null); }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 진단서 상세보기 모달 */}
+      {resultModalOpen && selectedResult && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-4 text-sm">
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-1">
+                {selectedResult.visitDate} {selectedResult.visitTime}
+              </div>
+              <div className="text-lg font-bold">
+                {selectedResult.petName || '반려동물'} 진단서
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <div className="font-semibold mb-1">주 진단명</div>
+                <div className="text-gray-700">
+                  {selectedResult.mainDiagnosis || selectedResult.diagnosis || '기록 없음'}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-semibold mb-1">Triage 점수</div>
+                <div className="text-gray-700">
+                  {selectedResult.triageScore ?? '-'}
+                </div>
+              </div>
+
+              {selectedResult.soap && (
+                <div className="space-y-2">
+                  <div>
+                    <div className="font-semibold mb-1">Subjective</div>
+                    <div className="text-gray-700 whitespace-pre-wrap">
+                      {selectedResult.soap.subjective || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-1">Objective</div>
+                    <div className="text-gray-700 whitespace-pre-wrap">
+                      {selectedResult.soap.objective || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-1">Assessment</div>
+                    <div className="text-gray-700 whitespace-pre-wrap">
+                      {selectedResult.soap.assessment || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-1">Plan</div>
+                    <div className="text-gray-700 whitespace-pre-wrap">
+                      {selectedResult.soap.plan || '-'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                className="px-3 py-2 border rounded-lg text-xs"
+                onClick={() => {
+                  setResultModalOpen(false);
+                  setSelectedResult(null);
+                }}
               >
                 닫기
               </button>

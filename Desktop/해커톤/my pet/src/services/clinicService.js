@@ -524,6 +524,26 @@ export async function getUpcomingVaccinations(clinicId) {
   }
 }
 
+/**
+ * 병원 정보 업데이트
+ * @param {string} clinicId - clinics 컬렉션 문서 ID
+ * @param {Object} data - 업데이트할 필드 (name, address, phone 등)
+ * @returns {Promise<{success: boolean, error?: any}>}
+ */
+export async function updateClinicInfo(clinicId, data) {
+  try {
+    const clinicRef = doc(db, 'clinics', clinicId);
+    await updateDoc(clinicRef, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('병원 정보 업데이트 실패:', error);
+    return { success: false, error };
+  }
+}
+
 // ============================================
 // 통계 관련
 // ============================================
@@ -774,5 +794,6 @@ export default {
   createClinic,
   addClinicStaff,
   setupClinicForNewUser,
-  migrateExistingClinicUser
+  migrateExistingClinicUser,
+  updateClinicInfo
 };

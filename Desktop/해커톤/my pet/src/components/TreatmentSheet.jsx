@@ -12,6 +12,8 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
   const [triageScore, setTriageScore] = useState(booking?.aiDiagnosis?.triageScore || 0);
   const [mainDiagnosis, setMainDiagnosis] = useState(booking?.aiDiagnosis?.diagnosis || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [lastResultId, setLastResultId] = useState(null);
 
   if (!booking) return null;
 
@@ -25,11 +27,16 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
         clinicId: clinic.id ?? null,
         clinicName: clinic.name ?? null,
         bookingId: booking.id ?? null,
-        userId: booking.userId ?? null,  // 🔥 undefined 방지
+        // 보호자/예약 식별자
+        userId: booking.userId ?? null,              // 🔥 undefined 방지
+        ownerId: booking.ownerId ?? booking.userId ?? null, // rules 에서 사용될 ownerId
+        // 펫 정보
         petId: booking.petId ?? null,  // 🔥 undefined 방지
         petName: booking.pet?.name || booking.petName || null,  // 🔥 undefined 방지
+        // 방문 정보
         visitDate: booking.date ?? null,  // 🔥 undefined 방지
         visitTime: booking.time ?? null,  // 🔥 undefined 방지
+        // 진료 내용
         triageScore: triageScore ?? 0,
         mainDiagnosis: mainDiagnosis ?? null,
         soap: {
@@ -45,6 +52,9 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
       // 1) clinicResults 에 저장
       const saveRes = await clinicResultService.saveResult(resultData);
       if (!saveRes.success) throw saveRes.error;
+
+      setIsSaved(true);
+      setLastResultId(saveRes.id);
 
       // 2) 예약 상태를 완료로 변경
       await bookingService.updateBookingStatus(booking.id, 'completed');
@@ -91,12 +101,31 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
 
       alert('진료 결과가 저장되었습니다.');
       onSaved && onSaved();
-      onClose && onClose();
     } catch (error) {
       console.error('진료 결과 저장 실패:', error);
       alert('진료 결과 저장 중 오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleShareToGuardian = async () => {
+    if (!lastResultId) {
+      alert('먼저 진단서를 저장해 주세요.');
+      return;
+    }
+
+    try {
+      const shareRes = await clinicResultService.shareResult(lastResultId);
+      if (!shareRes.success) {
+        console.error('진단서 공유 실패:', shareRes.error);
+        alert('공유에 실패했어요. 나중에 다시 시도해 주세요.');
+        return;
+      }
+      alert('보호자에게 진단서가 전송되었습니다.');
+    } catch (error) {
+      console.error('진단서 공유 오류:', error);
+      alert('공유에 실패했어요. 나중에 다시 시도해 주세요.');
     }
   };
 
@@ -185,13 +214,23 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
           >
             닫기
           </button>
-          <button
-            className="px-4 py-2 text-sm rounded-lg bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? '저장 중...' : '진료서 저장'}
-          </button>
+          {!isSaved ? (
+            <button
+              className="px-4 py-2 text-sm rounded-lg bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? '저장 중...' : '진단서 저장'}
+            </button>
+          ) : (
+            <button
+              className="px-4 py-2 text-sm rounded-lg bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50"
+              onClick={handleShareToGuardian}
+              disabled={isSaving}
+            >
+              보호자에게 공유하기
+            </button>
+          )}
         </div>
       </div>
     </div>
