@@ -8,6 +8,8 @@ import { calculateTriageScore } from './triageEngine';
 import { convertHealthFlagsFormat } from '../../utils/healthFlagsMapper';
 import { buildAIContext } from './dataContextService';
 import { runCollaborativeDiagnosis } from './collaborativeDiagnosis';
+import { getMedicationGuidance, formatMedicationMessage, getShortMedicationSummary } from './medicationService';
+import { getRecommendedFAQs, generateMultipleFAQAnswers, formatFAQsForUI, formatFAQAnswersMessage } from './faqService';
 
 export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived, onWaitForGuardianResponse = null) => {
   const logs = [];
@@ -398,30 +400,19 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // 치료 계획실 → 처방 관리실 이관
+    // 치료 계획실 → 처방 관리실 이관 (메시지 통합)
     onLogReceived({
       agent: 'Data Agent',
       role: '치료 계획 수립실',
       icon: '📋',
       type: 'data',
-      content: '치료 계획을 세웠어요. 약국에서 처방약과 복용법을 안내해 드릴게요.',
+      content: '진단서 생성 완료\n치료 계획을 세웠어요. 약국으로 안내해 드릴게요.',
       timestamp: Date.now()
     });
 
     await new Promise(resolve => setTimeout(resolve, 1200));
 
     // 6. Care Agent - 처방 · 약물 관리실
-    onLogReceived({
-      agent: 'Care Agent',
-      role: '처방 · 약물 관리실',
-      icon: '💊',
-      type: 'care',
-      content: '처방전 확인했습니다. 보호자님께 약물 복용법과 케어 가이드 안내해 드릴게요.',
-      timestamp: Date.now()
-    });
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     careResult = await callCareAgent(
       normalizedPetData,
       opsResult.json,
@@ -429,31 +420,94 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       triageResult
     );
 
+    // 약물 안내 생성
+    const medicationGuidance = getMedicationGuidance(medicalResult.json, enrichedSymptomData);
+    const medicationSummary = getShortMedicationSummary(medicationGuidance);
+
+    // 약물 안내가 있으면 포함
+    let careMessage = careResult.message;
+    if (medicationGuidance.hasMedicationGuidance) {
+      const primaryMed = medicationGuidance.medications[0]?.medications[0];
+      careMessage = `${normalizedPetData.petName}를 위한 케어 플랜!\n\n💊 ${medicationGuidance.message}\n\n${primaryMed ? `• 복용: ${primaryMed.usage}\n• 기간: ${primaryMed.duration}` : ''}\n\n${medicationGuidance.disclaimer}`;
+    }
+
     logs.push({
       agent: 'Care Agent',
       role: '처방 · 약물 관리실',
       icon: '💊',
       type: 'care',
-      content: careResult.message,
+      content: careMessage,
+      medicationGuidance: medicationGuidance,
       timestamp: Date.now()
     });
     onLogReceived(logs[logs.length - 1]);
 
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // 처방실 → 진료요약실 이관
+    // 처방실 → FAQ 선택 단계
     onLogReceived({
       agent: 'Care Agent',
       role: '처방 · 약물 관리실',
       icon: '💊',
       type: 'care',
-      content: '약 안내를 마쳤어요. 진료 요약실에서 전체 내용을 정리해 드릴게요.',
+      content: '약 안내를 마쳤어요.',
       timestamp: Date.now()
     });
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-    // 7. Summary - 진료 요약 관리실
+    // 7. FAQ 선택 단계 - 추천 FAQ 3개 노출
+    const recommendedFAQs = getRecommendedFAQs(medicalResult.json, enrichedSymptomData, normalizedPetData.species);
+    const faqUIData = formatFAQsForUI(recommendedFAQs);
+
+    let faqAnswers = [];
+
+    if (onWaitForGuardianResponse && recommendedFAQs.length > 0) {
+      // FAQ 선택 UI 표시
+      onLogReceived({
+        agent: 'FAQ Assistant',
+        role: '진료 요약 · 관리실',
+        icon: '📄',
+        type: 'faq',
+        content: '',
+        isFAQPhase: true,
+        faqData: faqUIData,
+        timestamp: Date.now()
+      });
+
+      // 보호자 FAQ 선택 대기
+      const faqSelections = await onWaitForGuardianResponse(faqUIData, 'faq');
+
+      // 선택된 FAQ에 대한 답변 생성
+      if (faqSelections && faqSelections.length > 0 && !faqSelections.includes('skip')) {
+        faqAnswers = generateMultipleFAQAnswers(
+          faqSelections,
+          recommendedFAQs,
+          medicalResult.json,
+          normalizedPetData
+        );
+
+        // FAQ 답변 표시
+        if (faqAnswers.length > 0) {
+          const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
+          onLogReceived({
+            agent: 'FAQ Assistant',
+            role: '진료 요약 · 관리실',
+            icon: '📄',
+            type: 'faq_answer',
+            content: faqAnswerMessage,
+            faqAnswers: faqAnswers,
+            timestamp: Date.now()
+          });
+
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // 8. Summary - 진료 요약 관리실
     onLogReceived({
       agent: 'summary',
       role: '진료 요약 · 관리실',
@@ -463,103 +517,60 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       timestamp: Date.now()
     });
 
-    try {
-      // 최종 진단서 생성 (협진 결과 포함)
-      console.log('[AgentOrchestrator] 최종 진단서 생성 시작');
-      console.log('[AgentOrchestrator] opsResult:', opsResult ? '있음' : '없음');
-      console.log('[AgentOrchestrator] careResult:', careResult ? '있음' : '없음');
-      console.log('[AgentOrchestrator] collaborationResult:', collaborationResult ? '있음' : '없음');
+    // 최종 진단서 생성 (협진 결과 포함)
+    const medicalLog = opsResult.json.medical_log;
+    const ownerSheet = opsResult.json.owner_friendly_diagnosis_sheet;
+    const healthFlags = convertHealthFlagsFormat(triageResult?.health_flags || medicalLog.health_flags || {});
 
-      const medicalLog = opsResult?.json?.medical_log || {};
-      const ownerSheet = opsResult?.json?.owner_friendly_diagnosis_sheet || {};
-      
-      // healthFlags 안전하게 변환
-      let healthFlags = {};
-      try {
-        healthFlags = convertHealthFlagsFormat(triageResult?.health_flags || medicalLog.health_flags || {});
-      } catch (flagsError) {
-        console.warn('[AgentOrchestrator] healthFlags 변환 오류:', flagsError);
-        healthFlags = {};
-      }
+    const finalDiagnosis = {
+      id: Date.now().toString(),
+      created_at: Date.now(),
+      petId: normalizedPetData.id,
+      petName: normalizedPetData.petName,
+      diagnosis: medicalLog.possible_diseases?.[0]?.name_kor || '일반 건강 이상',
+      probability: medicalLog.possible_diseases?.[0]?.probability || 0.6,
+      riskLevel: medicalLog.risk_level || 'moderate',
+      emergency: medicalLog.risk_level === 'emergency' ? 'high' :
+                 medicalLog.risk_level === 'high' ? 'high' :
+                 medicalLog.risk_level === 'moderate' ? 'medium' : 'low',
+      actions: ownerSheet.immediate_home_actions || [],
+      hospitalVisit: medicalLog.need_hospital_visit || false,
+      hospitalVisitTime: medicalLog.hospital_visit_timing || '증상 악화 시',
+      description: medicalResult.json.primary_assessment_kor || '증상 기반 분석',
+      careGuide: careResult.fullGuide,
+      conversationHistory: [],
+      triage_score: medicalLog.triage_score || triageResult?.triage_score || 2,
+      triage_level: medicalLog.triage_level || triageResult?.triage_level || 'yellow',
+      healthFlags: healthFlags,
+      // 추가 정보
+      ownerSheet: ownerSheet,
+      hospitalPacket: opsResult.json.hospital_previsit_packet,
+      carePlan: careResult.json,
+      // 약물 안내 정보
+      medicationGuidance: medicationGuidance,
+      // FAQ 정보
+      faqAnswers: faqAnswers,
+      recommendedFAQs: recommendedFAQs,
+      // 협진 정보
+      collaboration: collaborationResult ? {
+        consensus_reached: collaborationResult.consensus.consensus_reached,
+        confidence_score: collaborationResult.consensus.confidence_score,
+        discrepancies_found: collaborationResult.discrepancy_analysis.discrepancy_count,
+        models_consulted: [
+          'Claude Sonnet (Medical Agent)',
+          'Claude Sonnet (Triage Engine)',
+          'Claude Sonnet (Senior Reviewer)',
+          collaborationResult.second_opinion ? 'GPT-4o (Second Opinion)' : null
+        ].filter(Boolean),
+        final_recommendation: collaborationResult.consensus.collaborative_notes.reviewer_opinion,
+        resolution_notes: collaborationResult.consensus.discrepancy_resolution
+      } : null
+    };
 
-      const finalDiagnosis = {
-        id: Date.now().toString(),
-        created_at: Date.now(),
-        petId: normalizedPetData?.id || petData?.id || 'unknown',
-        petName: normalizedPetData?.petName || petData?.petName || '반려동물',
-        diagnosis: medicalLog.possible_diseases?.[0]?.name_kor || medicalResult?.json?.primary_assessment_kor || '일반 건강 이상',
-        probability: medicalLog.possible_diseases?.[0]?.probability || 0.6,
-        riskLevel: medicalLog.risk_level || medicalResult?.json?.riskLevel || 'moderate',
-        emergency: medicalLog.risk_level === 'emergency' ? 'high' :
-                   medicalLog.risk_level === 'high' ? 'high' :
-                   medicalLog.risk_level === 'moderate' ? 'medium' : 'low',
-        actions: ownerSheet.immediate_home_actions || [],
-        hospitalVisit: medicalLog.need_hospital_visit || false,
-        hospitalVisitTime: medicalLog.hospital_visit_timing || '증상 악화 시',
-        description: medicalResult?.json?.primary_assessment_kor || '증상 기반 분석',
-        careGuide: careResult?.fullGuide || careResult?.message || '케어 가이드 준비 중',
-        conversationHistory: [],
-        triage_score: medicalLog.triage_score || triageResult?.triage_score || 2,
-        triage_level: medicalLog.triage_level || triageResult?.triage_level || 'yellow',
-        healthFlags: healthFlags,
-        // 추가 정보
-        ownerSheet: ownerSheet,
-        hospitalPacket: opsResult?.json?.hospital_previsit_packet || null,
-        carePlan: careResult?.json || null,
-        // 협진 정보
-        collaboration: collaborationResult && collaborationResult.consensus ? {
-          consensus_reached: collaborationResult.consensus?.consensus_reached || false,
-          confidence_score: collaborationResult.consensus?.confidence_score || 0.5,
-          discrepancies_found: collaborationResult.discrepancy_analysis?.discrepancy_count || 0,
-          models_consulted: [
-            'Claude Sonnet (Medical Agent)',
-            'Claude Sonnet (Triage Engine)',
-            'Claude Sonnet (Senior Reviewer)',
-            collaborationResult.second_opinion ? 'GPT-4o (Second Opinion)' : null
-          ].filter(Boolean),
-          final_recommendation: collaborationResult.consensus?.collaborative_notes?.reviewer_opinion || '',
-          resolution_notes: collaborationResult.consensus?.discrepancy_resolution || ''
-        } : null
-      };
-
-      console.log('[AgentOrchestrator] 최종 진단서 생성 완료:', finalDiagnosis.id);
-
-      return {
-        logs,
-        finalDiagnosis
-      };
-    } catch (finalError) {
-      console.error('[AgentOrchestrator] 최종 진단서 생성 오류:', finalError);
-      // 최소한의 진단서라도 반환
-      const fallbackDiagnosis = {
-        id: Date.now().toString(),
-        created_at: Date.now(),
-        petId: normalizedPetData?.id || petData?.id || 'unknown',
-        petName: normalizedPetData?.petName || petData?.petName || '반려동물',
-        diagnosis: '증상 분석 완료',
-        probability: 0.5,
-        riskLevel: 'moderate',
-        emergency: 'medium',
-        actions: [],
-        hospitalVisit: false,
-        hospitalVisitTime: '증상 악화 시',
-        description: '증상 기반 분석',
-        careGuide: careResult?.message || '케어 가이드 준비 중',
-        conversationHistory: [],
-        triage_score: 2,
-        triage_level: 'yellow',
-        healthFlags: {},
-        ownerSheet: {},
-        hospitalPacket: null,
-        carePlan: careResult?.json || null,
-        collaboration: null
-      };
-      
-      return {
-        logs,
-        finalDiagnosis: fallbackDiagnosis
-      };
-    }
+    return {
+      logs,
+      finalDiagnosis
+    };
 
   } catch (error) {
     console.error('멀티 에이전트 오류:', error);
