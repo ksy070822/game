@@ -38,10 +38,10 @@ body {
   }
 }
 
-/* 태블릿/데스크톱에서 더 넓게 */
+/* 태블릿/데스크톱에서도 모바일과 동일한 너비 유지 */
 @media (min-width: 768px) {
   .app-root {
-    max-width: 430px;
+    max-width: 480px;
   }
 }
 

@@ -655,17 +655,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       // localStorage에서 API 키 가져오기 (마이페이지에서 설정한 키)
       const apiKey = getApiKey(API_KEY_TYPES.GEMINI);
       if (apiKey) {
-        const prompt = `다음 동물병원 정보를 바탕으로 이 병원만의 특징과 장점을 구체적으로 요약해주세요.
+        const prompt = `다음 동물병원 정보를 바탕으로 이 병원만의 특징과 장점을 긍정적으로 요약해주세요.
 
 병원명: ${hospital.name}
 주소: ${hospital.address}
 24시간 운영: ${hospital.is24Hours ? '예' : '아니오'}
-평점: ${hospital.rating || '정보 없음'}
-후기 수: ${hospital.reviewCount || 0}개
 거리: ${hospital.distance ? (hospital.distance / 1000).toFixed(1) + 'km' : '정보 없음'}
 
-각 병원의 고유한 특징(24시간 여부, 평점, 위치 등)을 반영하여 다른 병원과 차별화된 2-3줄 요약을 작성하세요.
-병원마다 다른 내용으로 작성해주세요.`;
+중요 규칙:
+- "후기가 없어", "정확한 평가가 어렵다", "정보가 부족하다" 같은 부정적인 표현은 절대 사용하지 마세요.
+- 평점이나 후기 관련 언급은 하지 마세요.
+- 24시간 여부, 위치, 접근성 등 긍정적인 특징만 강조해주세요.
+- 병원의 장점과 접근성 위주로 2-3줄 요약을 작성하세요.
+- 병원마다 다른 내용으로 작성해주세요.`;
 
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -689,14 +691,8 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         // API 키가 없으면 병원 특성에 맞는 기본 요약 생성
         let defaultSummary = '';
         if (hospital.is24Hours) {
-          defaultSummary = `🚨 24시간 운영 병원! 야간 응급 상황에도 즉시 대응 가능합니다. `;
-        }
-        if (hospital.rating && parseFloat(hospital.rating) >= 4.5) {
-          defaultSummary += `⭐ 평점 ${hospital.rating}점의 인기 병원으로, ${hospital.reviewCount}개 이상의 긍정적인 후기가 있습니다.`;
-        } else if (hospital.rating) {
-          defaultSummary += `평점 ${hospital.rating}점, ${hospital.reviewCount}개의 후기가 있는 검증된 병원입니다.`;
-        }
-        if (!defaultSummary) {
+          defaultSummary = `🚨 24시간 운영 병원! 야간 응급 상황에도 즉시 대응 가능합니다.`;
+        } else {
           defaultSummary = `${hospital.name}은(는) 내 위치에서 ${hospital.distance ? (hospital.distance / 1000).toFixed(1) + 'km' : '가까운'} 거리에 있는 동물병원입니다.`;
         }
         setReviewSummaries(prev => ({ ...prev, [hospital.id]: defaultSummary }));
@@ -706,10 +702,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       // Fallback 요약 - 병원별 특성 반영
       let fallbackSummary = hospital.is24Hours
         ? `🚨 24시간 응급 진료 가능한 병원입니다.`
-        : `평점 ${hospital.rating || '정보없음'}점의 동물병원입니다.`;
-      if (hospital.reviewCount > 100) {
-        fallbackSummary += ` ${hospital.reviewCount}개의 후기로 검증된 곳입니다.`;
-      }
+        : `${hospital.name}은(는) 접근성이 좋은 동물병원입니다.`;
       setReviewSummaries(prev => ({ ...prev, [hospital.id]: fallbackSummary }));
     } finally {
       setLoadingReviews(prev => {

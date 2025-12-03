@@ -243,6 +243,36 @@ const CAT_BREEDS = [
   '뱅갈', '샴', '버만', '터키시앙고라', '아메리칸숏헤어', '기타'
 ];
 
+// 토끼 품종
+const RABBIT_BREEDS = ['흰 토끼', '갈색 토끼', '네덜란드드워프', '롭이어', '렉스', '앙고라', '기타'];
+
+// 햄스터 품종
+const HAMSTER_BREEDS = ['골든햄스터', '드워프햄스터', '로보로브스키', '캠벨', '윈터화이트', '기타'];
+
+// 새 품종
+const BIRD_BREEDS = ['앵무새', '카나리아', '잉꼬', '사랑앵무', '코카티엘', '문조', '십자매', '기타'];
+
+// 고슴도치 품종
+const HEDGEHOG_BREEDS = ['아프리카피그미', '백설고슴도치', '솔트앤페퍼', '시나몬', '알비노', '기타'];
+
+// 파충류 품종
+const REPTILE_BREEDS = ['도마뱀', '거북이', '뱀', '카멜레온', '이구아나', '레오파드게코', '크레스티드게코', '기타'];
+
+// 기타 동물
+const OTHER_BREEDS = ['기타'];
+
+// 종류별 품종 매핑
+const BREED_OPTIONS = {
+  dog: DOG_BREEDS,
+  cat: CAT_BREEDS,
+  rabbit: RABBIT_BREEDS,
+  hamster: HAMSTER_BREEDS,
+  bird: BIRD_BREEDS,
+  hedgehog: HEDGEHOG_BREEDS,
+  reptile: REPTILE_BREEDS,
+  other: OTHER_BREEDS
+};
+
 // ============ 프로필 등록 화면 ============
 function ProfileRegistration({ onComplete, userId }) {
   const [formData, setFormData] = useState({
@@ -396,9 +426,9 @@ function ProfileRegistration({ onComplete, userId }) {
               </div>
             </div>
 
-            {/* 2. 프로필 사진/캐릭터 선택 */}
+            {/* 2. 프로필 사진 */}
             <div className="form-group">
-              <label>프로필 사진 또는 캐릭터 *</label>
+              <label>프로필 사진</label>
               <div className="profile-selector">
                 {/* 프로필 이미지 미리보기 */}
                 <div className="profile-preview-container">
@@ -419,27 +449,23 @@ function ProfileRegistration({ onComplete, userId }) {
                   ) : (
                     <div
                       className="profile-preview character"
-                      style={{ backgroundColor: PET_CHARACTERS[formData.species]?.find(c => c.id === formData.character)?.color + '40' }}
+                      style={{ backgroundColor: '#e0f2fe' }}
                     >
                       {(() => {
                         const selectedSpecies = SPECIES_OPTIONS.find(opt => opt.id === formData.species);
                         const iconPath = selectedSpecies?.icon || null;
                         return iconPath ? (
-                          <img 
-                            src={iconPath} 
+                          <img
+                            src={iconPath}
                             alt={selectedSpecies.label}
                             className="profile-species-icon"
                             onError={(e) => {
-                              // 이미지 로드 실패 시 이모지로 대체
                               e.target.style.display = 'none';
-                              const emoji = PET_CHARACTERS[formData.species]?.find(c => c.id === formData.character)?.emoji || selectedSpecies?.emoji || '🐾';
-                              e.target.parentElement.innerHTML = `<span class="character-emoji">${emoji}</span>`;
+                              e.target.parentElement.innerHTML = `<span class="character-emoji">${selectedSpecies?.emoji || '🐾'}</span>`;
                             }}
                           />
                         ) : (
-                      <span className="character-emoji">
-                            {PET_CHARACTERS[formData.species]?.find(c => c.id === formData.character)?.emoji || selectedSpecies?.emoji || '🐾'}
-                      </span>
+                          <span className="character-emoji">{selectedSpecies?.emoji || '🐾'}</span>
                         );
                       })()}
                     </div>
@@ -457,26 +483,6 @@ function ProfileRegistration({ onComplete, userId }) {
                       style={{ display: 'none' }}
                     />
                   </label>
-                  <span className="or-text">또는</span>
-                </div>
-
-                {/* 캐릭터 선택 */}
-                <div className="character-grid">
-                  {PET_CHARACTERS[formData.species]?.map(char => (
-                    <button
-                      key={char.id}
-                      type="button"
-                      className={`character-btn ${formData.character === char.id && !previewImage ? 'active' : ''}`}
-                      onClick={() => {
-                        setPreviewImage(null);
-                        setFormData(prev => ({ ...prev, profileImage: null, character: char.id }));
-                      }}
-                      style={{ backgroundColor: char.color + '40' }}
-                    >
-                      <span className="char-emoji">{char.emoji}</span>
-                      <span className="char-label">{char.label}</span>
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
@@ -493,22 +499,20 @@ function ProfileRegistration({ onComplete, userId }) {
               />
             </div>
 
-            {/* 4. 품종 - 개/고양이인 경우에만 표시 */}
-            {(formData.species === 'dog' || formData.species === 'cat') && (
+            {/* 4. 품종 - 모든 동물에 표시 */}
             <div className="form-group">
               <label>품종</label>
-                <select
+              <select
                 value={formData.breed}
                 onChange={(e) => setFormData({...formData, breed: e.target.value})}
-                  className="breed-select"
-                >
-                  <option value="">품종을 선택하세요</option>
-                  {(formData.species === 'dog' ? DOG_BREEDS : CAT_BREEDS).map(breed => (
-                    <option key={breed} value={breed}>{breed}</option>
-                  ))}
-                </select>
+                className="breed-select"
+              >
+                <option value="">품종을 선택하세요</option>
+                {(BREED_OPTIONS[formData.species] || OTHER_BREEDS).map(breed => (
+                  <option key={breed} value={breed}>{breed}</option>
+                ))}
+              </select>
             </div>
-            )}
             
             <div className="form-group">
               <label>생년월일 *</label>
@@ -1068,11 +1072,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                     {/* AI 건강 문진 카드 */}
                     <div className="bg-amber-50 rounded-2xl p-4 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
-                      <div className="relative flex items-center gap-3">
-                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                      <div className="relative flex flex-col items-center text-center gap-2">
+                        <div className="w-12 h-12 flex items-center justify-center">
                           <span className="text-3xl">🤖</span>
                         </div>
-                        <div className="flex-1">
+                        <div>
                           <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
                           <p className="text-gray-600 text-xs">{petData?.petName || petData?.name || '반려동물'} 건강기록 주요알림</p>
                         </div>
@@ -1087,8 +1091,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                     {/* 케어 주요 알림 섹션 */}
                     <div className="mb-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center mb-3">
+                        <div className="flex items-center gap-2 mb-1">
                           <span className="text-lg">🔔</span>
                           <h3 className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 케어 주요알림</h3>
                         </div>
@@ -1464,11 +1468,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
             {/* AI 건강 문진 카드 - 컴팩트 레이아웃 */}
             <div className="bg-amber-50 rounded-2xl p-4 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
-              <div className="relative flex items-center gap-3">
-                <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+              <div className="relative flex flex-col items-center text-center gap-2">
+                <div className="w-12 h-12 flex items-center justify-center">
                   <span className="text-3xl">🤖</span>
                 </div>
-                <div className="flex-1">
+                <div>
                   <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
                   <p className="text-gray-600 text-xs">{petData?.petName || petData?.name || '반려동물'} 건강기록 주요알림</p>
                 </div>
@@ -1483,8 +1487,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
             {/* 케어 주요 알림 섹션 */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center mb-3">
+                <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">🔔</span>
                   <h3 className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 케어 주요알림</h3>
                 </div>
