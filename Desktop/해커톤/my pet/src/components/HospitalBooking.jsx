@@ -5,7 +5,7 @@ import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
 import { bookingService } from '../services/firestore';
 import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { sendNotificationToClinicStaff } from '../services/pushNotificationService';
 
 // 동물 이미지 경로 유틸리티 import
@@ -68,6 +68,29 @@ const calculateAge = (birthDate) => {
   const today = new Date();
   const age = today.getFullYear() - birth.getFullYear();
   return `${age}세`;
+};
+
+// 오늘 날짜의 체중을 dailyLogs에서 가져오는 함수
+const getTodayWeightFromDailyLogs = async (petId) => {
+  if (!petId) return null;
+
+  const todayStr = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+  const docId = `${petId}_${todayStr}`; // dailyLogService.saveLog와 동일한 규칙
+
+  try {
+    const ref = doc(db, 'dailyLogs', docId);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) return null;
+
+    const data = snap.data();
+    const w = data?.weight;
+
+    return typeof w === 'number' ? w : null;
+  } catch (e) {
+    console.warn('[예약] dailyLogs 조회 중 오류:', e);
+    return null;
+  }
 };
 
 export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser }) {
@@ -357,6 +380,20 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       return;
     }
 
+    // 🔹 1단계: 오늘자 체중 시도 (dailyLogs에서 조회)
+    const petId = petData?.id;
+    const todayWeight = await getTodayWeightFromDailyLogs(petId);
+
+    // 🔹 2단계: 체중 우선순위 (오늘 체중 > petData.weight > null)
+    const resolvedWeight =
+      typeof todayWeight === 'number'
+        ? todayWeight
+        : typeof petData?.weight === 'number'
+        ? petData.weight
+        : petData?.weight
+        ? Number(petData.weight) || null
+        : null;
+
     // 반려동물 상세 정보
     const petProfile = {
       id: petData?.id,
@@ -367,7 +404,7 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       age: petData?.birthDate ? calculateAge(petData.birthDate) : petData?.age,
       sex: petData?.sex,
       neutered: petData?.neutered,
-      weight: petData?.weight,
+      weight: resolvedWeight, // 🔹 undefined 방지: dailyLogs > petData.weight > null
       allergies: petData?.allergies || [],
       chronicConditions: petData?.chronicConditions || []
     };
