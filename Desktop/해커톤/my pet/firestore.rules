@@ -102,5 +102,21 @@ service cloud.firestore {
     match /clinicStats/{clinicId} {
       allow read, create, update: if isSignedIn();
     }
+
+    // ============ pets (반려동물) ============
+    match /pets/{petId} {
+      allow read, create, update, delete: if isSignedIn();
+
+      // 서브컬렉션: careLogs (케어 로그)
+      match /careLogs/{logId} {
+        allow read, create, update, delete: if isSignedIn();
+      }
+    }
+
+    // ============ faqs (자주 묻는 질문) ============
+    match /faqs/{faqId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
   }
 }
