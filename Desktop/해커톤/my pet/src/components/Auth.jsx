@@ -215,9 +215,9 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex flex-col items-center justify-center p-6 pt-12">
-      {/* 로고 - 가운데 정렬 (PC 모드에서 더 크게, 원형 배경) */}
+      {/* 로고 - 좌측 정렬 */}
       <div className="w-full max-w-sm md:max-w-2xl mb-8">
-        <div className="flex flex-col items-center text-center gap-2 md:gap-3">
+        <div className="flex flex-col items-start text-left gap-2 md:gap-3">
           <div className="w-28 h-28 md:w-44 md:h-44 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden border-4 border-sky-100">
             <img
               src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
@@ -625,9 +625,9 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
 
   return (
     <div className="min-h-screen bg-background-light flex flex-col items-center justify-center p-4 sm:p-6 pt-8 sm:pt-12">
-      {/* 로고 */}
-      <div className="text-center mb-4 sm:mb-6">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-2 sm:mb-3">
+      {/* 로고 - 좌측 정렬 */}
+      <div className="w-full max-w-sm text-left mb-4 sm:mb-6">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 mb-2 sm:mb-3">
           <img
             src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
             alt="PetMedical.AI"
