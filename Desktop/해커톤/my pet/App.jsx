@@ -217,14 +217,14 @@ const PET_CHARACTERS = {
 
 // 동물 종류 옵션
 const SPECIES_OPTIONS = [
-  { id: 'dog', label: '강아지', emoji: '🐕', icon: '/icon/no-bg/dog.png' },
-  { id: 'cat', label: '고양이', emoji: '🐈', icon: '/icon/no-bg/cat.png' },
-  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: '/icon/no-bg/rabbit.png' },
-  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: '/icon/no-bg/hamster.png' },
-  { id: 'bird', label: '새', emoji: '🦜', icon: '/icon/no-bg/bird.png' },
-  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: '/icon/no-bg/hedgehog.png' },
-  { id: 'reptile', label: '파충류', emoji: '🦎', icon: '/icon/no-bg/reptile.png' },
-  { id: 'other', label: '기타', emoji: '🐾', icon: '/icon/no-bg/etc.png' },
+  { id: 'dog', label: '강아지', emoji: '🐕', icon: '/icon/profile_background_less/dog-removebg-preview.png' },
+  { id: 'cat', label: '고양이', emoji: '🐈', icon: '/icon/profile_background_less/cat-removebg-preview.png' },
+  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: '/icon/profile_background_less/rabbit-removebg-preview.png' },
+  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: '/icon/profile_background_less/hamster-removebg-preview.png' },
+  { id: 'bird', label: '새', emoji: '🦜', icon: '/icon/profile_background_less/bird-removebg-preview.png' },
+  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: '/icon/profile_background_less/hedgehog-removebg-preview.png' },
+  { id: 'reptile', label: '파충류', emoji: '🦎', icon: '/icon/profile_background_less/reptile-removebg-preview.png' },
+  { id: 'other', label: '기타', emoji: '🐾', icon: '/icon/profile_background_less/etc-removebg-preview.png' },
 ];
 
 // 동물 이미지 경로 유틸리티 import
