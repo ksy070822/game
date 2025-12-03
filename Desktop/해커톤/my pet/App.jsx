@@ -2317,18 +2317,36 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
         if (!isMounted) return; // 컴포넌트가 언마운트되었으면 무시
 
         // 최종 진단서 표시
-        setTimeout(() => {
-          setDiagnosisResult(result.finalDiagnosis);
-          setShowResult(true);
+        console.log('[MultiAgentDiagnosis] 결과 수신:', result);
+        console.log('[MultiAgentDiagnosis] finalDiagnosis:', result?.finalDiagnosis);
+        
+        if (!result || !result.finalDiagnosis) {
+          console.error('[MultiAgentDiagnosis] 결과가 올바르지 않습니다:', result);
           setIsProcessing(false);
-          setChatMode(true);
-          
-          // 진단서 저장
-          saveDiagnosisToStorage(result.finalDiagnosis, currentUser?.uid);
-          
-          // 부모 컴포넌트에 진단 결과 전달
-          if (onDiagnosisResult) {
-            onDiagnosisResult(result.finalDiagnosis);
+          alert('진단 결과를 생성하는 중 오류가 발생했습니다. 다시 시도해주세요.');
+          return;
+        }
+
+        setTimeout(() => {
+          try {
+            setDiagnosisResult(result.finalDiagnosis);
+            setShowResult(true);
+            setIsProcessing(false);
+            setChatMode(true);
+            
+            // 진단서 저장
+            saveDiagnosisToStorage(result.finalDiagnosis, currentUser?.uid);
+            
+            // 부모 컴포넌트에 진단 결과 전달
+            if (onDiagnosisResult) {
+              onDiagnosisResult(result.finalDiagnosis);
+            }
+            
+            console.log('[MultiAgentDiagnosis] 진단서 표시 완료');
+          } catch (displayError) {
+            console.error('[MultiAgentDiagnosis] 진단서 표시 오류:', displayError);
+            setIsProcessing(false);
+            alert('진단서를 표시하는 중 오류가 발생했습니다.');
           }
         }, 1500);
 
