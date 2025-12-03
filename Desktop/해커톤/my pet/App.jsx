@@ -976,7 +976,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
               <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-4 pb-4 shadow-lg">
                 <div className="flex items-center justify-center">
                   <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-                    <span className="text-xl">🐾</span>
+                    <img
+                      src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+                      alt="PetMedical.AI"
+                      className="w-6 h-6 object-contain"
+                    />
                   </div>
                   <div className="text-center ml-2">
                     <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
@@ -1134,30 +1138,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           <span className="text-gray-400 text-lg">&gt;</span>
                         </button>
 
-                        <button
-                          onClick={() => {
-                            setCurrentTab('records');
-                            // RecordsView의 vaccination 탭으로 이동하기 위해 localStorage에 저장
-                            localStorage.setItem('records_initialTab', 'vaccination');
-                            // 컴포넌트가 마운트된 후 탭 변경을 위해 약간의 지연
-                            setTimeout(() => {
-                              const event = new CustomEvent('records-set-tab', { detail: 'vaccination' });
-                              window.dispatchEvent(event);
-                            }, 100);
-                          }}
-                          className="w-full flex items-center gap-3 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                        >
-                          <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">💉</span>
-                          </div>
-                          <div className="flex-1 text-left">
-                            <h4 className="text-sm font-bold text-gray-800 mb-0.5">접종 예정</h4>
-                            <p className="text-xs text-gray-500">광견병 백신 (2주 후)</p>
-                          </div>
-                          <span className="text-gray-400 text-lg">&gt;</span>
-                        </button>
-
-                        <div className="flex items-center gap-3 py-3">
+                        <div className="flex items-center gap-3 py-3 border-b border-gray-100">
                           <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
                             <span className="text-2xl">⚠️</span>
                           </div>
@@ -1298,24 +1279,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           </div>
                           <span className="text-gray-400 text-lg">&gt;</span>
                         </button>
-                        <button
-                          onClick={() => {
-                            setCurrentTab('records');
-                            localStorage.setItem('records_initialTab', 'vaccination');
-                            setTimeout(() => {
-                              const event = new CustomEvent('records-set-tab', { detail: 'vaccination' });
-                              window.dispatchEvent(event);
-                            }, 100);
-                          }}
-                          className="w-full flex items-center gap-3 p-3 bg-green-50 rounded-xl hover:bg-green-100 transition-colors cursor-pointer text-left"
-                        >
-                          <span className="text-2xl">💉</span>
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">접종 예정</p>
-                            <p className="text-sm text-gray-500">광견병 백신 (2주 후)</p>
-                          </div>
-                          <span className="text-gray-400 text-lg">&gt;</span>
-                        </button>
                         <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
                           <span className="text-2xl">⚠️</span>
                           <div>
@@ -1410,7 +1373,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-4 pb-4 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-            <span className="text-xl">🐾</span>
+            <img
+              src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+              alt="PetMedical.AI"
+              className="w-6 h-6 object-contain"
+            />
           </div>
           <div className="text-center ml-2">
             <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
@@ -1554,18 +1521,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   <div className="flex-1">
                     <h4 className="text-sm font-bold text-gray-800 mb-0.5">병원 예약일</h4>
                     <p className="text-xs text-gray-500">다음 진료: 2025년 12월 15일</p>
-                  </div>
-                  <span className="text-gray-400 text-lg">&gt;</span>
-                </div>
-
-                {/* 접종 예정 */}
-                <div className="flex items-center gap-3 py-3 border-b border-gray-100">
-                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">💉</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-gray-800 mb-0.5">접종 예정</h4>
-                    <p className="text-xs text-gray-500">광견병 백신 (2주 후)</p>
                   </div>
                   <span className="text-gray-400 text-lg">&gt;</span>
                 </div>
@@ -5160,6 +5115,15 @@ function App() {
             setCurrentTab('care');
           }}
           onHome={handleGoHome}
+          onGoToMyBookings={() => {
+            setCurrentView(null);
+            setCurrentTab('mypage');
+            localStorage.setItem('mypage_initialTab', 'bookings');
+            setTimeout(() => {
+              const event = new CustomEvent('mypage-set-tab', { detail: 'bookings' });
+              window.dispatchEvent(event);
+            }, 100);
+          }}
           onSelectHospital={async (hospital) => {
             setSelectedHospital(hospital);
             if (lastDiagnosis) {
@@ -5500,6 +5464,14 @@ function App() {
                 currentUser={currentUser}
                 onBack={() => setCurrentTab('care')}
                 onHome={handleGoHome}
+                onGoToMyBookings={() => {
+                  setCurrentTab('mypage');
+                  localStorage.setItem('mypage_initialTab', 'bookings');
+                  setTimeout(() => {
+                    const event = new CustomEvent('mypage-set-tab', { detail: 'bookings' });
+                    window.dispatchEvent(event);
+                  }, 100);
+                }}
                 onSelectHospital={async (hospital) => {
                   setSelectedHospital(hospital);
                   if (lastDiagnosis) {

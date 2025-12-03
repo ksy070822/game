@@ -506,9 +506,9 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       carePlan: careResult.json,
       // 약물 안내 정보
       medicationGuidance: medicationGuidance,
-      // FAQ 정보
-      faqAnswers: faqAnswers,
-      recommendedFAQs: recommendedFAQs,
+      // FAQ 정보 (진찰 단계에서는 조회하지 않음 - 별도 화면에서 제공)
+      faqAnswers: null,
+      recommendedFAQs: null,
       // 협진 정보
       collaboration: collaborationResult ? {
         consensus_reached: collaborationResult.consensus.consensus_reached,
