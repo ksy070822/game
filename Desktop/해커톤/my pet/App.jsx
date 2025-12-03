@@ -215,20 +215,20 @@ const PET_CHARACTERS = {
   ]
 };
 
-// 동물 종류 옵션
-const SPECIES_OPTIONS = [
-  { id: 'dog', label: '강아지', emoji: '🐕', icon: '/icon/profile_background_less/dog-removebg-preview.png' },
-  { id: 'cat', label: '고양이', emoji: '🐈', icon: '/icon/profile_background_less/cat-removebg-preview.png' },
-  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: '/icon/profile_background_less/rabbit-removebg-preview.png' },
-  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: '/icon/profile_background_less/hamster-removebg-preview.png' },
-  { id: 'bird', label: '새', emoji: '🦜', icon: '/icon/profile_background_less/bird-removebg-preview.png' },
-  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: '/icon/profile_background_less/hedgehog-removebg-preview.png' },
-  { id: 'reptile', label: '파충류', emoji: '🦎', icon: '/icon/profile_background_less/reptile-removebg-preview.png' },
-  { id: 'other', label: '기타', emoji: '🐾', icon: '/icon/profile_background_less/etc-removebg-preview.png' },
-];
-
 // 동물 이미지 경로 유틸리티 import
-import { getMainCharacterImage, getPetImage, MAIN_CHARACTER_IMAGES } from './src/utils/imagePaths';
+import { getMainCharacterImage, getPetImage, PROFILE_IMAGES } from './src/utils/imagePaths';
+
+// 동물 종류 옵션 - PROFILE_IMAGES 사용하여 배포 환경 호환
+const SPECIES_OPTIONS = [
+  { id: 'dog', label: '강아지', emoji: '🐕', icon: PROFILE_IMAGES.dog },
+  { id: 'cat', label: '고양이', emoji: '🐈', icon: PROFILE_IMAGES.cat },
+  { id: 'rabbit', label: '토끼', emoji: '🐰', icon: PROFILE_IMAGES.rabbit },
+  { id: 'hamster', label: '햄스터', emoji: '🐹', icon: PROFILE_IMAGES.hamster },
+  { id: 'bird', label: '새', emoji: '🦜', icon: PROFILE_IMAGES.bird },
+  { id: 'hedgehog', label: '고슴도치', emoji: '🦔', icon: PROFILE_IMAGES.hedgehog },
+  { id: 'reptile', label: '파충류', emoji: '🦎', icon: PROFILE_IMAGES.reptile },
+  { id: 'other', label: '기타', emoji: '🐾', icon: PROFILE_IMAGES.etc },
+];
 
 // 개/고양이 대표 품종 목록
 const DOG_BREEDS = [
@@ -2845,11 +2845,31 @@ ${userQuestion}
   
 
   return (
-    <div className="diagnosis-container">
-      <div className="diagnosis-header">
-        <button className="back-btn" onClick={onBack} style={{ position: 'absolute', left: '20px', top: '20px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>←</button>
-        <h1>👨‍⚕️ AI 온라인 진료실</h1>
-        <p>AI 의료진이 {petData?.petName || petData?.name || '반려동물'}를 진료합니다</p>
+    <div className="diagnosis-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* 상단 헤더 - 컴팩트 스타일 */}
+      <div style={{
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)',
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderBottom: '1px solid #bae6fd',
+        position: 'relative'
+      }}>
+        <button onClick={onBack} style={{
+          position: 'absolute',
+          left: '12px',
+          background: 'none',
+          border: 'none',
+          fontSize: '20px',
+          cursor: 'pointer',
+          color: '#0369a1'
+        }}>←</button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#0c4a6e' }}>
+            🐾 PetMedical.AI 진료실
+          </div>
+        </div>
       </div>
       
       {/* 채팅창 UI */}
@@ -2858,11 +2878,9 @@ ${userQuestion}
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        maxHeight: 'calc(100vh - 400px)',
+        flex: 1,
         overflowY: 'auto',
-        background: '#f8fafc',
-        borderRadius: '12px',
-        margin: '0 16px'
+        background: '#f8fafc'
       }}>
           {messages.length === 0 && isProcessing && (
           <div className="initial-loading" style={{
@@ -3319,82 +3337,47 @@ ${userQuestion}
         <div ref={messagesEndRef} />
         </div>
 
-      {/* 메시지 입력창 */}
+      {/* 하단 영역 */}
       {!showResult && !isWaitingForGuardian && (
-        <div style={{
-          padding: '16px',
-          borderTop: '1px solid #e2e8f0',
-          background: 'white',
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 10
-        }}>
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            alignItems: 'center',
-            maxWidth: '100%',
-            margin: '0 auto'
-          }}>
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && userInput.trim()) {
-                    e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder={isProcessing ? "AI가 진단 중입니다..." : "추가 질문이나 증상을 입력하세요..."}
-                disabled={isProcessing}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: '24px',
-                border: '2px solid #e2e8f0',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-                background: isProcessing ? '#f1f5f9' : 'white'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#6366f1'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-              />
-              <button
-              onClick={handleSendMessage}
-              disabled={isProcessing || !userInput.trim()}
-              style={{
-                width: '44px',
-                height: '44px',
+        <div style={{ marginTop: 'auto' }}>
+          {/* AI 진단 중 메시지 */}
+          {isProcessing && (
+            <div style={{
+              padding: '12px 16px',
+              background: '#f8fafc',
+              borderTop: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
                 borderRadius: '50%',
-                border: 'none',
-                background: (isProcessing || !userInput.trim())
-                  ? '#cbd5e1'
-                  : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                color: 'white',
-                fontSize: '18px',
-                cursor: (isProcessing || !userInput.trim()) ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: (isProcessing || !userInput.trim()) ? 'none' : '0 2px 8px rgba(99, 102, 241, 0.3)',
-                transition: 'all 0.2s'
-              }}
-            >
-              ➤
-              </button>
+                background: '#3b82f6',
+                animation: 'pulse 1.5s infinite'
+              }}></div>
+              <span style={{ fontSize: '14px', color: '#64748b' }}>AI가 진단 중입니다...</span>
             </div>
+          )}
+
+          {/* 하단 하늘색 배너 */}
           <div style={{
-            fontSize: '11px',
-            color: '#94a3b8',
-            marginTop: '8px',
+            background: 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)',
+            padding: '14px 20px',
             textAlign: 'center'
           }}>
-            궁금한 점이 있으시면 언제든 질문해주세요
-              </div>
+            <span style={{
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}>
+              👨‍⚕️ 전문 AI 의료진들이 {petData?.petName || petData?.name || '반려동물'}을(를) 함께 진료합니다
+            </span>
           </div>
-        )}
+        </div>
+      )}
       
       {showResult && diagnosisResult && (
         <div className="diagnosis-result">
