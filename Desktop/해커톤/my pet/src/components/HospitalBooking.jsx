@@ -1048,6 +1048,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   </div>
                 </div>
 
+                {/* 진단명 */}
+                {(diagnosis.diagnosis || diagnosis.suspectedConditions?.[0]?.name) && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-700 mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">diagnosis</span>
+                      AI 진단명
+                    </p>
+                    <p className="text-amber-900 font-bold">
+                      {diagnosis.diagnosis || diagnosis.suspectedConditions?.[0]?.name || '진단 정보 없음'}
+                    </p>
+                  </div>
+                )}
+
                 {/* 주요 증상 */}
                 {diagnosis.symptom && (
                   <div className="bg-white/60 rounded-lg p-3">
