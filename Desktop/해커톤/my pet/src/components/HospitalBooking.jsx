@@ -1248,10 +1248,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                 </div>
 
                 {/* 버튼 - 순서: 예약하기, 길찾기, Kakao T 펫택시 */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <button
                     onClick={() => handleBookAppointment(hospital)}
-                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors flex items-center justify-center"
+                    className="flex-1 py-1.5 px-2 text-center bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600 transition-colors flex items-center justify-center"
                   >
                     예약하기
                   </button>
@@ -1262,19 +1262,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#FEE500] rounded-xl text-xs font-bold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 px-2 text-center bg-[#FEE500] rounded-lg text-xs font-semibold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-0.5"
                   >
-                    <span>📍</span>
-                    길찾기
+                    <span className="text-[10px]">📍</span>
+                    <span>길찾기</span>
                   </a>
                   <a
                     href="https://service.kakaomobility.com/launch/kakaot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#1E1B4B] rounded-xl text-xs font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5"
+                    className="flex-1 py-1.5 px-2 text-center bg-[#1E1B4B] rounded-lg text-xs font-semibold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5"
                   >
-                    <span className="text-[#FACC15]">Kakao T</span>
-                    <span className="text-white">펫택시</span>
+                    <span className="text-[#FACC15] text-[10px]">Kakao T</span>
+                    <span className="text-white text-[10px]">펫택시</span>
                   </a>
                 </div>
               </div>
