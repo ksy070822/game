@@ -218,9 +218,11 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
       {/* 로고 - 좌측 정렬 */}
       <div className="w-full max-w-sm mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-            <span className="text-3xl">🐾</span>
-          </div>
+          <img
+            src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+            alt="PetMedical.AI"
+            className="w-14 h-14 object-contain"
+          />
           <div>
             <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
             <p className="text-slate-500 text-sm">AI 기반 반려동물 건강 관리 서비스</p>
