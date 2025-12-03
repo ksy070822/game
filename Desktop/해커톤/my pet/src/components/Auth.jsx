@@ -214,14 +214,18 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-background-light flex flex-col items-center justify-center p-6 pt-12">
-      {/* 로고 */}
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg mx-auto mb-4 flex items-center justify-center">
-          <span className="text-4xl">🐾</span>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 flex flex-col items-center justify-center p-6 pt-12">
+      {/* 로고 - 좌측 정렬 */}
+      <div className="w-full max-w-sm mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+            <span className="text-3xl">🐾</span>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
+            <p className="text-slate-500 text-sm">AI 기반 반려동물 건강 관리 서비스</p>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
-        <p className="text-slate-500 mt-1 text-sm">AI 기반 반려동물 건강 관리 서비스</p>
       </div>
 
       {/* 모드 선택 카드 */}
@@ -230,36 +234,40 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           <button
             type="button"
             onClick={() => setUserMode('guardian')}
-            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-3 ${
+            className={`flex-1 py-4 px-3 rounded-xl bg-white shadow-md transition-all flex flex-col items-center ${
               userMode === 'guardian'
                 ? 'ring-2 ring-cyan-500 bg-cyan-50'
                 : 'hover:shadow-lg'
             }`}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}icon/login/main_friend.png`}
-              alt="보호자"
-              className="w-16 h-16 object-contain"
-            />
-            <span className="font-bold text-slate-800">보호자</span>
-            <span className="text-xs text-slate-500">반려동물 건강 관리</span>
+            <div className="w-24 h-24 flex items-center justify-center mb-2">
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/main_friend.png`}
+                alt="보호자"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="font-bold text-slate-800 text-base">보호자</span>
+            <span className="text-xs text-slate-500 mt-1">반려동물 건강 관리</span>
           </button>
           <button
             type="button"
             onClick={() => setUserMode('clinic')}
-            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-3 ${
+            className={`flex-1 py-4 px-3 rounded-xl bg-white shadow-md transition-all flex flex-col items-center ${
               userMode === 'clinic'
                 ? 'ring-2 ring-cyan-500 bg-cyan-50'
                 : 'hover:shadow-lg'
             }`}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
-              alt="병원"
-              className="w-16 h-16 object-contain"
-            />
-            <span className="font-bold text-slate-800">병원</span>
-            <span className="text-xs text-slate-500">예약 및 환자 관리</span>
+            <div className="w-24 h-24 flex items-center justify-center mb-2">
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
+                alt="병원"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="font-bold text-slate-800 text-base">병원</span>
+            <span className="text-xs text-slate-500 mt-1">예약 및 환자 관리</span>
           </button>
         </div>
       </div>
