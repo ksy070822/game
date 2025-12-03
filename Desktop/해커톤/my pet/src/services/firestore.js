@@ -933,6 +933,75 @@ export const migrationHelper = {
   }
 };
 
+// ============ 코멘트 템플릿 관련 ============
+export const commentTemplateService = {
+  // 모든 템플릿 가져오기
+  async getAllTemplates() {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'commentTemplates'));
+      const templates = [];
+      querySnapshot.forEach((doc) => {
+        templates.push({ id: doc.id, ...doc.data() });
+      });
+      return { success: true, data: templates };
+    } catch (error) {
+      console.error('템플릿 조회 오류:', error);
+      return { success: false, error, data: [] };
+    }
+  },
+
+  // 카테고리별 템플릿 가져오기
+  async getTemplatesByCategory(category) {
+    try {
+      const q = query(
+        collection(db, 'commentTemplates'),
+        where('category', '==', category)
+      );
+      const querySnapshot = await getDocs(q);
+      const templates = [];
+      querySnapshot.forEach((doc) => {
+        templates.push({ id: doc.id, ...doc.data() });
+      });
+      return { success: true, data: templates };
+    } catch (error) {
+      console.error('카테고리별 템플릿 조회 오류:', error);
+      return { success: false, error, data: [] };
+    }
+  },
+
+  // 조건에 따른 랜덤 템플릿 가져오기
+  // hasHospitalVisit: 병원 방문 기록이 있는지
+  // hasDiagnosis: AI 진단 기록이 있는지
+  async getRandomTemplate(hasHospitalVisit = false, hasDiagnosis = false) {
+    try {
+      let categories;
+
+      if (hasHospitalVisit || hasDiagnosis) {
+        // 병원 방문 또는 AI 진단 기록이 있으면 병원/투약 모드 (카테고리 1, 2)
+        categories = [1, 2];
+      } else {
+        // 일반 메시지 (카테고리 4, 5, 7)
+        categories = [4, 5, 7];
+      }
+
+      // 해당 카테고리 중 랜덤 선택
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+
+      const result = await this.getTemplatesByCategory(randomCategory);
+      if (result.success && result.data.length > 0) {
+        // 랜덤 템플릿 선택
+        const randomIndex = Math.floor(Math.random() * result.data.length);
+        return { success: true, data: result.data[randomIndex] };
+      }
+
+      return { success: false, data: null };
+    } catch (error) {
+      console.error('랜덤 템플릿 조회 오류:', error);
+      return { success: false, error, data: null };
+    }
+  }
+};
+
 export default {
   userService,
   petService,
@@ -943,5 +1012,6 @@ export default {
   recordService,
   preQuestionnaireService,  // 🔥 사전 문진 서비스
   medicalRecordService,  // 🔥 환자 기록 서비스
+  commentTemplateService,  // 🔥 코멘트 템플릿 서비스
   migrationHelper
 };

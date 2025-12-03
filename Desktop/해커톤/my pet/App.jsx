@@ -34,7 +34,7 @@ import { auth } from './src/lib/firebase'
 import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
 import { getFAQContext } from './src/data/faqData'
-import { diagnosisService, bookingService, petService } from './src/services/firestore'
+import { diagnosisService, bookingService, petService, commentTemplateService, clinicResultService } from './src/services/firestore'
 import { requestPushPermission, setupForegroundMessageHandler } from './src/services/pushNotificationService'
 import { getUserClinics } from './src/services/clinicService'
 import { getSpeciesDisplayName } from './src/services/ai/commonContext'
@@ -710,6 +710,41 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
     play: 0
   });
   const [latestBooking, setLatestBooking] = useState(null);
+  const [randomMessage, setRandomMessage] = useState(null);
+
+  // 랜덤 유의사항 메시지 로드
+  useEffect(() => {
+    const loadRandomMessage = async () => {
+      if (!petData?.id) return;
+
+      try {
+        // 병원 방문 기록 확인 (clinicResults)
+        const clinicResultsResult = await clinicResultService.getByPetId(petData.id);
+        const hasHospitalVisit = clinicResultsResult.success && clinicResultsResult.data && clinicResultsResult.data.length > 0;
+
+        // AI 진단 기록 확인
+        const diagnosesResult = await diagnosisService.getByPetId(petData.id);
+        const hasDiagnosis = diagnosesResult.success && diagnosesResult.data && diagnosesResult.data.length > 0;
+
+        // 조건에 따라 랜덤 메시지 가져오기
+        const result = await commentTemplateService.getRandomTemplate(hasHospitalVisit, hasDiagnosis);
+
+        if (result.success && result.data) {
+          // {name} 플레이스홀더를 실제 이름으로 교체
+          const petName = petData?.petName || petData?.name || '반려동물';
+          const messageText = result.data.text.replace(/{name}/g, petName);
+          setRandomMessage({
+            ...result.data,
+            displayText: messageText
+          });
+        }
+      } catch (error) {
+        console.error('랜덤 메시지 로드 오류:', error);
+      }
+    };
+
+    loadRandomMessage();
+  }, [petData?.id]);
 
   // 오늘 케어 기록 저장
   const saveTodayCare = () => {
@@ -1180,15 +1215,16 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           <span className="text-gray-400 text-lg">&gt;</span>
                         </button>
 
-                        <div className="flex items-center gap-3 py-3 border-b border-gray-100">
-                          <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">⚠️</span>
+                        <div className="flex items-center gap-3 py-3 bg-yellow-50 rounded-xl px-3">
+                          <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xl">💡</span>
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-bold text-gray-800 mb-0.5">유의사항</h4>
-                            <p className="text-xs text-gray-500">피부 알레르기 주의 필요</p>
+                            <h4 className="text-sm font-bold text-yellow-800 mb-0.5">오늘의 케어 팁</h4>
+                            <p className="text-xs text-yellow-700">
+                              {randomMessage?.displayText || '오늘도 함께 건강한 하루 보내세요!'}
+                            </p>
                           </div>
-                          <span className="text-gray-400 text-lg">&gt;</span>
                         </div>
                       </div>
                     </div>
@@ -1327,11 +1363,15 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           </div>
                           <span className="text-gray-400 text-lg">&gt;</span>
                         </button>
-                        <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
-                          <span className="text-2xl">⚠️</span>
+                        <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl">
+                          <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xl">💡</span>
+                          </div>
                           <div>
-                            <p className="font-medium text-gray-900">유의사항</p>
-                            <p className="text-sm text-gray-500">피부 알레르기 주의 필요</p>
+                            <p className="font-medium text-yellow-800">오늘의 케어 팁</p>
+                            <p className="text-sm text-yellow-700">
+                              {randomMessage?.displayText || '오늘도 함께 건강한 하루 보내세요!'}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1588,16 +1628,17 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   <span className="text-gray-400 text-lg">&gt;</span>
                 </button>
 
-                {/* 유의사항 */}
-                <div className="flex items-center gap-3 py-3">
-                  <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">⚠️</span>
+                {/* 오늘의 케어 팁 */}
+                <div className="flex items-center gap-3 py-3 bg-yellow-50 rounded-xl px-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl">💡</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-gray-800 mb-0.5">유의사항</h4>
-                    <p className="text-xs text-gray-500">피부 알레르기 주의 필요</p>
+                    <h4 className="text-sm font-bold text-yellow-800 mb-0.5">오늘의 케어 팁</h4>
+                    <p className="text-xs text-yellow-700">
+                      {randomMessage?.displayText || '오늘도 함께 건강한 하루 보내세요!'}
+                    </p>
                   </div>
-                  <span className="text-gray-400 text-lg">&gt;</span>
                 </div>
               </div>
             </div>
