@@ -4396,7 +4396,6 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
       const updated = prev.map(item =>
         item.id === id ? { ...item, checked: !item.checked } : item
       );
-      // 자동 저장
       try {
         localStorage.setItem(CHECKLIST_KEY, JSON.stringify(updated));
       } catch (e) {
@@ -4409,10 +4408,10 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
   const handleSaveChecklist = () => {
     try {
       localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
-      setSaveMessage('✅ 체크리스트가 저장되었습니다!');
+      setSaveMessage('체크리스트가 저장되었습니다!');
       setTimeout(() => setSaveMessage(''), 2000);
     } catch (e) {
-      setSaveMessage('❌ 저장에 실패했습니다.');
+      setSaveMessage('저장에 실패했습니다.');
       setTimeout(() => setSaveMessage(''), 2000);
     }
   };
@@ -4456,99 +4455,451 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                        diagnosisResult?.emergency === 'medium' ? '5-7일' : '병원 치료 후 확인';
 
   return (
-    <div className="treatment-container">
-      <div className="treatment-header">
-        <button className="back-btn" onClick={onBack}>← 뒤로</button>
-        <h1>🏠 직접 치료 가이드</h1>
+    <div style={{
+      minHeight: '100vh',
+      background: '#f8fafc',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* 헤더 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        background: 'white',
+        borderBottom: '1px solid #e2e8f0'
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#0891b2',
+            fontWeight: '600',
+            fontSize: '15px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          ← 이전으로
+        </button>
+        <button
+          onClick={onBack}
+          style={{
+            color: '#9ca3af',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '24px',
+            lineHeight: 1
+          }}
+        >
+          ×
+        </button>
       </div>
 
-      <div className="treatment-content">
-        <div className="treatment-intro">
-          <div className="pet-info-card">
-            <span className="pet-icon-large">{petData.species === 'dog' ? '🐕' : '🐈'}</span>
+      {/* 스크롤 가능한 본문 */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        paddingBottom: '100px'
+      }}>
+        {/* 타이틀 헤더 카드 */}
+        <div style={{
+          background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '16px',
+          color: 'white',
+          boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '32px' }}>{petData?.species === 'dog' ? '🐕' : '🐈'}</span>
             <div>
-              <h2>{petData?.petName || petData?.name || '반려동물'}의 치료 가이드</h2>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                margin: '0 0 4px 0',
+                lineHeight: '1.3'
+              }}>
+                {petData?.petName || petData?.name || '반려동물'}의 치료 가이드
+              </h2>
               {diagnosisResult && (
-                <p className="diagnosis-summary">{diagnosisResult.diagnosis}</p>
+                <p style={{
+                  fontSize: '13px',
+                  opacity: 0.9,
+                  margin: 0
+                }}>
+                  {diagnosisResult.diagnosis}
+                </p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="treatment-steps">
-          <h3>📋 단계별 치료 방법</h3>
-          {steps.map((item, index) => (
-            <div key={index} className="treatment-step-card">
-              <div className="step-number">{item.step}</div>
-              <div className="step-content">
-                <h4>{item.title}</h4>
-                <p>{item.description}</p>
+        {/* 단계별 치료 방법 */}
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '16px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+        }}>
+          <h3 style={{
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#1e293b',
+            margin: '0 0 16px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{
+              width: '22px',
+              height: '22px',
+              borderRadius: '50%',
+              background: '#22d3ee',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{ color: 'white', fontSize: '12px' }}>📋</span>
+            </span>
+            단계별 치료 방법
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {steps.map((item, index) => (
+              <div key={index} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+                background: 'linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%)',
+                padding: '14px',
+                borderRadius: '12px',
+                border: '1px solid #a5f3fc'
+              }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  flexShrink: 0
+                }}>
+                  {item.step}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#0e7490',
+                    margin: '0 0 4px 0'
+                  }}>
+                    {item.title}
+                  </h4>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#475569',
+                    lineHeight: '1.5',
+                    margin: 0
+                  }}>
+                    {item.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {diagnosisResult && (
           <>
-            <div className="treatment-info">
-              <h3>⏰ 예상 회복 기간</h3>
-              <p className="recovery-time">{recoveryTime}</p>
+            {/* 예상 회복 기간 */}
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              textAlign: 'center'
+            }}>
+              <h3 style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#64748b',
+                margin: '0 0 8px 0'
+              }}>
+                예상 회복 기간
+              </h3>
+              <p style={{
+                fontSize: '28px',
+                fontWeight: 'bold',
+                color: '#0891b2',
+                margin: 0
+              }}>
+                {recoveryTime}
+              </p>
             </div>
 
-            <div className="treatment-warnings">
-              <h3>⚠️ 주의사항</h3>
-              <ul>
-                <li>증상이 악화되거나 새로운 증상이 나타나면 즉시 병원을 방문하세요.</li>
-                <li>처방전 없이 사람 약물을 사용하지 마세요.</li>
-                <li>응급 상황(호흡 곤란, 의식 저하, 심한 출혈 등)은 즉시 응급실로 가세요.</li>
-                <li>이 가이드는 참고용이며, 전문 수의사의 진단을 대체할 수 없습니다.</li>
-              </ul>
+            {/* 주의사항 */}
+            <div style={{
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+              borderRadius: '16px',
+              padding: '16px',
+              marginBottom: '16px',
+              border: '2px solid #fbbf24',
+              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.2)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: '#f97316',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <span style={{ color: 'white', fontSize: '16px' }}>!</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#9a3412',
+                    margin: '0 0 8px 0'
+                  }}>
+                    주의사항
+                  </h4>
+                  <ul style={{
+                    margin: 0,
+                    paddingLeft: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                      증상이 악화되거나 새로운 증상이 나타나면 즉시 병원을 방문하세요.
+                    </li>
+                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                      처방전 없이 사람 약물을 사용하지 마세요.
+                    </li>
+                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                      응급 상황(호흡 곤란, 의식 저하, 심한 출혈 등)은 즉시 응급실로 가세요.
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <div className="treatment-checklist">
-              <div className="checklist-header">
-                <h3>✅ 일일 체크리스트</h3>
-                <span className="checklist-progress">{completedCount}/{totalCount} 완료</span>
+            {/* 일일 체크리스트 */}
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '12px'
+              }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#1e293b',
+                  margin: 0
+                }}>
+                  일일 체크리스트
+                </h3>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#0891b2'
+                }}>
+                  {completedCount}/{totalCount} 완료
+                </span>
               </div>
-              <div className="checklist-progress-bar">
-                <div
-                  className="checklist-progress-fill"
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
+
+              {/* 진행 막대 */}
+              <div style={{
+                width: '100%',
+                height: '8px',
+                background: '#e2e8f0',
+                borderRadius: '4px',
+                marginBottom: '16px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${(completedCount / totalCount) * 100}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #22d3ee, #06b6d4)',
+                  borderRadius: '4px',
+                  transition: 'width 0.3s ease'
+                }} />
               </div>
-              <div className="checklist-items">
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {checklist.map(item => (
-                  <label key={item.id} className={item.checked ? 'checked' : ''}>
+                  <label key={item.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    background: item.checked ? '#ecfeff' : '#f8fafc',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    border: item.checked ? '1px solid #a5f3fc' : '1px solid #e2e8f0',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '6px',
+                      border: item.checked ? 'none' : '2px solid #cbd5e1',
+                      background: item.checked ? 'linear-gradient(135deg, #22d3ee, #06b6d4)' : 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      {item.checked && (
+                        <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                      )}
+                    </div>
                     <input
                       type="checkbox"
                       checked={item.checked}
                       onChange={() => handleChecklistChange(item.id)}
+                      style={{ display: 'none' }}
                     />
-                    <span className="checkmark">{item.checked ? '✓' : ''}</span>
-                    <span className="label-text">{item.label}</span>
+                    <span style={{
+                      fontSize: '14px',
+                      color: item.checked ? '#0e7490' : '#475569',
+                      textDecoration: item.checked ? 'line-through' : 'none',
+                      flex: 1
+                    }}>
+                      {item.label}
+                    </span>
                   </label>
                 ))}
               </div>
-              <div className="checklist-actions">
-                <button className="save-checklist-btn" onClick={handleSaveChecklist}>
-                  💾 체크리스트 저장
-                </button>
-                {saveMessage && <span className="save-message">{saveMessage}</span>}
-              </div>
-              <p className="checklist-note">※ 체크 시 자동 저장됩니다</p>
+
+              {saveMessage && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '10px',
+                  background: '#ecfeff',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  fontSize: '13px',
+                  color: '#0891b2',
+                  fontWeight: '500'
+                }}>
+                  {saveMessage}
+                </div>
+              )}
+
+              <p style={{
+                fontSize: '12px',
+                color: '#9ca3af',
+                textAlign: 'center',
+                margin: '12px 0 0 0'
+              }}>
+                체크 시 자동 저장됩니다
+              </p>
             </div>
           </>
         )}
 
-        <div className="treatment-actions">
-          <button className="action-btn secondary" onClick={onBack}>
-            진단서로 돌아가기
+        {/* 푸터 로고 */}
+        <div style={{ textAlign: 'center', padding: '16px 0' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '4px'
+          }}>
+            <span style={{ color: '#06b6d4', fontSize: '16px' }}>❤️</span>
+            <span style={{ fontSize: '15px', fontWeight: '600', color: '#475569' }}>PetMedical.AI</span>
+          </div>
+          <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+            반려동물 건강 관리의 새로운 기준
+          </p>
+        </div>
+      </div>
+
+      {/* 하단 고정 버튼 영역 */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '16px',
+        background: 'rgba(255, 255, 255, 0.97)',
+        backdropFilter: 'blur(8px)',
+        borderTop: '1px solid #e2e8f0',
+        zIndex: 100
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '10px',
+          maxWidth: '500px',
+          margin: '0 auto'
+        }}>
+          <button
+            onClick={onBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(71, 85, 105, 0.3)'
+            }}
+          >
+            ← 진단서로 돌아가기
           </button>
-          {diagnosisResult?.hospitalVisit && (
-            <button className="action-btn primary" onClick={() => window.location.reload()}>
-              병원 예약하기
-            </button>
-          )}
+          <button
+            onClick={handleSaveChecklist}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+            }}
+          >
+            💾 체크리스트 저장
+          </button>
         </div>
       </div>
     </div>
