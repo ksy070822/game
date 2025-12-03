@@ -183,13 +183,15 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
       if (pets.length === 0) return;
 
       try {
-        // 모든 반려동물의 진료 기록 로드
+        // 모든 반려동물의 진료 기록 로드 (병원에서 공유된 것만)
         const allResults = [];
         for (const pet of pets) {
           if (pet.id) {
             const resultRes = await clinicResultService.getResultsByPet(pet.id);
             if (resultRes.success && resultRes.data.length > 0) {
-              allResults.push(...resultRes.data);
+              // 병원에서 보호자에게 공유한 진단서만 필터링
+              const sharedResults = resultRes.data.filter(r => r.sharedToGuardian === true);
+              allResults.push(...sharedResults);
             }
           }
         }
@@ -713,15 +715,20 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
           id: result.id,
           date: result.visitDate || result.createdAt,
           created_at: result.visitDate || result.createdAt,
-          hospitalName: result.hospitalName,
-          diagnosis: result.finalDiagnosis || result.diagnosis,
+          hospitalName: result.clinicName || result.hospitalName,
+          diagnosis: result.mainDiagnosis || result.finalDiagnosis || result.diagnosis,
           petName: result.petName,
           riskLevel: result.triageScore <= 2 ? 'low' : result.triageScore <= 3 ? 'medium' : 'high',
-          treatment: result.treatment,
+          treatment: result.soap?.plan || result.treatment,
+          assessment: result.soap?.assessment,
+          subjective: result.soap?.subjective,
+          objective: result.soap?.objective,
+          triageScore: result.triageScore,
           medications: result.medications,
           totalCost: result.totalCost,
           doctorNote: result.doctorNote,
-          source: 'clinic'
+          source: 'clinic',
+          soap: result.soap
         }));
 
         const allRecords = [...aiRecords, ...hospitalRecords].sort((a, b) =>
