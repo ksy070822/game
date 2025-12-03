@@ -8,7 +8,8 @@ import { calculateTriageScore } from './triageEngine';
 import { convertHealthFlagsFormat } from '../../utils/healthFlagsMapper';
 import { buildAIContext } from './dataContextService';
 import { runCollaborativeDiagnosis } from './collaborativeDiagnosis';
-// import { getMedicationGuidance, formatMedicationMessage, getShortMedicationSummary } from './medicationService';
+import { getMedicationGuidance, formatMedicationMessage, getShortMedicationSummary } from './medicationService';
+// FAQ는 진찰 단계가 아닌 별도 화면에서 제공 (진찰 중 조회 제거)
 // import { getRecommendedFAQs, generateMultipleFAQAnswers, formatFAQsForUI, formatFAQAnswersMessage } from './faqService';
 
 export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived, onWaitForGuardianResponse = null) => {
@@ -457,75 +458,8 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // 7. FAQ 선택 단계 - 추천 FAQ 3개 노출 (Firebase에서 비동기 조회)
-    let recommendedFAQs = [];
-    try {
-      recommendedFAQs = await getRecommendedFAQs(medicalResult.json, enrichedSymptomData, normalizedPetData.species);
-      console.log('추천 FAQ 조회 완료:', recommendedFAQs.length, '개');
-    } catch (faqFetchError) {
-      console.warn('FAQ 조회 실패:', faqFetchError);
-    }
-
-    const faqUIData = formatFAQsForUI(recommendedFAQs);
-    let faqAnswers = [];
-
-    if (onWaitForGuardianResponse && recommendedFAQs.length > 0) {
-      // FAQ 선택 UI 표시
-      onLogReceived({
-        agent: 'FAQ Assistant',
-        role: '진료 요약 · 관리실',
-        icon: '📄',
-        type: 'faq',
-        content: '',
-        isFAQPhase: true,
-        faqData: faqUIData,
-        timestamp: Date.now()
-      });
-
-      // 보호자 FAQ 선택 대기 (타임아웃 없음 - 사용자가 선택할 때까지 대기)
-      try {
-        const faqSelections = await onWaitForGuardianResponse(faqUIData, 'faq');
-
-        // 선택된 FAQ에 대한 답변 생성
-        if (faqSelections && faqSelections.length > 0 && !faqSelections.includes('skip')) {
-          faqAnswers = generateMultipleFAQAnswers(
-            faqSelections,
-            recommendedFAQs,
-            medicalResult.json,
-            normalizedPetData
-          );
-
-          // FAQ 답변 표시
-          if (faqAnswers.length > 0) {
-            const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
-            onLogReceived({
-              agent: 'FAQ Assistant',
-              role: '진료 요약 · 관리실',
-              icon: '📄',
-              type: 'faq_answer',
-              content: faqAnswerMessage,
-              faqAnswers: faqAnswers,
-              timestamp: Date.now()
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 1500));
-          }
-        }
-      } catch (faqError) {
-        // 오류 시 FAQ 단계 건너뜀
-        console.warn('FAQ 단계 오류:', faqError.message);
-        onLogReceived({
-          agent: 'FAQ Assistant',
-          role: '진료 요약 · 관리실',
-          icon: '📄',
-          type: 'faq_skipped',
-          content: '진단서를 바로 확인하실 수 있습니다.',
-          timestamp: Date.now()
-        });
-      }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // FAQ는 진찰 완료 후 별도 화면에서 제공 (진찰 중 FAQ 조회 제거)
+    // 사용자 요청: "진찰단계에서 FAQ를 조회할 필요는 없어"
 
     // 8. Summary - 진료 요약 관리실
     onLogReceived({
