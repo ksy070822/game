@@ -61,3 +61,4 @@ export function getPetImage(petData, useMainImage = false) {
   return useMainImage ? getMainCharacterImage(species) : getProfileImage(species);
 }
 
+
