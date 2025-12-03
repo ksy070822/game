@@ -1,5 +1,5 @@
 // 진료서 작성 컴포넌트
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clinicResultService, bookingService } from '../services/firestore';
 import { db } from '../lib/firebase';
 import { doc, setDoc, serverTimestamp, increment } from 'firebase/firestore';
@@ -16,6 +16,32 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
   const [lastResultId, setLastResultId] = useState(null);
 
   if (!booking) return null;
+
+  // 이미 저장된 진단서가 있는 경우, 최초 열 때부터 "보호자에게 공유하기" 버튼을 보여주기 위해 상태 초기화
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadExistingResult = async () => {
+      try {
+        const bookingId = booking.bookingId || booking.id;
+        if (!bookingId) return;
+
+        const res = await clinicResultService.getResultByBooking(bookingId);
+        if (!cancelled && res.success && res.data) {
+          setIsSaved(true);
+          setLastResultId(res.data.id);
+        }
+      } catch (error) {
+        console.warn('기존 진단서 조회 실패 (무시):', error);
+      }
+    };
+
+    loadExistingResult();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [booking]);
 
   const handleSave = async () => {
     if (!window.confirm('진료 결과를 저장하시겠습니까?')) return;
