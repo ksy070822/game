@@ -1439,35 +1439,35 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   />
                 </div>
 
-                <div className="flex-1 flex flex-col justify-between py-1">
+                <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
                   <div className="flex flex-col items-center justify-center text-center w-full">
-                    <p className="text-lg font-display font-bold text-gray-900 w-full">AI 전문 의료진 24시간 대기</p>
-                    <p className="text-lg font-display font-bold text-gray-900 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                    <p className="text-base font-semibold text-sky-600 mt-2 w-full">
+                    <p className="text-sm sm:text-base font-display font-bold text-gray-900 w-full leading-tight">AI 전문 의료진 24시간 대기</p>
+                    <p className="text-sm sm:text-base font-display font-bold text-gray-900 mt-1 w-full leading-tight truncate">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                    <p className="text-xs sm:text-sm font-semibold text-sky-600 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                    <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                  <div className="flex items-center gap-1 flex-wrap mt-2 justify-center">
+                    <span className="text-[10px] sm:text-[11px] text-sky-700 font-semibold bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
                       {getSpeciesDisplay()}
                     </span>
                     {getSexDisplay() && (
-                      <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                      <span className="text-[10px] sm:text-[11px] text-sky-700 font-semibold bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
                         {getSexDisplay()}
                       </span>
                     )}
-                    <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                    <span className="text-[10px] sm:text-[11px] text-sky-700 font-semibold bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
                       {calculateAge(petData.birthDate)}
                     </span>
                     {todayWeight && (
-                      <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                      <span className="text-[10px] sm:text-[11px] text-sky-700 font-semibold bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
                         {todayWeight}kg
                       </span>
                     )}
                     <button
                       onClick={() => onNavigate('profile-list')}
-                      className="px-3 py-1 bg-sky-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
+                      className="px-2 py-0.5 bg-sky-500 text-white text-[10px] sm:text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
                     >
                       변경
                     </button>
@@ -1477,7 +1477,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <button
                 onClick={() => onNavigate('symptom-input')}
-                className="w-full mt-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="w-full mt-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
               >
                 PetMedical.AI 종합의료센터 바로 방문 &gt;
               </button>
@@ -1924,22 +1924,22 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-white px-4 py-4 border-b border-slate-100">
-        <div className="flex items-center gap-3 mb-2">
+      <div className="bg-white px-3 sm:px-4 py-3 sm:py-4 border-b border-slate-100">
+        <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
           <button onClick={onBack} className="text-slate-600">
-            <span className="text-sm">← 돌아가기</span>
+            <span className="text-xs sm:text-sm">← 돌아가기</span>
           </button>
         </div>
-        <h1 className="text-xl font-bold text-slate-900">AI 증상 진단</h1>
-        <p className="text-sm text-slate-500 mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
+        <h1 className="text-lg sm:text-xl font-bold text-slate-900">AI 증상 진단</h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
       </div>
 
-      <div className="px-4 pt-4 pb-24 space-y-4">
+      <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-24 space-y-3 sm:space-y-4">
         {/* 진료과목 선택 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-1 text-sm">어디가 불편해 보이나요? *</h3>
-          <p className="text-xs text-slate-500 mb-3">진료과목을 선택해주세요</p>
-          <div className="grid grid-cols-2 gap-2">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
+          <h3 className="font-bold text-slate-800 mb-0.5 sm:mb-1 text-xs sm:text-sm">어디가 불편해 보이나요? *</h3>
+          <p className="text-[10px] sm:text-xs text-slate-500 mb-2 sm:mb-3">진료과목을 선택해주세요</p>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
             {currentDepartments.map(dept => {
               const info = DEPARTMENT_INFO[dept] || { icon: '🏥', desc: '일반 진료' };
               const isSelected = selectedDepartment === dept;
@@ -1947,19 +1947,19 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
                 <button
                   key={dept}
                   onClick={() => handleDepartmentSelect(dept)}
-                  className={`p-3 rounded-xl text-left transition-all border-2 ${
+                  className={`p-2 sm:p-3 rounded-xl text-left transition-all border-2 ${
                     isSelected
                       ? 'bg-sky-50 border-sky-500'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{info.icon}</span>
-                    <span className={`font-bold text-sm ${isSelected ? 'text-sky-700' : 'text-slate-800'}`}>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+                    <span className="text-base sm:text-lg">{info.icon}</span>
+                    <span className={`font-bold text-xs sm:text-sm ${isSelected ? 'text-sky-700' : 'text-slate-800'}`}>
                       {dept}
                     </span>
           </div>
-                  <p className={`text-xs ${isSelected ? 'text-sky-600' : 'text-slate-500'}`}>
+                  <p className={`text-[10px] sm:text-xs ${isSelected ? 'text-sky-600' : 'text-slate-500'} leading-tight`}>
                     {info.desc}
                   </p>
                 </button>
@@ -1970,17 +1970,17 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
 
         {/* 증상 선택 - 진료과목 선택 후 표시 */}
         {selectedDepartment && currentSymptoms.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-            <h3 className="font-bold text-slate-800 mb-1 text-sm">
+          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
+            <h3 className="font-bold text-slate-800 mb-0.5 sm:mb-1 text-xs sm:text-sm">
               {selectedDepartment} 관련 증상
             </h3>
-            <p className="text-xs text-slate-500 mb-3">해당하는 증상을 모두 선택해주세요</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[10px] sm:text-xs text-slate-500 mb-2 sm:mb-3">해당하는 증상을 모두 선택해주세요</p>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {currentSymptoms.map(symptom => (
                 <button
                   key={symptom}
                   onClick={() => toggleSymptom(symptom)}
-                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
+                  className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all border ${
                     selectedSymptoms.includes(symptom)
                       ? 'bg-sky-500 text-white border-sky-500'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-sky-300'
@@ -1991,8 +1991,8 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
               ))}
             </div>
             {selectedSymptoms.length > 0 && (
-              <div className="mt-3 p-3 bg-sky-50 rounded-xl">
-                <p className="text-xs text-sky-700 font-medium">
+              <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-sky-50 rounded-xl">
+                <p className="text-[10px] sm:text-xs text-sky-700 font-medium leading-relaxed">
                   ✓ 선택됨: {selectedSymptoms.join(', ')}
                 </p>
               </div>
@@ -2001,11 +2001,11 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         )}
 
         {/* 증상 상세 설명 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-1 text-sm">증상 상세 설명</h3>
-          <p className="text-xs text-slate-500 mb-3">추가로 설명하고 싶은 내용이 있다면 적어주세요</p>
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
+          <h3 className="font-bold text-slate-800 mb-0.5 sm:mb-1 text-xs sm:text-sm">증상 상세 설명</h3>
+          <p className="text-[10px] sm:text-xs text-slate-500 mb-2 sm:mb-3">추가로 설명하고 싶은 내용이 있다면 적어주세요</p>
           <textarea
-            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[80px] text-sm resize-none"
+            className="w-full p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[70px] sm:min-h-[80px] text-xs sm:text-sm resize-none"
             placeholder="예: 3일 전부터 밥을 잘 안 먹고, 자꾸 구석에 숨어요..."
             value={symptomText}
             onChange={(e) => setSymptomText(e.target.value)}
@@ -2013,23 +2013,23 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         </div>
 
         {/* 사진 업로드 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-bold text-slate-800 mb-3 text-sm">증상 사진 첨부 (선택)</h3>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
+          <h3 className="font-bold text-slate-800 mb-2 sm:mb-3 text-xs sm:text-sm">증상 사진 첨부 (선택)</h3>
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2">
             {images.map((img, idx) => (
               <div key={idx} className="relative shrink-0">
-                <img src={img} alt={`증상 사진 ${idx + 1}`} className="w-20 h-20 object-cover rounded-xl" />
+                <img src={img} alt={`증상 사진 ${idx + 1}`} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl" />
                 <button
                   onClick={() => removeImage(idx)}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
+                  className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full text-[10px] sm:text-xs flex items-center justify-center"
                 >
                   ✕
                 </button>
               </div>
             ))}
-            <label className="w-20 h-20 shrink-0 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-sky-500 hover:bg-sky-50 transition-all">
-              <span className="text-2xl text-slate-400">📷</span>
-              <span className="text-[10px] text-slate-400 mt-1">추가</span>
+            <label className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-sky-500 hover:bg-sky-50 transition-all">
+              <span className="text-xl sm:text-2xl text-slate-400">📷</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 sm:mt-1">추가</span>
               <input
                 type="file"
                 accept="image/*"
@@ -2039,26 +2039,26 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
               />
             </label>
               </div>
-          <p className="text-xs text-slate-400 mt-2">피부, 눈, 귀 등 증상 부위 사진을 첨부하면 더 정확한 진단이 가능해요</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1.5 sm:mt-2">피부, 눈, 귀 등 증상 부위 사진을 첨부하면 더 정확한 진단이 가능해요</p>
         </div>
       </div>
 
       {/* Bottom Button - AI 진료실 전용 확대 버튼 (하단 내비게이션바 숨김) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-6 z-50">
-        <button 
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-4 sm:p-6 z-50">
+        <button
           onClick={handleSubmit}
           disabled={loading || (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0)}
-          className="w-full bg-sky-500 text-white py-6 px-8 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
+          className="w-full bg-sky-500 text-white py-4 sm:py-6 px-6 sm:px-8 rounded-xl font-bold text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-2 sm:gap-3 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
         >
           {loading ? (
             <>
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span className="text-lg font-bold">AI 분석 중...</span>
+              <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="text-base sm:text-lg font-bold">AI 분석 중...</span>
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-2xl">psychology</span>
-              <span className="text-lg font-bold">AI 분석하기</span>
+              <span className="material-symbols-outlined text-xl sm:text-2xl">psychology</span>
+              <span className="text-base sm:text-lg font-bold">AI 분석하기</span>
             </>
           )}
         </button>

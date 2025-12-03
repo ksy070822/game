@@ -296,31 +296,31 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
   return (
     <div className="min-h-screen bg-background-light">
       {/* Header */}
-      <div className="flex items-center bg-background-light/80 p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
-        <div className="flex size-12 shrink-0 items-center text-slate-800">
-          <button onClick={onBack} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
-            <span className="material-symbols-outlined text-3xl">arrow_back_ios_new</span>
+      <div className="flex items-center bg-background-light/80 p-3 sm:p-4 pb-2 justify-between sticky top-0 z-10 backdrop-blur-sm">
+        <div className="flex size-10 sm:size-12 shrink-0 items-center text-slate-800">
+          <button onClick={onBack} className="p-1.5 sm:p-2 -ml-1 sm:-ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
+            <span className="material-symbols-outlined text-2xl sm:text-3xl">arrow_back_ios_new</span>
           </button>
         </div>
-        <h2 className="text-slate-800 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">마이페이지</h2>
+        <h2 className="text-slate-800 text-base sm:text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">마이페이지</h2>
         <div className="flex shrink-0 items-center justify-end gap-1">
           {onHome && (
             <button
               onClick={onHome}
-              className="p-2 text-slate-600 hover:bg-slate-100 rounded-full"
+              className="p-1.5 sm:p-2 text-slate-600 hover:bg-slate-100 rounded-full"
               title="홈으로"
             >
-              <span className="material-symbols-outlined text-2xl">home</span>
+              <span className="material-symbols-outlined text-xl sm:text-2xl">home</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 px-4 pt-2 pb-2 bg-background-light border-b border-slate-200 overflow-x-auto">
+      <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 pt-2 pb-2 bg-background-light border-b border-slate-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('pets')}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+          className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
             activeTab === 'pets'
               ? 'bg-primary text-white'
               : 'bg-surface-light text-slate-600'
@@ -330,7 +330,7 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
         </button>
         <button
           onClick={() => setActiveTab('bookings')}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap relative ${
+          className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative ${
             activeTab === 'bookings'
               ? 'bg-primary text-white'
               : 'bg-surface-light text-slate-600'
@@ -338,14 +338,14 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
         >
           내 예약
           {bookings.filter(b => b.status === 'pending').length > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center">
               {bookings.filter(b => b.status === 'pending').length}
             </span>
           )}
         </button>
         <button
           onClick={() => setActiveTab('records')}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${
+          className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
             activeTab === 'records'
               ? 'bg-primary text-white'
               : 'bg-surface-light text-slate-600'
@@ -356,22 +356,22 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
       </div>
 
       {activeTab === 'pets' && (
-        <div className="px-4 pt-4 pb-40">
+        <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-40">
           {pets.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-6xl mb-4">🐾</div>
-              <p className="text-slate-500 mb-4">등록된 반려동물이 없습니다</p>
+            <div className="text-center py-16 sm:py-20">
+              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🐾</div>
+              <p className="text-slate-500 mb-3 sm:mb-4 text-sm sm:text-base">등록된 반려동물이 없습니다</p>
               <button
                 onClick={() => onAddPet && onAddPet()}
-                className="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors"
+                className="bg-primary text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors text-sm sm:text-base"
               >
                 반려동물 등록하기
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {pets.map(pet => (
-                <div key={pet.id} className="bg-surface-light rounded-lg p-4 shadow-soft">
+                <div key={pet.id} className="bg-surface-light rounded-lg p-3 sm:p-4 shadow-soft">
                   {editingPet === pet.id ? (
                     // 편집 모드
                     <div className="space-y-4">
@@ -475,8 +475,8 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
                   ) : (
                     // 보기 모드
                     <>
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-16 h-16 rounded-full bg-primary/20 overflow-hidden">
+                      <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 overflow-hidden flex-shrink-0">
                           <img
                             src={getPetImage(pet, false)}
                             alt={pet.petName}
@@ -484,9 +484,9 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
                             style={{ objectPosition: 'center', display: 'block' }}
                           />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-slate-900 font-bold text-lg mb-1 font-display">{pet.petName}</h3>
-                          <p className="text-slate-500 text-sm">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-slate-900 font-bold text-base sm:text-lg mb-0.5 sm:mb-1 font-display truncate">{pet.petName}</h3>
+                          <p className="text-slate-500 text-xs sm:text-sm truncate">
                             {pet.breed || '품종 미등록'} • {
                               pet.birthDate ? (() => {
                                 const birth = new Date(pet.birthDate);
@@ -497,28 +497,28 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
                             }
                           </p>
                           {pet.sido && (
-                            <p className="text-slate-400 text-xs mt-1">{pet.sido} {pet.sigungu}</p>
+                            <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5 sm:mt-1 truncate">{pet.sido} {pet.sigungu}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5 sm:gap-2">
                         <button
                           onClick={() => onSelectPet && onSelectPet(pet)}
-                          className="flex-1 bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                          className="flex-1 bg-primary text-white py-1.5 sm:py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors text-xs sm:text-sm"
                         >
                           선택
                         </button>
                         <button
                           onClick={() => handleEditPet(pet)}
-                          className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-colors"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-colors"
                         >
-                          <span className="material-symbols-outlined text-sm">edit</span>
+                          <span className="material-symbols-outlined text-xs sm:text-sm">edit</span>
                         </button>
                         <button
                           onClick={() => handleDeletePet(pet.id)}
-                          className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-600 rounded-lg font-medium hover:bg-red-200 transition-colors"
                         >
-                          <span className="material-symbols-outlined text-sm">delete</span>
+                          <span className="material-symbols-outlined text-xs sm:text-sm">delete</span>
                         </button>
                       </div>
                     </>
@@ -538,34 +538,34 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
       )}
 
       {activeTab === 'bookings' && (
-        <div className="px-4 pt-4 pb-40">
+        <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-40">
           {bookings.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-6xl mb-4">📅</div>
-              <p className="text-slate-500 mb-2">예약 내역이 없습니다</p>
-              <p className="text-slate-400 text-sm">병원 예약을 하면 여기서 확인할 수 있어요</p>
+            <div className="text-center py-16 sm:py-20">
+              <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">📅</div>
+              <p className="text-slate-500 mb-1.5 sm:mb-2 text-sm sm:text-base">예약 내역이 없습니다</p>
+              <p className="text-slate-400 text-xs sm:text-sm">병원 예약을 하면 여기서 확인할 수 있어요</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* 예약 상태별 요약 */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="bg-amber-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-amber-600">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                <div className="bg-amber-50 rounded-lg p-2 sm:p-3 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-amber-600">
                     {bookings.filter(b => b.status === 'pending').length}
                   </p>
-                  <p className="text-xs text-amber-700">대기중</p>
+                  <p className="text-[10px] sm:text-xs text-amber-700">대기중</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="bg-green-50 rounded-lg p-2 sm:p-3 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-green-600">
                     {bookings.filter(b => b.status === 'confirmed').length}
                   </p>
-                  <p className="text-xs text-green-700">확정</p>
+                  <p className="text-[10px] sm:text-xs text-green-700">확정</p>
                 </div>
-                <div className="bg-slate-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-slate-600">
+                <div className="bg-slate-50 rounded-lg p-2 sm:p-3 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-slate-600">
                     {bookings.filter(b => b.status === 'completed').length}
                   </p>
-                  <p className="text-xs text-slate-700">완료</p>
+                  <p className="text-[10px] sm:text-xs text-slate-700">완료</p>
                 </div>
               </div>
 

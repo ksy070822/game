@@ -1159,24 +1159,24 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         </div>
 
         {/* 검색창 */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
+        <div className="flex gap-1.5 sm:gap-2">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
-              placeholder="지역명 검색 (예: 부산, 해운대, 강남)"
+              placeholder="지역명 검색 (예: 부산, 강남)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full px-4 py-3 pl-10 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-8 sm:pl-10 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <span className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
           </div>
           <button
             onClick={handleSearch}
             disabled={isSearching}
-            className="px-4 py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 whitespace-nowrap"
+            className="px-3 sm:px-4 py-2.5 sm:py-3 bg-sky-500 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
           >
-            {isSearching ? '검색중...' : '검색'}
+            {isSearching ? '검색중' : '검색'}
           </button>
         </div>
 
@@ -1196,27 +1196,27 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
             </div>
           ) : !isSearching && (
             filteredHospitals.map(hospital => (
-              <div key={hospital.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div key={hospital.id} className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-100">
                 {/* 병원명과 거리 */}
                 <div className="mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <h4 className="font-bold text-sky-600 text-sm sm:text-base leading-tight">{hospital.name}</h4>
                     <a
                       href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-xs font-bold rounded hover:bg-[#F5E100] transition-colors"
+                      className="px-1.5 sm:px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-[10px] sm:text-xs font-bold rounded hover:bg-[#F5E100] transition-colors flex-shrink-0"
                     >
                       상세정보
                     </a>
                     {hospital.is24Hours && (
-                      <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">24시</span>
+                      <span className="px-1.5 sm:px-2 py-0.5 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded flex-shrink-0">24시</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-slate-500">{hospital.roadAddress || hospital.address}</p>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                    <p className="text-[10px] sm:text-xs text-slate-500 leading-tight">{hospital.roadAddress || hospital.address}</p>
                     {hospital.distance && (
-                      <span className="text-sm font-bold text-red-500">{formatDistance(hospital.distance)}</span>
+                      <span className="text-xs sm:text-sm font-bold text-red-500 flex-shrink-0">{formatDistance(hospital.distance)}</span>
                     )}
                   </div>
                 </div>
@@ -1248,10 +1248,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                 </div>
 
                 {/* 버튼 - 순서: 예약하기, 길찾기, Kakao T 펫택시 */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <button
                     onClick={() => handleBookAppointment(hospital)}
-                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors flex items-center justify-center"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-sky-600 transition-colors flex items-center justify-center min-w-0"
                   >
                     예약하기
                   </button>
@@ -1262,19 +1262,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#FEE500] rounded-xl text-xs font-bold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-[#FEE500] rounded-xl text-[10px] sm:text-xs font-bold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 min-w-0"
                   >
                     <span>📍</span>
-                    길찾기
+                    <span className="truncate">길찾기</span>
                   </a>
                   <a
                     href="https://service.kakaomobility.com/launch/kakaot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#1E1B4B] rounded-xl text-xs font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-[#1E1B4B] rounded-xl text-[10px] sm:text-xs font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5 min-w-0"
                   >
-                    <span className="text-[#FACC15]">Kakao T</span>
-                    <span className="text-white">펫택시</span>
+                    <span className="text-[#FACC15] truncate">Kakao T</span>
+                    <span className="text-white truncate hidden xs:inline">펫택시</span>
                   </a>
                 </div>
               </div>
