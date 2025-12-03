@@ -215,18 +215,19 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-6 pt-12">
-      {/* 로고 - 좌측 정렬 */}
+      {/* 로고 + 텍스트 가로 배치, 중앙 정렬 */}
       <div className="w-full max-w-sm md:max-w-2xl mb-8">
-        <div className="flex flex-col items-start text-left gap-2 md:gap-3">
-          <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden">
+        <div className="flex flex-col items-center text-center">
+          {/* 로고와 타이틀 가로 배치 */}
+          <div className="flex items-center gap-3 md:gap-4 mb-2">
             <img
               src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
               alt="PetMedical.AI"
-              className="w-full h-full object-cover p-3"
+              className="w-16 h-16 md:w-20 md:h-20 object-contain"
             />
+            <h1 className="text-2xl md:text-4xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-slate-900 font-display mt-2">PetMedical.AI</h1>
-          <p className="text-slate-500 text-base md:text-lg">AI 기반 반려동물 건강 관리 서비스</p>
+          <p className="text-slate-500 text-sm md:text-base">AI기반 반려동물 건강관리 플랫폼</p>
         </div>
       </div>
 
