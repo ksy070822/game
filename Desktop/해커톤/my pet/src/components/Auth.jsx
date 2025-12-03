@@ -228,7 +228,6 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           <h1 className="text-3xl md:text-5xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
           <p className="text-slate-500 text-base md:text-lg">AI 기반 반려동물 건강 관리 서비스</p>
         </div>
-        </div>
       </div>
 
       {/* 모드 선택 카드 */}
