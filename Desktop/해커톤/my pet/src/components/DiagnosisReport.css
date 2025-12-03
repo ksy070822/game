@@ -1,3 +1,5 @@
+/* PetMedical.AI 진단서 - 새 디자인 */
+
 /* 렌더링 최적화 - 폰트/테두리 선명하게 */
 * {
   -webkit-font-smoothing: antialiased;
@@ -6,52 +8,66 @@
 }
 
 /* 오버레이 */
-.diagnosis-overlay {
+.dr-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 16px;
+  backdrop-filter: blur(4px);
 }
 
 /* 메인 컨테이너 */
-.diagnosis-container {
-  width: 100%;
+.dr-container {
+  position: relative;
   max-width: 420px;
+  width: 100%;
   max-height: 90vh;
-  background: #f0f9ff;
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 24px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: drSlideUp 0.3s ease-out;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   /* 렌더링 최적화 */
   transform: translateZ(0);
   will-change: auto;
 }
 
+@keyframes drSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* 헤더 */
-.diagnosis-header {
-  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+.dr-header {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%);
   padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.header-left {
+.dr-header-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.header-icon {
+.dr-logo-icon {
   width: 44px;
   height: 44px;
   background: rgba(255, 255, 255, 0.2);
@@ -59,129 +75,107 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
-.header-text h1 {
+.dr-header-text h1 {
   color: white;
   font-size: 18px;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 2px 0;
   letter-spacing: -0.3px;
 }
 
-.header-text p {
+.dr-header-text p {
   color: rgba(255, 255, 255, 0.8);
   font-size: 12px;
-  margin: 2px 0 0 0;
+  margin: 0;
 }
 
-.close-btn {
+.dr-close-btn {
   width: 36px;
   height: 36px;
-  background: transparent;
+  border-radius: 50%;
   border: none;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
 }
 
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.dr-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
-/* 스크롤 컨텐츠 */
-.diagnosis-content {
+/* 스크롤 콘텐츠 영역 */
+.dr-content {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* 날짜/번호 메타 카드 */
-.report-meta-card {
-  background: white;
-  border-radius: 12px;
-  padding: 14px 16px;
+/* 진료 메타 정보 카드 */
+.dr-meta-card {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  border: 1px solid #e2e8f0;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #475569;
-}
-
-.meta-icon {
-  font-size: 14px;
-}
-
-.meta-label {
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.meta-value {
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-weight: 600;
-  color: #334155;
-}
-
-/* 정보 카드 공통 */
-.info-card {
+  padding: 12px 16px;
   background: white;
   border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.card-header {
+.dr-meta-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 13px;
 }
 
-.card-icon {
-  font-size: 18px;
+.dr-pmd-number {
+  color: #06b6d4;
+  font-weight: 600;
+  font-size: 12px;
+  background: #ecfeff;
+  padding: 4px 10px;
+  border-radius: 20px;
 }
 
-.card-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-
-/* 반려동물 정보 */
-.pet-info-header {
+/* 반려동물 정보 카드 */
+.dr-pet-card {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 16px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.pet-avatar {
+.dr-pet-avatar {
   width: 72px;
   height: 72px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid #fbbf24;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
 }
 
-.pet-avatar img {
+.dr-pet-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -189,45 +183,213 @@
   image-rendering: -webkit-optimize-contrast;
 }
 
-.pet-info-grid {
+.dr-pet-emoji {
+  font-size: 32px;
+}
+
+.dr-pet-details {
+  flex: 1;
+}
+
+.dr-pet-details h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0 0 12px 0;
+}
+
+.dr-pet-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
-.info-item {
+.dr-pet-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.info-label {
+.dr-pet-label {
   font-size: 11px;
   color: #94a3b8;
   font-weight: 500;
 }
 
-.info-value {
-  font-size: 14px;
-  font-weight: 600;
+.dr-pet-value {
+  font-size: 13px;
   color: #1e293b;
+  font-weight: 600;
+}
+
+/* 진단 결과 카드 */
+.dr-diagnosis-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dr-diagnosis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-bottom: 1px solid #fecaca;
+}
+
+.dr-diagnosis-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dr-diagnosis-title-row h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0;
+}
+
+.dr-emergency-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.dr-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.dr-diagnosis-content {
+  padding: 20px;
+}
+
+.dr-diagnosis-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  line-height: 1.3;
+}
+
+/* 신뢰도 바 */
+.dr-confidence {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dr-confidence-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.dr-confidence-bar {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dr-confidence-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+.dr-confidence-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #06b6d4;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* 중증도 평가 */
+.dr-severity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.dr-severity-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.dr-severity-dots {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.dr-severity-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.dr-severity-dot.active {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dr-severity-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* 섹션 공통 */
+.dr-section {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dr-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 16px 0;
 }
 
 /* 증상 정보 */
-.symptom-department {
+.dr-symptom-department {
   font-size: 13px;
   color: #64748b;
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
 }
 
-.symptom-tags {
+.dr-symptom-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.symptom-tag {
+.dr-symptom-tag {
   display: inline-block;
   padding: 6px 12px;
   background: #e0f2fe;
@@ -238,255 +400,189 @@
   border: 1px solid #bae6fd;
 }
 
-.symptom-description {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.6;
-  padding: 10px 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border-left: 3px solid #38bdf8;
-}
-
-/* 진단 결과 카드 */
-.diagnosis-result-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  border: 2px solid #fecaca;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
-}
-
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.result-title-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.warning-icon {
-  font-size: 18px;
-}
-
-.result-title-row h3 {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-
-.result-badges {
-  display: flex;
-  gap: 6px;
-}
-
-.badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-/* 진단명 박스 */
-.diagnosis-name-box {
-  background: #f8fafc;
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.diagnosis-name {
-  font-size: 18px;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0 0 14px 0;
-}
-
-/* 신뢰도 바 */
-.confidence-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.confidence-label {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.confidence-bar-container {
-  flex: 1;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.confidence-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.confidence-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0ea5e9;
-  min-width: 40px;
-  text-align: right;
-}
-
-/* 중증도 평가 */
-.severity-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.severity-label {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.severity-dots {
-  display: flex;
-  gap: 6px;
-}
-
-.severity-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.severity-dot.filled {
-  transform: scale(1.1);
-}
-
-.severity-score {
-  font-size: 13px;
-  font-weight: 700;
-  color: #334155;
-}
-
-/* 상세 설명 */
-.description-text {
+/* 설명 박스 */
+.dr-description-box {
   font-size: 14px;
   color: #475569;
   line-height: 1.7;
-  margin: 0;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid #06b6d4;
 }
 
 /* 권장 조치사항 */
-.actions-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.dr-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.actions-list li {
+.dr-action-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 0;
+  gap: 14px;
+  padding: 14px 0;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.actions-list li:last-child {
+.dr-action-item:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.action-number {
-  width: 22px;
-  height: 22px;
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+.dr-action-num {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-.action-text {
-  font-size: 13px;
+.dr-action-text {
+  font-size: 14px;
   color: #334155;
   line-height: 1.5;
-  flex: 1;
+  margin: 3px 0 0 0;
 }
 
-/* 병원 방문 안내 */
-.hospital-visit-card {
+/* 약물 안내 섹션 */
+.dr-section.dr-medication-section {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border: 1px solid #fde047;
+}
+
+.dr-medication-section .dr-section-title {
+  color: #ca8a04;
+}
+
+.dr-medication-summary {
+  font-size: 14px;
+  color: #854d0e;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+}
+
+.dr-medication-category {
+  margin-bottom: 12px;
+}
+
+.dr-medication-category-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a16207;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #fde047;
+}
+
+.dr-medication-item {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.dr-medication-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: #713f12;
+  margin-bottom: 6px;
+}
+
+.dr-medication-details {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #fef2f2;
-  border-radius: 12px;
-  padding: 14px;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.dr-medication-disclaimer {
+  font-size: 11px;
+  color: #a16207;
+  margin: 12px 0 0 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* 병원 방문 알림 */
+.dr-hospital-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 16px;
   border: 1px solid #fecaca;
 }
 
-.hospital-icon {
-  font-size: 28px;
-}
-
-.hospital-text strong {
-  display: block;
-  font-size: 14px;
-  color: #dc2626;
-  margin-bottom: 2px;
-}
-
-.hospital-text p {
-  font-size: 13px;
-  color: #b91c1c;
-  margin: 0;
-}
-
-/* 면책 조항 */
-.disclaimer-card {
+.dr-hospital-icon {
+  width: 40px;
+  height: 40px;
+  background: #ef4444;
+  border-radius: 50%;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #fffbeb;
-  border-radius: 12px;
-  padding: 14px;
-  border: 1px solid #fde68a;
-}
-
-.disclaimer-icon {
-  font-size: 18px;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.disclaimer-card p {
-  font-size: 12px;
-  color: #92400e;
+.dr-hospital-content {
+  flex: 1;
+}
+
+.dr-hospital-content strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 4px;
+}
+
+.dr-hospital-content p {
+  font-size: 13px;
+  color: #b91c1c;
   line-height: 1.5;
   margin: 0;
 }
 
-/* 하단 버튼 영역 */
-.diagnosis-actions {
+/* 하단 안내 문구 */
+.dr-footer-notice {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  background: #f1f5f9;
+  border-radius: 12px;
+}
+
+/* 푸터 로고 */
+.dr-footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 하단 액션 버튼 */
+.dr-actions {
   display: flex;
   gap: 8px;
   padding: 14px 16px;
@@ -494,90 +590,129 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.action-btn {
+.dr-btn {
   flex: 1;
+  padding: 12px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.action-btn:disabled {
+.dr-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.action-btn:not(:disabled):hover {
-  transform: translateY(-1px);
-}
-
-.action-btn.save {
-  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+.dr-btn-primary {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
 }
 
-.action-btn.save:not(:disabled):hover {
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+.dr-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
 }
 
-.action-btn.hospital {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+.dr-btn-secondary {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.35);
 }
 
-.action-btn.hospital:not(:disabled):hover {
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+.dr-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.45);
 }
 
-.action-btn.treatment {
-  background: linear-gradient(135deg, #f87171, #ef4444);
+.dr-btn-treatment {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(248, 113, 113, 0.35);
 }
 
-.action-btn.treatment:not(:disabled):hover {
-  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+.dr-btn-treatment:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(248, 113, 113, 0.45);
 }
 
 /* 반응형 */
 @media (max-width: 480px) {
-  .diagnosis-overlay {
+  .dr-overlay {
     padding: 0;
     align-items: flex-end;
   }
 
-  .diagnosis-container {
+  .dr-container {
     max-height: 100vh;
-    border-radius: 20px 20px 0 0;
+    border-radius: 24px 24px 0 0;
     max-width: 100%;
   }
 
-  .diagnosis-content {
-    padding: 12px;
+  .dr-header {
+    padding: 16px;
   }
 
-  .pet-info-grid {
+  .dr-logo-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dr-header-text h1 {
+    font-size: 16px;
+  }
+
+  .dr-content {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .dr-pet-card {
+    padding: 16px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .dr-pet-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dr-pet-details h2 {
+    text-align: center;
+  }
+
+  .dr-pet-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 
-  .pet-avatar {
-    width: 60px;
-    height: 60px;
+  .dr-pet-item {
+    text-align: center;
   }
 
-  .diagnosis-name {
-    font-size: 16px;
+  .dr-diagnosis-name {
+    font-size: 18px;
   }
 
-  .action-btn {
+  .dr-section {
+    padding: 16px;
+  }
+
+  .dr-actions {
+    padding: 12px;
+  }
+
+  .dr-btn {
     padding: 10px 6px;
-    font-size: 11px;
+    font-size: 12px;
   }
 }
