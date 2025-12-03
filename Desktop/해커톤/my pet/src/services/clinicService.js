@@ -277,10 +277,39 @@ export async function getMonthlyBookings(clinicId, year, month) {
       dateRange: `${startDate} ~ ${endDate}`
     });
 
-    const bookings = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    // 펫 정보와 보호자 정보 병렬로 가져오기
+    const bookings = await Promise.all(
+      snapshot.docs.map(async (bookingDoc) => {
+        const bookingData = bookingDoc.data();
+
+        // 펫 정보 가져오기
+        let petDoc = null;
+        if (bookingData.petId) {
+          try {
+            petDoc = await getDoc(doc(db, 'pets', bookingData.petId));
+          } catch (e) {
+            console.warn('펫 정보 조회 실패:', bookingData.petId, e);
+          }
+        }
+
+        // 보호자 정보 가져오기
+        let userDoc = null;
+        if (bookingData.userId) {
+          try {
+            userDoc = await getDoc(doc(db, 'users', bookingData.userId));
+          } catch (e) {
+            console.warn('보호자 정보 조회 실패:', bookingData.userId, e);
+          }
+        }
+
+        return {
+          id: bookingDoc.id,
+          ...bookingData,
+          pet: petDoc?.exists() ? petDoc.data() : bookingData.pet || bookingData.petProfile || null,
+          owner: userDoc?.exists() ? userDoc.data() : bookingData.owner || null
+        };
+      })
+    );
 
     // 날짜 및 시간순 정렬
     bookings.sort((a, b) => {

@@ -1020,111 +1020,91 @@ export function ClinicDashboard({ currentUser, onBack }) {
         {activeTab === 'records' && (
           <div>
             <h2 className="font-bold text-gray-900 mb-3">
-              📂 환자 기록 관리
+              📂 환자 기록 관리 ({monthlyBookings.length}건)
             </h2>
 
-            {patients.length === 0 ? (
+            {monthlyBookings.length === 0 ? (
               <div className="bg-white rounded-2xl p-10 text-center">
-                <div className="text-6xl mb-3">🐾</div>
-                <p className="text-gray-400">등록된 환자가 없습니다</p>
+                <div className="text-6xl mb-3">📅</div>
+                <p className="text-gray-400">이번달 예약이 없습니다</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {patients.map((patient, index) => (
-                  <div key={patient.id || index} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                    {/* 상단 펫 정보 */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-purple-400 overflow-hidden">
-                        <img
-                          src={getPetImage(patient || { species: patient.species || 'dog' }, false)}
-                          alt={patient.petName || patient.name || '반려동물'}
-                          className="w-full h-full object-cover"
-                          style={{ objectPosition: 'center', display: 'block' }}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-base font-semibold text-gray-900">
-                          {patient.petName || patient.name || '이름 미상'} (
-                          {patient.speciesLabelKo || patient.species || '종 정보 없음'}
-                          )
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          보호자: {patient.ownerName || '-'} · {patient.ownerPhone || '-'}
-                        </p>
-                      </div>
-                    </div>
+                {monthlyBookings.map((booking, index) => {
+                  // 펫 정보 가져오기
+                  const pet = booking.pet || booking.petProfile || null;
+                  const owner = booking.owner || null;
 
-                    {/* 우리 병원 기록 섹션 */}
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4 rounded-xl mb-3">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl">🏥</div>
-                          <span className="text-sm font-bold text-green-800">우리 병원</span>
+                  return (
+                    <div
+                      key={booking.id || index}
+                      className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {booking.date} {booking.time || '시간 미정'}
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(booking.status)}`}>
+                            {getStatusLabel(booking.status)}
+                          </span>
                         </div>
-                        <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                          {(patient.visitCount || 0)}건
-                        </span>
                       </div>
-                      <div className="text-xs text-green-800 leading-relaxed mb-3">
-                        • 마지막 방문: {patient.lastVisitDate || '방문 기록 없음'}
-                        <br />
-                        • 마지막 진단: {patient.lastDiagnosis || '진단 기록 없음'}
-                      </div>
-                      <button
-                        className="w-full text-sm py-3 bg-white text-green-800 border-2 border-green-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-50 transition-colors shadow-sm"
-                        onClick={() => handleSendToGuardian(patient)}
-                      >
-                        <span className="material-symbols-outlined text-xl">send</span>
-                        보호자에게 보내기
-                      </button>
-                    </div>
 
-                    {/* 보호자 제공 기록 섹션 */}
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 rounded-xl">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl">👤</div>
-                          <span className="text-sm font-bold text-amber-800">보호자 제공</span>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-purple-400 overflow-hidden">
+                          <img
+                            src={pet?.profileImage || getPetImage(pet || { species: pet?.species || 'dog' }, false)}
+                            alt={pet?.name || '반려동물'}
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: 'center', display: 'block' }}
+                          />
                         </div>
-                        <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                          {(patient.guardianRecordCount || 0)}건
-                        </span>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
+                            {pet?.name || '미등록'} ({SPECIES_LABELS[pet?.species] || pet?.speciesLabelKo || pet?.species || '기타'}, {formatAge(pet?.age)})
+                            {pet?.sex && <span className="ml-1">{formatGender(pet.sex)}</span>}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            보호자: {owner?.displayName || owner?.name || '알 수 없음'} · {owner?.phone || ''}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-xs text-amber-900 leading-relaxed mb-3">
-                        {patient.guardianRecordPreview && patient.guardianRecordPreview.length > 0 ? (
-                          patient.guardianRecordPreview.slice(0, 3).map((rec, i) => (
-                            <div key={i}>
-                              • {rec.date || '날짜 미상'} {rec.title || rec.summary || ''}
-                            </div>
-                          ))
-                        ) : (
-                          <div>보호자 제공 기록이 없습니다.</div>
-                        )}
+
+                      <div className="bg-gray-50 p-3 rounded-lg mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-600">증상</span>
+                          {(booking.aiDiagnosis || booking.diagnosisId) && (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                              AI 진단서 첨부
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-900">
+                          {booking.aiDiagnosis?.diagnosis || booking.aiDiagnosis?.mainDiagnosis || booking.symptom || '일반 진료'}
+                        </div>
                       </div>
-                      <div className="flex justify-end gap-2">
+
+                      {/* 진단서 보내기 & 과거 기록 버튼 */}
+                      <div className="grid grid-cols-2 gap-2">
                         <button
-                          className="px-3 py-2 bg-white text-amber-800 border border-amber-400 rounded-lg text-xs font-semibold hover:bg-amber-50"
-                          onClick={() => {
-                            console.log('[환자 기록] 보호자 제공 기록 상세 보기 클릭:', patient);
-                            alert('보호자 제공 기록 전체 보기는 추후 구현 예정입니다.');
-                          }}
+                          onClick={() => handleShowResultDetail(booking)}
+                          className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
                         >
-                          상세 보기
+                          <span className="material-symbols-outlined text-xl">description</span>
+                          진단서 보내기
                         </button>
                         <button
-                          className="px-3 py-2 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700"
-                          onClick={() => {
-                            if (window.confirm('보호자 제공 기록을 관리(삭제 등)하는 기능은 추후 제공될 예정입니다.')) {
-                              console.log('[환자 기록] 보호자 제공 기록 관리 요청:', patient);
-                            }
-                          }}
+                          onClick={() => handleShowHistory(booking)}
+                          className="p-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex flex-col items-center gap-1"
                         >
-                          기록 관리
+                          <span className="material-symbols-outlined text-xl">history</span>
+                          과거 기록
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
