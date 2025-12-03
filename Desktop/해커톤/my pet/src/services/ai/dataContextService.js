@@ -228,12 +228,21 @@ export async function buildAIContext(petData, symptomData) {
   const keywords = `${symptomText} ${selectedSymptoms}`;
 
   // 병렬로 데이터 조회 (케어 로그 포함)
-  const [faqs, pastDiagnoses, similarCases, careLogs] = await Promise.all([
-    fetchRelatedFAQs(species, keywords),
-    fetchPastDiagnoses(petData?.id),
-    fetchSimilarCases(species, keywords),
-    fetchRecentCareLogs(petData?.id, 7)
+  // 케어 로그는 권한 오류가 발생할 수 있으므로 개별적으로 처리
+  const [faqs, pastDiagnoses, similarCases] = await Promise.all([
+    fetchRelatedFAQs(species, keywords).catch(() => []),
+    fetchPastDiagnoses(petData?.id).catch(() => []),
+    fetchSimilarCases(species, keywords).catch(() => [])
   ]);
+
+  // 케어 로그는 별도로 처리 (오류 발생 시 빈 배열 반환)
+  let careLogs = [];
+  try {
+    careLogs = await fetchRecentCareLogs(petData?.id, 7);
+  } catch (error) {
+    console.warn('케어 로그 조회 실패 (진단은 계속 진행):', error);
+    careLogs = [];
+  }
 
   let context = '';
 

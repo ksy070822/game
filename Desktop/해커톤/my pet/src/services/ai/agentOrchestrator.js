@@ -426,6 +426,10 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
     // const medicationSummary = getShortMedicationSummary(medicationGuidance);
     const medicationGuidance = null;
 
+    // FAQ 정보 초기화 (진찰 완료 후 별도 화면에서 제공)
+    const faqAnswers = [];
+    const recommendedFAQs = [];
+
     // 약물 안내가 있으면 포함
     let careMessage = careResult.message;
     // if (medicationGuidance && medicationGuidance.hasMedicationGuidance) {

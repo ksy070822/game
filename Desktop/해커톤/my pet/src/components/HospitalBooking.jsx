@@ -1239,10 +1239,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   ) : (
                     <button
                       onClick={() => generateReviewSummary(hospital)}
-                      className="text-sm text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1.5 bg-sky-50 px-3 py-2 rounded-lg hover:bg-sky-100 transition-colors"
+                      className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 bg-sky-50 px-2 py-1.5 rounded-lg hover:bg-sky-100 transition-colors"
                     >
-                      <span className="text-base">🤖</span>
-                      AI 병원 분석 보기
+                      <span className="text-xs">🤖</span>
+                      <span>AI 병원 분석</span>
                     </button>
                   )}
                 </div>
