@@ -970,7 +970,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
           <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
             <div className="bg-white w-full max-w-lg h-[95vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
               {/* 헤더 */}
-              <div className="bg-gradient-to-r from-primary to-cyan-500 text-white p-6 relative">
+              <div className="bg-gradient-to-r from-primary to-sky-500 text-white p-6 relative">
                 <button
                   onClick={() => setShowCheckupDetail(false)}
                   className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"

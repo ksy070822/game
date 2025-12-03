@@ -756,7 +756,6 @@ export function ClinicDashboard({ currentUser, onBack }) {
                         />
                       </div>
                       <div className="flex-1">
-<<<<<<< HEAD
                         <h3 className="text-sm font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
                           {booking.pet?.name || '미등록'} ({SPECIES_LABELS[booking.pet?.species] || booking.pet?.speciesLabelKo || booking.pet?.species || '기타'}, {formatAge(booking.pet?.age)})
                           {booking.pet?.sex && <span className="ml-1">{formatGender(booking.pet.sex)}</span>}

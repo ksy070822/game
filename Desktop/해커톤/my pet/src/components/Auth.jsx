@@ -214,17 +214,19 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex flex-col items-center justify-center p-6 pt-12">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-6 pt-12">
       {/* 로고 - 좌측 정렬 */}
       <div className="w-full max-w-sm mb-8">
-        <div className="flex flex-col items-center text-center gap-2">
+        <div className="flex items-center gap-4">
           <img
             src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
             alt="PetMedical.AI"
-            className="w-20 h-20 object-contain"
+            className="w-16 h-16 object-contain"
           />
-          <h1 className="text-3xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
-          <p className="text-slate-500 text-base">AI 기반 반려동물 건강 관리 서비스</p>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
+            <p className="text-slate-500 text-sm">AI 기반 반려동물 건강 관리 서비스</p>
+          </div>
         </div>
       </div>
 
@@ -329,7 +331,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50"
+                  className="w-full py-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold rounded-xl hover:from-sky-600 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {loading ? '전송 중...' : '재설정 링크 보내기'}
                 </button>
@@ -359,7 +361,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 placeholder="이메일"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
                 required
               />
             </div>
@@ -369,7 +371,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 placeholder="비밀번호"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
                 required
               />
             </div>
@@ -471,7 +473,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             <span className="text-slate-500 text-sm">계정이 없으신가요? </span>
             <button
               onClick={onGoToRegister}
-              className="text-cyan-600 font-bold text-sm hover:underline"
+              className="text-sky-600 font-bold text-sm hover:underline"
             >
               회원가입
             </button>
@@ -676,10 +678,14 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                   formData.userMode === 'guardian' ? 'bg-sky-100' : 'bg-slate-100'
                 }`}>
-                  🐕
+                  <img
+                    src={`${import.meta.env.BASE_URL}icon/login/main_friend.png`}
+                    alt="보호자"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -709,10 +715,14 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                   formData.userMode === 'clinic' ? 'bg-sky-100' : 'bg-slate-100'
                 }`}>
-                  🏥
+                  <img
+                    src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
+                    alt="병원"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
