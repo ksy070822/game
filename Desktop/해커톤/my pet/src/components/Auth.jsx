@@ -1082,3 +1082,4 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
     </div>
   );
 }
+
