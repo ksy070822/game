@@ -436,6 +436,16 @@ export const clinicResultService = {
   // 진료 결과 저장
   async saveResult(resultData) {
     try {
+      console.log('🔍 [saveResult] 입력 데이터:', {
+        clinicId: resultData.clinicId,
+        userId: resultData.userId,
+        ownerId: resultData.ownerId,
+        petId: resultData.petId,
+        petIdType: typeof resultData.petId,
+        bookingId: resultData.bookingId,
+        visitDate: resultData.visitDate
+      });
+
       // 🔥 필수 필드 검증
       if (!resultData.clinicId) {
         throw new Error('clinicId는 필수 필드입니다.');
@@ -457,7 +467,20 @@ export const clinicResultService = {
         createdAt: serverTimestamp()
       };
 
+      console.log('💾 [saveResult] Firestore 저장 직전 payload:', {
+        clinicId: docData.clinicId,
+        userId: docData.userId,
+        ownerId: docData.ownerId,
+        petId: docData.petId,
+        petIdType: typeof docData.petId,
+        bookingId: docData.bookingId,
+        mainDiagnosis: docData.mainDiagnosis,
+        visitDate: docData.visitDate
+      });
+
       const docRef = await addDoc(collection(db, COLLECTIONS.CLINIC_RESULTS), docData);
+
+      console.log('✅ [saveResult] Firestore 저장 성공! docId:', docRef.id);
       
       // 보호자에게 푸시 알림 전송
       if (resultData.userId) {
@@ -512,19 +535,34 @@ export const clinicResultService = {
   // 반려동물의 진료 결과 조회
   async getResultsByPet(petId) {
     try {
+      console.log('🔍 [getResultsByPet] 입력:', { petId, petIdType: typeof petId });
+
       const q = query(
         collection(db, COLLECTIONS.CLINIC_RESULTS),
         where('petId', '==', petId),
         orderBy('createdAt', 'desc')
       );
       const querySnapshot = await getDocs(q);
+
+      console.log('📊 [getResultsByPet] 조회 결과:', {
+        count: querySnapshot.size,
+        docs: querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          petId: doc.data().petId,
+          petIdType: typeof doc.data().petId,
+          clinicId: doc.data().clinicId,
+          ownerId: doc.data().ownerId,
+          userId: doc.data().userId
+        }))
+      });
+
       const results = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       return { success: true, data: results };
     } catch (error) {
-      console.error('진료 결과 목록 조회 오류:', error);
+      console.error('❌ [getResultsByPet] 진료 결과 목록 조회 오류:', error);
       return { success: false, error, data: [] };
     }
   },
