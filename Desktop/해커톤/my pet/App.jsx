@@ -1070,19 +1070,14 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     </div>
 
                     {/* AI 건강 문진 카드 */}
-                    <div className="bg-amber-50 rounded-2xl p-4 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
-                      <div className="relative flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 flex items-center justify-center">
-                          <span className="text-3xl">🤖</span>
-                        </div>
-                        <div>
-                          <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
-                          <p className="text-gray-600 text-xs">{petData?.petName || petData?.name || '반려동물'} 건강기록 주요알림</p>
-                        </div>
+                    <div className="bg-amber-50 rounded-2xl p-3 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
+                      <div className="relative flex items-center justify-center gap-2 mb-2">
+                        <span className="text-2xl">🤖</span>
+                        <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
                       </div>
                       <button
                         onClick={() => onNavigate('ai-consultation')}
-                        className="w-full mt-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-2.5 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                        className="w-full bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-2 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
                       >
                         7일 케어기록으로 AI 문진하기 &gt;
                       </button>
@@ -1090,8 +1085,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                     {/* 케어 주요 알림 섹션 */}
                     <div className="mb-4">
-                      <div className="flex flex-col items-center mb-3">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
                           <span className="text-lg">🔔</span>
                           <h3 className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 케어 주요알림</h3>
                         </div>
@@ -1464,19 +1459,14 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             </div>
 
             {/* AI 건강 문진 카드 - 컴팩트 레이아웃 */}
-            <div className="bg-amber-50 rounded-2xl p-4 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
-              <div className="relative flex flex-col items-center text-center gap-2">
-                <div className="w-12 h-12 flex items-center justify-center">
-                  <span className="text-3xl">🤖</span>
-                </div>
-                <div>
-                  <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
-                  <p className="text-gray-600 text-xs">{petData?.petName || petData?.name || '반려동물'} 건강기록 주요알림</p>
-                </div>
+            <div className="bg-amber-50 rounded-2xl p-3 shadow-lg border-2 border-amber-200 relative overflow-hidden mb-4">
+              <div className="relative flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">🤖</span>
+                <h3 className="text-gray-800 font-bold text-base">AI 건강 문진</h3>
               </div>
               <button
                 onClick={() => onNavigate('ai-consultation')}
-                className="w-full mt-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-2.5 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                className="w-full bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 font-bold text-sm py-2 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
               >
                 7일 케어기록으로 AI 문진하기 &gt;
               </button>
@@ -1484,8 +1474,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
             {/* 케어 주요 알림 섹션 */}
             <div className="mb-4">
-              <div className="flex flex-col items-center mb-3">
-                <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
                   <span className="text-lg">🔔</span>
                   <h3 className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 케어 주요알림</h3>
                 </div>
