@@ -705,7 +705,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-purple-400 overflow-hidden">
                         <img
-                          src={getPetImage(booking.pet || { species: booking.pet?.species || 'dog' }, false)}
+                          src={booking.pet?.profileImage || getPetImage(booking.pet || { species: booking.pet?.species || 'dog' }, false)}
                           alt={booking.pet?.name || '반려동물'}
                           className="w-full h-full object-cover"
                           style={{ objectPosition: 'center', display: 'block' }}
@@ -713,17 +713,26 @@ export function ClinicDashboard({ currentUser, onBack }) {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-base font-semibold text-gray-900">
-                          {booking.pet?.name || '미등록'} ({booking.pet?.breed || '품종 미상'}, {booking.pet?.age || '?'}세)
+                          {booking.pet?.name || '미등록'} ({booking.pet?.speciesLabelKo || booking.pet?.species || '미분류'}/{booking.pet?.breed || '품종 미상'}/{booking.pet?.age || '?'}세/{booking.pet?.sex === 'M' ? '♂' : booking.pet?.sex === 'F' ? '♀' : '?'})
                         </h3>
                         <p className="text-sm text-gray-600">
-                          보호자: {booking.owner?.name || '알 수 없음'} · {booking.owner?.phone || ''}
+                          보호자: {booking.userId || booking.owner?.id || '알 수 없음'}
                         </p>
                       </div>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                      <div className="text-xs text-gray-600 mb-1">증상</div>
-                      <div className="text-sm text-gray-900">{booking.symptom || '일반 진료'}</div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-600">증상</span>
+                        {(booking.aiDiagnosis || booking.diagnosisId) && (
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                            AI 진단서 첨부
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-900">
+                        {booking.aiDiagnosis?.diagnosis || booking.aiDiagnosis?.mainDiagnosis || booking.symptom || '일반 진료'}
+                      </div>
                     </div>
 
                     {/* Info Buttons */}
@@ -1096,6 +1105,55 @@ export function ClinicDashboard({ currentUser, onBack }) {
                   증상 메모: {selectedBooking.symptom || selectedBooking.message || '입력 없음'}
                 </div>
               </div>
+
+              {/* AI 진단서 정보 */}
+              {(selectedBooking.aiDiagnosis || selectedBooking.diagnosisId) && (
+                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">AI 진단서</span>
+                    <span className="text-emerald-700 font-semibold">첨부됨</span>
+                  </div>
+
+                  {selectedBooking.aiDiagnosis && (
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="font-semibold text-gray-700">진단명: </span>
+                        <span className="text-gray-900">{selectedBooking.aiDiagnosis.diagnosis || selectedBooking.aiDiagnosis.mainDiagnosis || '-'}</span>
+                      </div>
+                      {selectedBooking.aiDiagnosis.riskLevel && (
+                        <div>
+                          <span className="font-semibold text-gray-700">위험도: </span>
+                          <span className={`font-semibold ${
+                            selectedBooking.aiDiagnosis.riskLevel === 'high' ? 'text-red-600' :
+                            selectedBooking.aiDiagnosis.riskLevel === 'moderate' ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {selectedBooking.aiDiagnosis.riskLevel === 'high' ? '높음' :
+                             selectedBooking.aiDiagnosis.riskLevel === 'moderate' ? '보통' : '낮음'}
+                          </span>
+                        </div>
+                      )}
+                      {selectedBooking.aiDiagnosis.confidence && (
+                        <div>
+                          <span className="font-semibold text-gray-700">신뢰도: </span>
+                          <span className="text-gray-900">{Math.round(selectedBooking.aiDiagnosis.confidence * 100)}%</span>
+                        </div>
+                      )}
+                      {selectedBooking.aiDiagnosis.symptomSummary && (
+                        <div>
+                          <span className="font-semibold text-gray-700">증상 요약: </span>
+                          <span className="text-gray-900">{selectedBooking.aiDiagnosis.symptomSummary}</span>
+                        </div>
+                      )}
+                      {selectedBooking.aiDiagnosis.treatmentRecommendation && (
+                        <div>
+                          <span className="font-semibold text-gray-700">권장 치료: </span>
+                          <span className="text-gray-900">{selectedBooking.aiDiagnosis.treatmentRecommendation}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mt-4 flex justify-end">
