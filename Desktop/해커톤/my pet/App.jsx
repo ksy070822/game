@@ -4133,66 +4133,104 @@ function App() {
     setAuthScreen('login');
   };
 
-  // 로그인 없이 바로 입장 (테스트용)
-  const handleSkipLogin = () => {
-    // 테스트용 게스트 유저 (고정 ID로 데이터 유지)
-    const guestUser = {
-      uid: 'guest_test_user',
-      email: 'guest@test.com',
-      displayName: '테스트 유저',
-      userMode: 'guardian'
+  // 로그인 없이 바로 입장 (테스트용) - 선택한 모드의 테스트 계정으로 자동 로그인
+  const handleSkipLogin = async (selectedMode = 'guardian') => {
+    
+    // 선택한 모드에 따라 테스트 계정 정보 설정
+    const testAccounts = {
+      guardian: {
+        email: 'guardian@test.com',
+        password: 'test1234',
+        displayName: '테스트 보호자'
+      },
+      clinic: {
+        email: 'clinic@happyvet.com',
+        password: 'test1234',
+        displayName: '테스트 병원'
+      }
     };
 
-    // 이미 등록된 반려동물이 있는지 확인
-    const existingPets = getPetsForUser(guestUser.uid);
+    const testAccount = testAccounts[selectedMode] || testAccounts.guardian;
 
-    if (existingPets.length > 0) {
-      // 기존 반려동물 데이터 사용
-      setPets(existingPets);
-      setPetData(existingPets[0]);
+    try {
+      // 테스트 계정으로 자동 로그인
+      const { authService } = await import('./src/services/firebaseAuth');
+      const loginResult = await authService.login(testAccount.email, testAccount.password);
 
-      // 해당 반려동물의 최신 진단 기록 로드
-      try {
-        const stored = localStorage.getItem(DIAGNOSIS_KEY);
-        if (stored) {
-          const allDiagnoses = JSON.parse(stored);
-          const petDiagnoses = allDiagnoses
-            .filter(d => d.petId === existingPets[0].id)
-            .sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
-          if (petDiagnoses.length > 0) {
-            setLastDiagnosis(petDiagnoses[0]);
+      if (loginResult.success) {
+        // 로그인 성공 - handleLogin과 동일한 로직 사용
+        const user = loginResult.user;
+        
+        // 실제 병원 데이터가 있는지 확인
+        let mode = user.userMode || selectedMode;
+        let clinicAccess = false;
+
+        if ((user.roles && user.roles.length > 0) || user.defaultClinicId) {
+          try {
+            const userClinics = await getUserClinics(user.uid);
+            clinicAccess = userClinics && userClinics.length > 0;
+
+            if (clinicAccess) {
+              mode = 'clinic';
+            } else {
+              console.warn('테스트 로그인: 사용자에게 roles는 있지만 실제 병원 데이터가 없습니다. guardian 모드로 유지합니다.');
+            }
+          } catch (error) {
+            console.error('병원 정보 확인 실패:', error);
+            clinicAccess = false;
           }
         }
-      } catch (err) {
-        console.error('진단 기록 로드 실패:', err);
+
+        setHasClinicAccess(clinicAccess);
+        setCurrentUser(user);
+        setUserMode(mode);
+        setAuthScreen(null);
+
+        // userMode를 localStorage에 저장
+        localStorage.setItem('petMedical_userMode', mode);
+
+        // 로그인한 사용자의 반려동물 데이터 로드
+        const userPets = getPetsForUser(user.uid);
+        setPets(userPets);
+        if (userPets.length > 0) {
+          setPetData(userPets[0]);
+        } else {
+          setPetData(null);
+        }
+
+        // 푸시 알림 권한 요청 및 토큰 저장
+        try {
+          await requestPushPermission(user.uid);
+          console.log('✅ 푸시 알림 설정 완료');
+        } catch (error) {
+          console.warn('푸시 알림 설정 실패:', error);
+        }
+      } else {
+        // 로그인 실패 시 게스트 모드로 fallback
+        console.warn('테스트 계정 로그인 실패, 게스트 모드로 전환:', loginResult.error);
+        const guestUser = {
+          uid: `guest_${selectedMode}_${Date.now()}`,
+          email: `guest@test.com`,
+          displayName: testAccount.displayName,
+          userMode: selectedMode
+        };
+        setCurrentUser(guestUser);
+        setUserMode(selectedMode);
+        setAuthScreen(null);
       }
-    } else {
-      // 기본 반려동물 자동 등록 (테스트 편의성)
-      const defaultPet = {
-        id: Date.now(),
-        userId: guestUser.uid,
-        name: '멍멍이',
-        species: 'dog',
-        breed: '믹스견',
-        birthDate: '2022-01-01',
-        sex: 'M',
-        neutered: true,
-        weight: 8.5,
-        sido: '서울특별시',
-        sigungu: '강남구',
-        profileImage: null,
-        character: 'dog_white',
-        createdAt: new Date().toISOString()
+    } catch (error) {
+      console.error('테스트 계정 로그인 오류:', error);
+      // 오류 발생 시 게스트 모드로 fallback
+      const guestUser = {
+        uid: `guest_${selectedMode}_${Date.now()}`,
+        email: `guest@test.com`,
+        displayName: testAccount.displayName,
+        userMode: selectedMode
       };
-
-      savePetsForUser(guestUser.uid, [defaultPet], defaultPet); // Firestore에도 저장
-      setPets([defaultPet]);
-      setPetData(defaultPet);
+      setCurrentUser(guestUser);
+      setUserMode(selectedMode);
+      setAuthScreen(null);
     }
-
-    setCurrentUser(guestUser);
-    setUserMode('guardian');
-    setAuthScreen(null);
   };
 
   // 인증 화면 렌더링

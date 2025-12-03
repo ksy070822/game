@@ -470,11 +470,11 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           </div>
         )}
 
-        {/* 테스트용 바로 입장 버튼 */}
+        {/* 테스트용 바로 입장 버튼 - 선택한 모드의 테스트 계정으로 자동 로그인 */}
         {onSkipLogin && (
           <div className="mt-4">
             <button
-              onClick={onSkipLogin}
+              onClick={() => onSkipLogin(userMode)}
               className="w-full py-3 bg-white/80 text-cyan-700 font-medium rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 border border-cyan-200 shadow-sm"
             >
               <span className="material-symbols-outlined text-sm">rocket_launch</span>
