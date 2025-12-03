@@ -232,7 +232,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             onClick={() => setUserMode('guardian')}
             className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-3 ${
               userMode === 'guardian'
-                ? 'ring-2 ring-sky-500 bg-sky-50'
+                ? 'ring-2 ring-cyan-500 bg-cyan-50'
                 : 'hover:shadow-lg'
             }`}
           >
@@ -249,7 +249,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             onClick={() => setUserMode('clinic')}
             className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-3 ${
               userMode === 'clinic'
-                ? 'ring-2 ring-sky-500 bg-sky-50'
+                ? 'ring-2 ring-cyan-500 bg-cyan-50'
                 : 'hover:shadow-lg'
             }`}
           >
@@ -351,7 +351,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 placeholder="이메일"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
                 required
               />
             </div>
@@ -361,7 +361,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 placeholder="비밀번호"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
                 required
               />
             </div>
@@ -463,7 +463,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             <span className="text-slate-500 text-sm">계정이 없으신가요? </span>
             <button
               onClick={onGoToRegister}
-              className="text-sky-600 font-bold text-sm hover:underline"
+              className="text-cyan-600 font-bold text-sm hover:underline"
             >
               회원가입
             </button>
@@ -664,12 +664,12 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                 onClick={() => setFormData({ ...formData, userMode: 'guardian' })}
                 className={`w-full p-5 rounded-xl border-2 transition-all flex items-start gap-4 text-left ${
                   formData.userMode === 'guardian'
-                    ? 'border-sky-500 bg-sky-50'
+                    ? 'border-cyan-500 bg-cyan-50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
                 <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
-                  formData.userMode === 'guardian' ? 'bg-sky-100' : 'bg-slate-100'
+                  formData.userMode === 'guardian' ? 'bg-cyan-100' : 'bg-slate-100'
                 }`}>
                   🐕
                 </div>
@@ -677,7 +677,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900">보호자</span>
                     {formData.userMode === 'guardian' && (
-                      <span className="text-sky-500 text-sm font-bold">✓ 선택됨</span>
+                      <span className="text-cyan-500 text-sm font-bold">✓ 선택됨</span>
                     )}
                   </div>
                   <p className="text-sm text-slate-500 mt-1">
@@ -697,12 +697,12 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                 onClick={() => setFormData({ ...formData, userMode: 'clinic' })}
                 className={`w-full p-5 rounded-xl border-2 transition-all flex items-start gap-4 text-left ${
                   formData.userMode === 'clinic'
-                    ? 'border-sky-500 bg-sky-50'
+                    ? 'border-cyan-500 bg-cyan-50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
                 <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
-                  formData.userMode === 'clinic' ? 'bg-sky-100' : 'bg-slate-100'
+                  formData.userMode === 'clinic' ? 'bg-cyan-100' : 'bg-slate-100'
                 }`}>
                   🏥
                 </div>
@@ -710,7 +710,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900">병원 (수의사/스태프)</span>
                     {formData.userMode === 'clinic' && (
-                      <span className="text-sky-500 text-sm font-bold">✓ 선택됨</span>
+                      <span className="text-cyan-500 text-sm font-bold">✓ 선택됨</span>
                     )}
                   </div>
                   <p className="text-sm text-slate-500 mt-1">

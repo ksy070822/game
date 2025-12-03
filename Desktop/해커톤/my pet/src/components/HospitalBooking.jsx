@@ -949,14 +949,14 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
   // 검색 필터링 - 테스트 병원은 항상 최상단에 고정, 그 아래로 위치 기반 병원들
   const testHospitalFromList = hospitals.find(h => h.isTestHospital === true);
   const otherHospitals = hospitals.filter(h => h.isTestHospital !== true);
-  
+
   const filteredOtherHospitals = otherHospitals.filter(hospital =>
     !searchQuery || hospital.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (hospital.address && hospital.address.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-  
+
   // 테스트 병원이 있으면 항상 최상단에 배치, 그 아래로 필터링된 위치 기반 병원들
-  const filteredHospitals = testHospitalFromList 
+  const filteredHospitals = testHospitalFromList
     ? [testHospitalFromList, ...filteredOtherHospitals]
     : filteredOtherHospitals;
 
