@@ -183,7 +183,7 @@ const sanitizeForFirestore = (data) => {
   return data;
 };
 
-export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser }) {
+export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser, onGoToMyBookings }) {
   const [hospitalPacket, setHospitalPacket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedHospital, setSelectedHospital] = useState(null);
@@ -1330,10 +1330,14 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   onClick={() => {
                     setShowBookingModal(false);
                     setBookingSuccess(false);
+                    // 마이페이지 > 내예약으로 이동
+                    if (onGoToMyBookings) {
+                      onGoToMyBookings();
+                    }
                   }}
                   className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors"
                 >
-                  확인
+                  내 예약 확인하기
                 </button>
               </div>
             ) : (
