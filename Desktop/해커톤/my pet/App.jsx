@@ -37,6 +37,21 @@ import { diagnosisService, bookingService, petService } from './src/services/fir
 import { requestPushPermission, setupForegroundMessageHandler } from './src/services/pushNotificationService'
 import { getUserClinics } from './src/services/clinicService'
 import { getSpeciesDisplayName } from './src/services/ai/commonContext'
+// 동물 이미지 경로 유틸리티 import
+import { getMainCharacterImage, getPetImage, PROFILE_IMAGES } from './src/utils/imagePaths'
+
+// 동물 종류 한글 매핑
+const SPECIES_LABELS_APP = {
+  dog: '강아지',
+  cat: '고양이',
+  rabbit: '토끼',
+  hamster: '햄스터',
+  bird: '조류',
+  hedgehog: '고슴도치',
+  reptile: '파충류',
+  etc: '기타',
+  other: '기타'
+};
 
 // ============ 로컬 스토리지 유틸리티 ============
 const STORAGE_KEY = 'petMedical_pets';
@@ -214,9 +229,6 @@ const PET_CHARACTERS = {
     { id: 'other_pet', emoji: '🐾', label: '기타', color: '#808080' },
   ]
 };
-
-// 동물 이미지 경로 유틸리티 import
-import { getMainCharacterImage, getPetImage, PROFILE_IMAGES } from './src/utils/imagePaths';
 
 // 동물 종류 옵션 - PROFILE_IMAGES 사용하여 배포 환경 호환
 const SPECIES_OPTIONS = [
@@ -3377,111 +3389,368 @@ ${userQuestion}
       )}
       
       {showResult && diagnosisResult && (
-        <div className="diagnosis-result">
-          <div className="result-header">
-            <h2>✅ 진료 완료!</h2>
-            <p className="result-date">{new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <div className="diagnosis-result-redesign" style={{
+          minHeight: '100vh',
+          background: '#f8fafc',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* 헤더 */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            background: 'white',
+            borderBottom: '1px solid #e2e8f0'
+          }}>
+            <button
+              onClick={() => onComplete('home')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#0891b2',
+                fontWeight: '600',
+                fontSize: '15px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              ← 이전으로
+            </button>
+            <button
+              onClick={() => onComplete('home')}
+              style={{
+                color: '#9ca3af',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '24px',
+                lineHeight: 1
+              }}
+            >
+              ×
+            </button>
           </div>
-          
-          <div className="result-card">
-            <div className="result-section">
-              <h3>🎯 진단 결과</h3>
-              <p className="diagnosis-text"><strong>{diagnosisResult.diagnosis}</strong></p>
-              
-              {/* Triage Score 표시 */}
-              {diagnosisResult.triage_score !== undefined && (
-                <div className="triage-display-inline">
-                  <div className="triage-label">🚨 응급도 평가 (Triage)</div>
-                  <div className="triage-score-inline">
-                    <span className="triage-number">{diagnosisResult.triage_score}/5</span>
-                    <div className="triage-bar-inline">
-                      <div 
-                        className="triage-fill-inline"
-                        style={{ 
-                          width: `${(diagnosisResult.triage_score / 5) * 100}%`,
-                          backgroundColor: diagnosisResult.triage_score >= 4 ? '#f44336' : 
-                                           diagnosisResult.triage_score >= 3 ? '#ff9800' : 
-                                           diagnosisResult.triage_score >= 2 ? '#ffc107' : '#4caf50'
-                        }}
-                      ></div>
-                    </div>
-                    <span className="triage-level-text">{diagnosisResult.triage_level || 'Moderate'}</span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="emergency-badge" style={{ 
-                backgroundColor: getEmergencyColor(diagnosisResult.emergency),
-                color: 'white',
-                padding: '10px 20px',
-                borderRadius: '25px',
-                display: 'inline-block',
-                marginTop: '15px',
-                fontSize: '14px',
-                fontWeight: '600'
+
+          {/* 스크롤 가능한 본문 */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '16px',
+            paddingBottom: '180px'
+          }}>
+            {/* 진단명 헤더 카드 */}
+            <div style={{
+              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '16px',
+              color: 'white',
+              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px'
+                }}>!</span>
+                <span style={{ fontSize: '14px', fontWeight: '600' }}>상세 진단</span>
+              </div>
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                margin: '0 0 8px 0',
+                lineHeight: '1.3'
               }}>
-                {diagnosisResult.emergency === 'low' ? '🟢 경미 - 집에서 관리 가능' : 
-                 diagnosisResult.emergency === 'medium' ? '🟡 보통 - 병원 방문 권장' : '🔴 응급 - 즉시 병원 방문 필요'}
-              </div>
-            </div>
-            
-            {diagnosisResult.description && (
-              <div className="result-section">
-                <h3>📋 상세 설명</h3>
-                <p className="description-text">{diagnosisResult.description}</p>
-              </div>
-            )}
-            
-            <div className="result-section">
-              <h3>💊 즉시 조치 사항</h3>
-              <ul className="action-list">
-                {diagnosisResult.actions.map((action, idx) => (
-                  <li key={idx}>
-                    <span className="action-icon">✓</span>
-                    <span>{action}</span>
-                  </li>
-                ))}
-              </ul>
+                {diagnosisResult.diagnosis || '진단 결과'}
+              </h2>
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.9,
+                margin: 0
+              }}>
+                AI 기반 멀티 에이전트 분석 결과
+              </p>
             </div>
 
-            {diagnosisResult.hospitalVisit && (
-              <div className="result-section hospital-section">
-                <h3>🏥 병원 방문 권장</h3>
-                <div className="hospital-alert">
-                  <p className="hospital-time"><strong>{diagnosisResult.hospitalVisitTime}</strong> 내 병원 방문을 권장합니다.</p>
-                  {diagnosisResult.emergency === 'high' && (
-                    <p className="emergency-warning">⚠️ 응급 상황입니다. 가능한 한 빨리 병원을 방문해주세요.</p>
-                  )}
+            {/* 상세 설명 카드 */}
+            {diagnosisResult.description && (
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+              }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#1e293b',
+                  margin: '0 0 16px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  📋 상세 설명
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* 설명을 문장 단위로 분리하여 표시 */}
+                  {diagnosisResult.description.split(/[.!?]\s+/).filter(s => s.trim()).map((sentence, idx) => (
+                    <p key={idx} style={{
+                      fontSize: '14px',
+                      color: '#475569',
+                      lineHeight: '1.6',
+                      background: '#f8fafc',
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      margin: 0,
+                      borderLeft: '3px solid #e2e8f0'
+                    }}>
+                      {sentence.trim()}{sentence.trim().match(/[.!?]$/) ? '' : '.'}
+                    </p>
+                  ))}
                 </div>
               </div>
             )}
 
-            <div className="action-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', padding: '16px' }}>
+            {/* 권장 조치사항 카드 */}
+            {diagnosisResult.actions && diagnosisResult.actions.length > 0 && (
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '20px',
+                marginBottom: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+              }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#1e293b',
+                  margin: '0 0 16px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span style={{
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: '#22d3ee',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ color: 'white', fontSize: '14px' }}>✓</span>
+                  </span>
+                  권장 조치사항
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {diagnosisResult.actions.map((action, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                      background: 'linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%)',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: '1px solid #a5f3fc'
+                    }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        flexShrink: 0
+                      }}>
+                        {idx + 1}
+                      </div>
+                      <p style={{
+                        fontSize: '14px',
+                        color: '#334155',
+                        lineHeight: '1.5',
+                        margin: 0,
+                        flex: 1
+                      }}>
+                        {action}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 중요 안내사항 */}
+            <div style={{
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '16px',
+              border: '2px solid #fbbf24',
+              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.2)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: '#f97316',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <span style={{ color: 'white', fontSize: '20px' }}>!</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#9a3412',
+                    margin: '0 0 8px 0'
+                  }}>
+                    ⚠️ 중요 안내사항
+                  </h4>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#c2410c',
+                    lineHeight: '1.6',
+                    margin: 0
+                  }}>
+                    본 진단서는 AI가 분석한 참고자료입니다.
+                    증상이 지속되거나 악화될 경우 반드시 전문 수의사의 진료를 받으시기 바랍니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 푸터 로고 */}
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginBottom: '6px'
+              }}>
+                <span style={{ color: '#06b6d4', fontSize: '16px' }}>❤️</span>
+                <span style={{ fontSize: '15px', fontWeight: '600', color: '#475569' }}>PetMedical.AI</span>
+              </div>
+              <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+                반려동물 건강 관리의 새로운 기준
+              </p>
+            </div>
+          </div>
+
+          {/* 하단 고정 버튼 영역 */}
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.97)',
+            backdropFilter: 'blur(8px)',
+            borderTop: '1px solid #e2e8f0',
+            zIndex: 100
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+              maxWidth: '500px',
+              margin: '0 auto'
+            }}>
               <button
-                className="action-btn primary"
                 onClick={() => onComplete('treatment')}
-                style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                }}
               >
-                🏠 직접 치료하기
+                ❤️ 직접 치료하기
               </button>
               <button
-                className="action-btn secondary"
                 onClick={() => onComplete('hospital')}
-                style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+                }}
               >
-                🏥 병원 예약하기
+                📅 병원 예약하기
               </button>
               <button
-                className="action-btn highlight"
                 onClick={() => setShowDiagnosisReport(true)}
-                style={{ flex: '1 1 100%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                }}
               >
                 📄 진단서 보기
               </button>
               <button
-                className="action-btn outline"
                 onClick={() => onComplete('home')}
-                style={{ flex: '1 1 100%', padding: '12px 16px', borderRadius: '12px', fontWeight: '500', background: '#f1f5f9', color: '#475569' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(71, 85, 105, 0.3)'
+                }}
               >
                 🏠 홈으로
               </button>
@@ -3515,102 +3784,368 @@ ${userQuestion}
 function DiagnosisResultView({ petData, diagnosisResult, symptomData, onGoToTreatment, onGoToHospital, onBack }) {
   const [showDiagnosisReport, setShowDiagnosisReport] = useState(false);
 
-  const getEmergencyInfo = (emergency) => {
-    switch(emergency) {
-      case 'high':
-        return { text: '응급', color: '#ef4444', icon: '🔴', desc: '즉시 병원 방문 필요' };
-      case 'medium':
-        return { text: '주의', color: '#f59e0b', icon: '🟡', desc: '병원 방문 권장' };
-      default:
-        return { text: '경미', color: '#22c55e', icon: '🟢', desc: '가정 내 관리 가능' };
-    }
-  };
-
-  const emergencyInfo = getEmergencyInfo(diagnosisResult?.emergency);
-
   return (
-    <div className="diagnosis-result-view" style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      {/* PetMedical.AI 브랜드 헤더 */}
-      <div style={{ background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', padding: '16px 20px', color: 'white' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '8px', padding: '8px 12px', color: 'white', cursor: 'pointer' }}>
-            ← 뒤로
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ fontSize: '10px', opacity: 0.9, margin: 0 }}>🐾 PetMedical.AI</p>
-            <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0' }}>AI 진단 결과</h1>
+    <div style={{
+      minHeight: '100vh',
+      background: '#f8fafc',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* 헤더 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        background: 'white',
+        borderBottom: '1px solid #e2e8f0'
+      }}>
+        <button
+          onClick={onBack}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#0891b2',
+            fontWeight: '600',
+            fontSize: '15px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          ← 이전으로
+        </button>
+        <button
+          onClick={onBack}
+          style={{
+            color: '#9ca3af',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '24px',
+            lineHeight: 1
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      {/* 스크롤 가능한 본문 */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        paddingBottom: '180px'
+      }}>
+        {/* 진단명 헤더 카드 */}
+        <div style={{
+          background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '16px',
+          color: 'white',
+          boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '12px'
+            }}>!</span>
+            <span style={{ fontSize: '14px', fontWeight: '600' }}>상세 진단</span>
           </div>
-          <div style={{ width: '60px' }}></div>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            margin: '0 0 8px 0',
+            lineHeight: '1.3'
+          }}>
+            {diagnosisResult?.diagnosis || '진단 결과'}
+          </h2>
+          <p style={{
+            fontSize: '13px',
+            opacity: 0.9,
+            margin: 0
+          }}>
+            AI 기반 멀티 에이전트 분석 결과
+          </p>
+        </div>
+
+        {/* 상세 설명 카드 */}
+        {diagnosisResult?.description && (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}>
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: '#1e293b',
+              margin: '0 0 16px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              📋 상세 설명
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {diagnosisResult.description.split(/[.!?]\s+/).filter(s => s.trim()).map((sentence, idx) => (
+                <p key={idx} style={{
+                  fontSize: '14px',
+                  color: '#475569',
+                  lineHeight: '1.6',
+                  background: '#f8fafc',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  margin: 0,
+                  borderLeft: '3px solid #e2e8f0'
+                }}>
+                  {sentence.trim()}{sentence.trim().match(/[.!?]$/) ? '' : '.'}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 권장 조치사항 카드 */}
+        {diagnosisResult?.actions && diagnosisResult.actions.length > 0 && (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}>
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: '#1e293b',
+              margin: '0 0 16px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{
+                width: '22px',
+                height: '22px',
+                borderRadius: '50%',
+                background: '#22d3ee',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <span style={{ color: 'white', fontSize: '14px' }}>✓</span>
+              </span>
+              권장 조치사항
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {diagnosisResult.actions.map((action, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  background: 'linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%)',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1px solid #a5f3fc'
+                }}>
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    flexShrink: 0
+                  }}>
+                    {idx + 1}
+                  </div>
+                  <p style={{
+                    fontSize: '14px',
+                    color: '#334155',
+                    lineHeight: '1.5',
+                    margin: 0,
+                    flex: 1
+                  }}>
+                    {action}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 중요 안내사항 */}
+        <div style={{
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '16px',
+          border: '2px solid #fbbf24',
+          boxShadow: '0 2px 8px rgba(251, 191, 36, 0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#f97316',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <span style={{ color: 'white', fontSize: '20px' }}>!</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h4 style={{
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#9a3412',
+                margin: '0 0 8px 0'
+              }}>
+                ⚠️ 중요 안내사항
+              </h4>
+              <p style={{
+                fontSize: '13px',
+                color: '#c2410c',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                본 진단서는 AI가 분석한 참고자료입니다.
+                증상이 지속되거나 악화될 경우 반드시 전문 수의사의 진료를 받으시기 바랍니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 푸터 로고 */}
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '6px'
+          }}>
+            <span style={{ color: '#06b6d4', fontSize: '16px' }}>❤️</span>
+            <span style={{ fontSize: '15px', fontWeight: '600', color: '#475569' }}>PetMedical.AI</span>
+          </div>
+          <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+            반려동물 건강 관리의 새로운 기준
+          </p>
         </div>
       </div>
 
-      <div className="result-view-content" style={{ padding: '16px' }}>
-        <div className="result-card-summary" style={{ background: 'white', borderRadius: '16px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <div className="pet-info-mini" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <span className="pet-avatar" style={{ fontSize: '32px' }}>{petData?.species === 'cat' ? '🐱' : '🐕'}</span>
-            <span className="pet-name" style={{ fontWeight: 'bold', fontSize: '18px' }}>{petData?.name || petData?.petName || '반려동물'}</span>
-          </div>
-
-          <div className="diagnosis-main-box">
-            <h2>🎯 {diagnosisResult?.diagnosis || '진단 결과 없음'}</h2>
-            <div
-              className="emergency-badge-inline"
-              style={{ backgroundColor: emergencyInfo.color }}
-            >
-              {emergencyInfo.icon} {emergencyInfo.text} - {emergencyInfo.desc}
-            </div>
-          </div>
-
-          {diagnosisResult?.triage_score !== undefined && (
-            <div className="triage-summary">
-              <span>응급도 점수: </span>
-              <strong>{diagnosisResult.triage_score}/5</strong>
-            </div>
-          )}
-
-          {diagnosisResult?.description && (
-            <div className="description-summary">
-              <h3>📋 설명</h3>
-              <p>{diagnosisResult.description}</p>
-            </div>
-          )}
-
-          <div className="actions-summary">
-            <h3>💊 권장 조치</h3>
-            <ul>
-              {diagnosisResult?.actions?.map((action, idx) => (
-                <li key={idx}>{action}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="result-view-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', padding: '16px' }}>
+      {/* 하단 고정 버튼 영역 */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '16px',
+        background: 'rgba(255, 255, 255, 0.97)',
+        backdropFilter: 'blur(8px)',
+        borderTop: '1px solid #e2e8f0',
+        zIndex: 100
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '10px',
+          maxWidth: '500px',
+          margin: '0 auto'
+        }}>
           <button
-            className="action-btn primary"
             onClick={onGoToTreatment}
-            style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', border: 'none' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+            }}
           >
-            🏠 직접 치료하기
+            ❤️ 직접 치료하기
           </button>
           <button
-            className="action-btn secondary"
             onClick={onGoToHospital}
-            style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600', background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: 'white', border: 'none' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+            }}
           >
-            🏥 병원 예약하기
+            📅 병원 예약하기
           </button>
           <button
-            className="action-btn highlight"
             onClick={() => setShowDiagnosisReport(true)}
-            style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', border: 'none' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+            }}
           >
             📄 진단서 보기
           </button>
           <button
-            className="action-btn outline"
             onClick={onBack}
-            style={{ flex: '1 1 45%', minWidth: '140px', padding: '14px 16px', borderRadius: '12px', fontWeight: '600', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(71, 85, 105, 0.3)'
+            }}
           >
             🏠 홈으로
           </button>
@@ -4431,17 +4966,17 @@ function App() {
                 반려동물 정보
               </h3>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-3xl">
-                  {petData.species === 'dog' ? '🐕' : '🐈'}
+                <div className="w-16 h-16 rounded-full bg-primary/20 overflow-hidden">
+                  <img
+                    src={getPetImage(petData, false)}
+                    alt={petData.petName || '반려동물'}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="flex-1 grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-slate-500">이름</span>
                     <p className="font-medium text-slate-900">{petData.petName || '미상'}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">품종</span>
-                    <p className="font-medium text-slate-900">{petData.breed || '미상'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">나이</span>
@@ -4455,8 +4990,12 @@ function App() {
                     </p>
                   </div>
                   <div>
-                    <span className="text-slate-500">체중</span>
-                    <p className="font-medium text-slate-900">{petData.weight ? `${petData.weight}kg` : '미상'}</p>
+                    <span className="text-slate-500">대표동물종류</span>
+                    <p className="font-medium text-slate-900">{SPECIES_LABELS_APP[petData.species] || '기타'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">세부동물종류</span>
+                    <p className="font-medium text-slate-900">{petData.breed || '미상'}</p>
                   </div>
                 </div>
               </div>
@@ -4468,18 +5007,20 @@ function App() {
                 <span className="material-symbols-outlined text-primary">diagnosis</span>
                 진단 결과
               </h3>
-              <p className="text-lg font-semibold text-slate-900 mb-2">
-                {lastDiagnosis.diagnosis || lastDiagnosis.suspectedConditions?.[0]?.name || '일반 건강 이상'}
-              </p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? 'bg-red-100 text-red-600' :
-                lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-green-100 text-green-600'
-              }`}>
-                {lastDiagnosis.riskLevel === 'Low' || lastDiagnosis.emergency === 'low' ? '경미' :
-                 lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? '보통' :
-                 lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? '응급' : '보통'}
-              </span>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-lg font-semibold text-slate-900 flex-1">
+                  {lastDiagnosis.diagnosis || lastDiagnosis.suspectedConditions?.[0]?.name || '일반 건강 이상'}
+                </p>
+                <span className={`shrink-0 px-3 py-1 rounded-full text-sm font-bold ${
+                  lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? 'bg-red-100 text-red-600' :
+                  lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-green-100 text-green-600'
+                }`}>
+                  {lastDiagnosis.riskLevel === 'Low' || lastDiagnosis.emergency === 'low' ? '경미' :
+                   lastDiagnosis.riskLevel === 'Moderate' || lastDiagnosis.emergency === 'medium' ? '보통' :
+                   lastDiagnosis.riskLevel === 'High' || lastDiagnosis.emergency === 'high' ? '응급' : '보통'}
+                </span>
+              </div>
             </div>
 
             {/* 상세 설명 */}

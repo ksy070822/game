@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { getPetImage } from '../utils/imagePaths';
 
+// 동물 종류 한글 매핑
+const SPECIES_LABELS = {
+  dog: '강아지',
+  cat: '고양이',
+  rabbit: '토끼',
+  hamster: '햄스터',
+  bird: '조류',
+  hedgehog: '고슴도치',
+  reptile: '파충류',
+  etc: '기타',
+  other: '기타'
+};
+
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
 const STORAGE_KEY = 'petMedical_pets';
 const BOOKINGS_KEY = 'petMedical_bookings';
@@ -243,6 +256,20 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
       day: 'numeric',
       weekday: 'short'
     });
+  };
+
+  // 반려동물 정보 포맷팅 (대분류/품종[이름])
+  const formatPetInfo = (booking) => {
+    const species = booking.petSpecies || booking.petProfile?.species;
+    const breed = booking.petBreed || booking.petProfile?.breed;
+    const name = booking.petName || booking.petProfile?.name || '이름 없음';
+
+    if (species) {
+      const speciesLabel = SPECIES_LABELS[species] || '기타';
+      const breedLabel = breed || '품종 미등록';
+      return `${speciesLabel}/${breedLabel}[${name}]`;
+    }
+    return name;
   };
 
   return (
@@ -554,7 +581,7 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600">
                         <span className="material-symbols-outlined text-sm text-slate-400">pets</span>
-                        <span>{booking.petName || '반려동물'}</span>
+                        <span>{formatPetInfo(booking)}</span>
                       </div>
                       {booking.hospital?.address && (
                         <div className="flex items-start gap-2 text-sm text-slate-500">

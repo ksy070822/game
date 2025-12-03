@@ -105,12 +105,23 @@ export function ClinicDashboard({ currentUser, onBack }) {
             }
           }
 
-          bookings.push({
-            id: bookingDoc.id,
+          const booking = {
             ...bookingData,
+            id: bookingDoc.id,  // 🔥 spread 후에 설정해서 bookingData.id를 Firestore 문서 ID로 덮어쓰기
+            bookingId: bookingData.bookingId || bookingDoc.id,  // 🔥 bookingId 필드도 유지
             pet,
             owner
+          };
+
+          console.log('[실시간] 📋 예약 추가:', {
+            firestoreDocId: bookingDoc.id,
+            bookingIdField: bookingData.bookingId,
+            finalId: booking.id,
+            petName: booking.pet?.name,
+            time: booking.time
           });
+
+          bookings.push(booking);
         }
 
         // 시간순 정렬
@@ -151,8 +162,8 @@ export function ClinicDashboard({ currentUser, onBack }) {
               if (!existingIds.has(bookingDoc.id)) {
                 const bookingData = bookingDoc.data();
                 newBookings.push({
-                  id: bookingDoc.id,
                   ...bookingData,
+                  id: bookingDoc.id,  // 🔥 spread 후에 설정
                   pet: bookingData.pet || bookingData.petProfile || null,
                   owner: bookingData.owner || null
                 });
@@ -307,11 +318,21 @@ export function ClinicDashboard({ currentUser, onBack }) {
   };
 
   // 예약 확정/취소 처리
-  const handleConfirmBooking = async (bookingId) => {
+  const handleConfirmBooking = async (bookingOrId) => {
+    console.log('[handleConfirmBooking] 🔍 input:', bookingOrId);
+
+    // booking 객체 또는 ID 문자열 둘 다 처리
+    const targetId = typeof bookingOrId === 'object'
+      ? (bookingOrId.id || bookingOrId.docId || bookingOrId.bookingId)  // 🔥 id 우선 사용
+      : bookingOrId;
+
+    console.log('[handleConfirmBooking] 🎯 targetId:', targetId);
+    console.log('[handleConfirmBooking] 📋 booking 객체 전체:', typeof bookingOrId === 'object' ? bookingOrId : '문자열만 전달됨');
+
     const ok = window.confirm('이 예약을 확정하시겠습니까?');
     if (!ok) return;
 
-    const result = await bookingService.updateBookingStatus(bookingId, 'confirmed');
+    const result = await bookingService.updateBookingStatus(targetId, 'confirmed');
 
     if (!result?.success) {
       console.error('예약 확정 오류:', result?.error);
@@ -321,7 +342,13 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
     // 로컬 상태도 함께 업데이트 → 상단 "확정" 카운트가 즉시 반영되도록
     setTodayBookings(prev =>
-      prev.map(b => b.id === bookingId ? { ...b, status: 'confirmed' } : b)
+      prev.map(b => {
+        if (b.id === targetId) {
+          console.log('[handleConfirmBooking] ✅ 로컬 상태 업데이트:', b.id);
+          return { ...b, status: 'confirmed' };
+        }
+        return b;
+      })
     );
 
     alert('예약이 확정되었습니다.');
@@ -717,7 +744,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => handleConfirmBooking(booking.id)}
+                        onClick={() => handleConfirmBooking(booking)}  {/* 🔥 booking 객체 전체를 넘김 */}
                         className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
                           ${booking.status === 'confirmed'
                             ? 'bg-gray-100 text-gray-700 cursor-default'

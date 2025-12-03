@@ -2,13 +2,26 @@ import React, { useState, useRef } from 'react';
 import './DiagnosisReport.css';
 import { getPetImage } from '../utils/imagePaths';
 
+// 동물 종류 한글 매핑
+const SPECIES_LABELS = {
+  dog: '강아지',
+  cat: '고양이',
+  rabbit: '토끼',
+  hamster: '햄스터',
+  bird: '조류',
+  hedgehog: '고슴도치',
+  reptile: '파충류',
+  etc: '기타',
+  other: '기타'
+};
+
 function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoToHospital, onGoToTreatment }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const reportRef = useRef(null);
 
   const getPetInfo = () => {
-    if (!petData) return { name: '미등록', age: '미상', weight: '미상', breed: '미상', species: 'dog' };
+    if (!petData) return { name: '미등록', age: '미상', weight: '미상', breed: '미상', species: 'dog', speciesLabel: '강아지', genderLabel: '미상' };
 
     const name = petData.petName || petData.name || '미등록';
 
@@ -32,10 +45,12 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoT
     const weight = petData.weight ? `${petData.weight}kg` : '미상';
     const breed = petData.breed || '미상';
     const species = petData.species || 'dog';
+    const speciesLabel = SPECIES_LABELS[species] || '기타';
     const gender = petData.sex || petData.gender;
+    const genderLabel = gender === 'M' ? '수컷' : gender === 'F' ? '암컷' : '미상';
     const profileImage = getPetImage(petData, false);
 
-    return { name, age, weight, breed, species, gender, profileImage };
+    return { name, age, weight, breed, species, speciesLabel, gender, genderLabel, profileImage };
   };
 
   const petInfo = getPetInfo();
@@ -101,10 +116,18 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, onClose, onGoT
               환자 정보
 ───────────────────────────────────────
 이름: ${petInfo.name}
+종류: ${petInfo.speciesLabel}
 나이: ${petInfo.age}
-몸무게: ${petInfo.weight}
 품종: ${petInfo.breed}
-${petInfo.gender ? `성별: ${petInfo.gender === 'M' ? '수컷' : '암컷'}` : ''}
+몸무게: ${petInfo.weight}
+성별: ${petInfo.genderLabel}
+
+───────────────────────────────────────
+              증상 분석
+───────────────────────────────────────
+진료과목: ${symptomData?.department || '일반'}
+증상: ${symptomData?.selectedSymptoms?.join(', ') || symptomData?.description || '직접 입력'}
+상세 설명: ${symptomData?.userDescription || symptomData?.description || '없음'}
 
 ───────────────────────────────────────
               진단 결과
@@ -112,7 +135,7 @@ ${petInfo.gender ? `성별: ${petInfo.gender === 'M' ? '수컷' : '암컷'}` : '
 진단명: ${diagnosisResult?.diagnosis || '진단 없음'}
 신뢰도: ${confidenceLevel}%
 응급도: ${emergencyInfo.text} - ${emergencyInfo.desc}
-${diagnosisResult?.triage_score ? `Triage Score: ${diagnosisResult.triage_score}/5` : ''}
+${diagnosisResult?.triage_score ? `중증도: ${diagnosisResult.triage_score}/5` : ''}
 
 ───────────────────────────────────────
               상세 설명
@@ -154,20 +177,6 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
       reptile: '🦎'
     };
     return emojis[species] || '🐾';
-  };
-
-  const getSpeciesKorean = () => {
-    const species = petInfo.species?.toLowerCase();
-    const names = {
-      dog: '강아지',
-      cat: '고양이',
-      rabbit: '토끼',
-      hamster: '햄스터',
-      bird: '새',
-      hedgehog: '고슴도치',
-      reptile: '파충류'
-    };
-    return names[species] || petInfo.species;
   };
 
   return (
@@ -227,7 +236,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
                 </div>
                 <div className="dr-pet-item">
                   <span className="dr-pet-label">종류</span>
-                  <span className="dr-pet-value">{getSpeciesKorean()}</span>
+                  <span className="dr-pet-value">{petInfo.speciesLabel}</span>
                 </div>
                 <div className="dr-pet-item">
                   <span className="dr-pet-label">나이</span>
@@ -243,11 +252,38 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
                 </div>
                 <div className="dr-pet-item">
                   <span className="dr-pet-label">성별</span>
-                  <span className="dr-pet-value">{petInfo.gender === 'M' ? '수컷' : petInfo.gender === 'F' ? '암컷' : '미상'}</span>
+                  <span className="dr-pet-value">{petInfo.genderLabel}</span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* 증상 정보 */}
+          {symptomData && (
+            <div className="dr-section">
+              <h3 className="dr-section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                증상 정보
+              </h3>
+              {symptomData?.department && (
+                <p className="dr-symptom-department">진료과목: {symptomData.department}</p>
+              )}
+              {symptomData?.selectedSymptoms?.length > 0 && (
+                <div className="dr-symptom-tags">
+                  {symptomData.selectedSymptoms.map((symptom, idx) => (
+                    <span key={idx} className="dr-symptom-tag">{symptom}</span>
+                  ))}
+                </div>
+              )}
+              {(symptomData?.userDescription || symptomData?.description) && (
+                <div className="dr-description-box">
+                  {symptomData?.userDescription || symptomData?.description}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 진단 결과 카드 */}
           <div className="dr-diagnosis-card">
@@ -358,7 +394,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
           )}
 
           {/* 병원 방문 안내 */}
-          {diagnosisResult?.hospitalVisit && (
+          {(diagnosisResult?.hospitalVisit || diagnosisResult?.emergency === 'high' || diagnosisResult?.emergency === 'medium') && (
             <div className="dr-hospital-alert">
               <div className="dr-hospital-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -369,7 +405,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
               </div>
               <div className="dr-hospital-content">
                 <strong>중요 안내사항</strong>
-                <p>{diagnosisResult.hospitalVisitTime || '가능한 빨리'} 병원 방문을 권장합니다. 증상이 지속되거나 악화될 경우 반드시 전문 수의사의 진료를 받으세요.</p>
+                <p>{diagnosisResult?.hospitalVisitTime || '가능한 빨리'} 병원 방문을 권장합니다. 증상이 지속되거나 악화될 경우 반드시 전문 수의사의 진료를 받으세요.</p>
               </div>
             </div>
           )}

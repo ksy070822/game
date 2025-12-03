@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react';
 
+// 동물 종류 한글 매핑
+const SPECIES_LABELS = {
+  dog: '강아지',
+  cat: '고양이',
+  rabbit: '토끼',
+  hamster: '햄스터',
+  bird: '조류',
+  hedgehog: '고슴도치',
+  reptile: '파충류',
+  etc: '기타',
+  other: '기타'
+};
+
 export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate, onBack, onGetDirections, onHome }) {
   const [registrationCode, setRegistrationCode] = useState('');
-  const [estimatedArrival, setEstimatedArrival] = useState('');
+  const [reservationTime, setReservationTime] = useState('');
 
   useEffect(() => {
     // 접수 코드 생성 (4자리 숫자)
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     setRegistrationCode(code);
 
-    // 예상 도착 시간 - 예약 시간 사용
+    // 예약 접수 시간 포맷팅
     if (bookingTime && bookingTime.includes(':')) {
       const parts = bookingTime.split(':');
       const hour = parseInt(parts[0], 10);
@@ -19,25 +32,27 @@ export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate,
         const ampm = hour >= 12 ? '오후' : '오전';
         let displayHours = hour % 12;
         if (displayHours === 0) displayHours = 12;
-        setEstimatedArrival(`${ampm} ${displayHours}시 ${minute.toString().padStart(2, '0')}분`);
+        setReservationTime(`${ampm} ${displayHours}시 ${minute.toString().padStart(2, '0')}분`);
       } else {
-        setEstimatedArrival(bookingTime); // 파싱 실패 시 원본 표시
+        setReservationTime(bookingTime);
       }
     } else if (bookingTime) {
-      // 콜론이 없는 경우 원본 그대로 표시
-      setEstimatedArrival(bookingTime);
+      setReservationTime(bookingTime);
     } else {
-      // 예약 시간이 없으면 현재 시간 + 30분
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 30);
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const ampm = hours >= 12 ? '오후' : '오전';
-      let displayHours = hours % 12;
-      if (displayHours === 0) displayHours = 12;
-      setEstimatedArrival(`${ampm} ${displayHours}시 ${minutes.toString().padStart(2, '0')}분`);
+      setReservationTime('시간 미지정');
     }
   }, [bookingTime]);
+
+  // 반려동물 정보 포맷팅 (대분류/품종[이름])
+  const formatPetInfo = () => {
+    if (!petData) return '반려동물 정보 없음';
+
+    const speciesLabel = SPECIES_LABELS[petData.species] || '기타';
+    const breed = petData.breed || '품종 미등록';
+    const name = petData.petName || petData.name || '이름 없음';
+
+    return `${speciesLabel}/${breed}[${name}]`;
+  };
 
   if (!petData || !hospital) {
     return null;
@@ -84,17 +99,17 @@ export function PacketSentSummary({ petData, hospital, bookingTime, bookingDate,
           </div>
         </div>
 
-        {/* 도착 예정 및 반려동물 정보 */}
+        {/* 예약 정보 및 반려동물 정보 */}
         <div className="mb-6 rounded-lg bg-surface-light p-4 shadow-soft">
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-12 text-primary">
               <span className="material-symbols-outlined text-3xl">schedule</span>
             </div>
             <div className="flex-1">
-              <h3 className="text-slate-900 font-bold text-base mb-2 font-display">도착 예정 및 반려동물 정보</h3>
-              <p className="text-slate-600 text-sm">예상 도착 시간: {estimatedArrival}</p>
+              <h3 className="text-slate-900 font-bold text-base mb-2 font-display">예약 정보</h3>
+              <p className="text-slate-600 text-sm">예약 접수시간: {reservationTime}</p>
               <p className="text-slate-600 text-sm mt-1">
-                반려동물: {petData.petName} ({petData.breed || '품종 미등록'})
+                반려동물: {formatPetInfo()}
               </p>
             </div>
           </div>

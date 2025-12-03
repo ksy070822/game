@@ -22,24 +22,24 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
 
     try {
       const resultData = {
-        clinicId: clinic.id,
-        clinicName: clinic.name,
-        bookingId: booking.id,
-        userId: booking.userId,
-        petId: booking.petId,
-        petName: booking.pet?.name || booking.petName,
-        visitDate: booking.date,
-        visitTime: booking.time,
-        triageScore,
-        mainDiagnosis,
+        clinicId: clinic.id ?? null,
+        clinicName: clinic.name ?? null,
+        bookingId: booking.id ?? null,
+        userId: booking.userId ?? null,  // 🔥 undefined 방지
+        petId: booking.petId ?? null,  // 🔥 undefined 방지
+        petName: booking.pet?.name || booking.petName || null,  // 🔥 undefined 방지
+        visitDate: booking.date ?? null,  // 🔥 undefined 방지
+        visitTime: booking.time ?? null,  // 🔥 undefined 방지
+        triageScore: triageScore ?? 0,
+        mainDiagnosis: mainDiagnosis ?? null,
         soap: {
-          subjective,
-          objective,
-          assessment,
-          plan
+          subjective: subjective ?? '',
+          objective: objective ?? '',
+          assessment: assessment ?? '',
+          plan: plan ?? ''
         },
         // 사전 문진/AI 정보도 필요하면 같이 저장
-        previsit: booking.aiDiagnosis || null
+        previsit: booking.aiDiagnosis ?? null
       };
 
       // 1) clinicResults 에 저장
@@ -57,16 +57,16 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
           clinicId: clinic.id,
           clinicName: clinic.name,
           petId: booking.petId,
-          petName: booking.pet?.name || booking.petName,
-          species: booking.pet?.species,
-          speciesLabelKo: booking.pet?.speciesLabelKo,
-          ownerUserId: booking.userId,
-          ownerName: booking.owner?.name,
-          ownerPhone: booking.owner?.phone,
-          lastVisitDate: booking.date,
-          lastDiagnosis: mainDiagnosis,
+          petName: booking.pet?.name || booking.petName || null,
+          species: booking.pet?.species ?? null,  // 🔥 undefined 방지
+          speciesLabelKo: booking.pet?.speciesLabelKo ?? null,  // 🔥 undefined 방지
+          ownerUserId: booking.userId ?? null,  // 🔥 undefined 방지
+          ownerName: booking.owner?.name ?? null,  // 🔥 undefined 방지
+          ownerPhone: booking.owner?.phone ?? null,  // 🔥 undefined 방지
+          lastVisitDate: booking.date ?? null,  // 🔥 undefined 방지
+          lastDiagnosis: mainDiagnosis ?? null,  // 🔥 undefined 방지
           lastTriageLevel: triageScore >= 4 ? 'high' : triageScore >= 2 ? 'medium' : 'low',
-          lastWeightKg: booking.pet?.weight || null,
+          lastWeightKg: booking.pet?.weight ?? null,
           visitCount: increment(1),
           updatedAt: serverTimestamp(),
           createdAt: serverTimestamp()
