@@ -810,21 +810,22 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       if (!petData?.userId) return;
 
       try {
-        const bookings = await bookingService.getByUser(petData.userId);
-        if (bookings && bookings.length > 0) {
+        const result = await bookingService.getBookingsByUser(petData.userId);
+        const bookingData = result?.data || result || [];
+        if (bookingData && bookingData.length > 0) {
           // 미래 예약만 필터링하고 가장 가까운 것 선택
           const now = new Date();
-          const futureBookings = bookings.filter(b => {
-            const bookingDate = b.bookingDate ? new Date(b.bookingDate) : null;
+          const futureBookings = bookingData.filter(b => {
+            const bookingDate = b.date ? new Date(b.date) : (b.bookingDate ? new Date(b.bookingDate) : null);
             return bookingDate && bookingDate >= now;
-          }).sort((a, b) => new Date(a.bookingDate) - new Date(b.bookingDate));
+          }).sort((a, b) => new Date(a.date || a.bookingDate) - new Date(b.date || b.bookingDate));
 
           if (futureBookings.length > 0) {
             setLatestBooking(futureBookings[0]);
-          } else if (bookings.length > 0) {
+          } else if (bookingData.length > 0) {
             // 미래 예약이 없으면 가장 최근 예약 표시
-            const sortedBookings = [...bookings].sort((a, b) =>
-              new Date(b.bookingDate) - new Date(a.bookingDate)
+            const sortedBookings = [...bookingData].sort((a, b) =>
+              new Date(b.date || b.bookingDate) - new Date(a.date || a.bookingDate)
             );
             setLatestBooking(sortedBookings[0]);
           }
@@ -4444,12 +4445,8 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
   ];
 
   const [checklist, setChecklist] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CHECKLIST_KEY);
-      return saved ? JSON.parse(saved) : defaultChecklist;
-    } catch {
-      return defaultChecklist;
-    }
+    // 항상 체크되지 않은 상태로 시작
+    return defaultChecklist;
   });
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -4708,19 +4705,19 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
 
             {/* 주의사항 */}
             <div style={{
-              background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+              background: 'linear-gradient(135deg, #fef9c3 0%, #fef08a 100%)',
               borderRadius: '16px',
               padding: '16px',
               marginBottom: '16px',
-              border: '2px solid #fbbf24',
-              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.2)'
+              border: '2px solid #facc15',
+              boxShadow: '0 2px 8px rgba(250, 204, 21, 0.2)'
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div style={{
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: '#f97316',
+                  background: '#eab308',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -4732,28 +4729,27 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
                   <h4 style={{
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    color: '#9a3412',
+                    color: '#a16207',
                     margin: '0 0 8px 0'
                   }}>
                     주의사항
                   </h4>
-                  <ul style={{
+                  <div style={{
                     margin: 0,
-                    paddingLeft: '16px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '6px'
                   }}>
-                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                    <p style={{ fontSize: '13px', color: '#854d0e', lineHeight: '1.5', margin: 0 }}>
                       증상이 악화되거나 새로운 증상이 나타나면 즉시 병원을 방문하세요.
-                    </li>
-                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#854d0e', lineHeight: '1.5', margin: 0 }}>
                       처방전 없이 사람 약물을 사용하지 마세요.
-                    </li>
-                    <li style={{ fontSize: '13px', color: '#c2410c', lineHeight: '1.5' }}>
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#854d0e', lineHeight: '1.5', margin: 0 }}>
                       응급 상황(호흡 곤란, 의식 저하, 심한 출혈 등)은 즉시 응급실로 가세요.
-                    </li>
-                  </ul>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

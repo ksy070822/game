@@ -215,7 +215,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
             {diagnosisResult?.description && (
               <div className="dr-section">
                 <h3 className="dr-section-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                     <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
                   </svg>
@@ -231,7 +231,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
             {diagnosisResult?.actions?.length > 0 && (
               <div className="dr-section">
                 <h3 className="dr-section-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                     <polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
@@ -305,9 +305,11 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
         <div className="dr-header">
           <div className="dr-header-left">
             <div className="dr-logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+                alt="PetMedical.AI"
+                style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+              />
             </div>
             <div className="dr-header-text">
               <h1>PetMedical.AI 진단서</h1>
@@ -339,9 +341,9 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
 
           {/* 반려동물 정보 카드 */}
           <div className="dr-pet-card">
-            <div className="dr-pet-avatar-square">
+            <div className="dr-pet-avatar-square" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {petInfo.profileImage ? (
-                <img src={petInfo.profileImage} alt={petInfo.name} />
+                <img src={petInfo.profileImage} alt={petInfo.name} style={{ objectFit: 'cover', objectPosition: 'center' }} />
               ) : (
                 <div className="dr-pet-icon-placeholder">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="#f59e0b">
@@ -377,27 +379,6 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
                   <span className="dr-pet-label">성별</span>
                   <span className="dr-pet-value">{petInfo.genderLabel}</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 보호자 정보 */}
-          <div className="dr-guardian-card">
-            <div className="dr-guardian-header">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span>보호자 정보</span>
-            </div>
-            <div className="dr-guardian-content">
-              <div className="dr-guardian-item">
-                <span className="dr-guardian-label">보호자 이름</span>
-                <span className="dr-guardian-value">{guardianName} 님</span>
-              </div>
-              <div className="dr-guardian-item">
-                <span className="dr-guardian-label">진행 중</span>
-                <span className="dr-guardian-value dr-guardian-method">{loginMethod}</span>
               </div>
             </div>
           </div>
