@@ -29,6 +29,7 @@ import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from '.
 import { OCRUpload } from './src/components/OCRUpload'
 import { ClinicAdmin } from './src/components/ClinicAdmin'
 import { seedGuardianData, seedClinicData } from './src/utils/seedTestDataUtils'
+import { seedMedicationData } from './src/utils/seedMedicationData'
 import { auth } from './src/lib/firebase'
 import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
@@ -1082,6 +1083,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                             <p className="text-base font-semibold text-sky-600 mt-2 w-full">
                               오늘도 든든한 케어 시작!
                             </p>
+                            <button
+                              onClick={() => onNavigate('profile-list')}
+                              className="text-xs text-sky-600 font-semibold mt-2"
+                            >
+                              반려동물 변경하기 &gt;
+                            </button>
                           </div>
 
                           <div className="flex items-center gap-1.5 flex-wrap mt-2">
@@ -1101,12 +1108,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                                 {todayWeight}kg
                               </span>
                             )}
-                            <button
-                              onClick={() => onNavigate('profile-list')}
-                              className="px-3 py-1 bg-sky-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
-                            >
-                              변경
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -1492,6 +1493,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     <p className="text-xs sm:text-sm font-semibold text-sky-600 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
+                    <button
+                      onClick={() => onNavigate('profile-list')}
+                      className="text-xs text-sky-600 font-semibold mt-2"
+                    >
+                      반려동물 변경하기 &gt;
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-1 flex-wrap mt-2 justify-center">
@@ -1515,13 +1522,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         {todayWeight}kg
                       </span>
                     )}
-                    <button
-                      onClick={() => onNavigate('profile-list')}
-                      className="px-2 py-0.5 text-gray-900 text-[10px] sm:text-[11px] font-bold rounded-full shadow-md transition-colors"
-                      style={{ backgroundColor: '#FEE500' }}
-                    >
-                      변경
-                    </button>
                   </div>
                 </div>
               </div>
@@ -2001,7 +2001,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
       </div>
 
-      <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-24 space-y-3 sm:space-y-4">
+      <div className="px-4 pt-4 pb-32 space-y-4">
         {/* 진료과목 선택 */}
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
           <h3 className="font-bold text-slate-800 mb-0.5 sm:mb-1 text-xs sm:text-sm">어디가 불편해 보이나요? *</h3>
@@ -2110,22 +2110,24 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Bottom Button - 네비게이션바 위에 배치 */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-3 z-40">
-        <button
+      {/* Bottom Button - 내비게이션바 위에 배치 */}
+      <div className="fixed bottom-16 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[430px] bg-white/95 backdrop-blur-sm border-t border-slate-100 p-4 z-40">
+        <button 
           onClick={handleSubmit}
           disabled={loading || (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0)}
-          className="w-full bg-sky-500 text-white py-3 px-4 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
+          className="w-full bg-sky-500 text-white py-3 px-6 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
         >
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span className="text-sm font-bold">AI 분석 중...</span>
+              <span className="text-base font-bold">AI 분석 중...</span>
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-lg">psychology</span>
-              <span className="text-sm font-bold">AI 분석하기</span>
+              <span className="material-symbols-outlined text-xl">psychology</span>
+              <span className="text-base font-bold">AI 분석하기</span>
             </>
           )}
         </button>
@@ -4437,7 +4439,7 @@ function DiagnosisResultView({ petData, diagnosisResult, symptomData, onGoToTrea
 }
 
 // ============ 직접 치료 가이드 화면 ============
-function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
+function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }) {
   const CHECKLIST_KEY = `petMedical_checklist_${petData?.id || 'default'}_${new Date().toISOString().split('T')[0]}`;
 
   const defaultChecklist = [
@@ -4472,14 +4474,9 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
     });
   };
 
-  const handleSaveChecklist = () => {
-    try {
-      localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklist));
-      setSaveMessage('체크리스트가 저장되었습니다!');
-      setTimeout(() => setSaveMessage(''), 2000);
-    } catch (e) {
-      setSaveMessage('저장에 실패했습니다.');
-      setTimeout(() => setSaveMessage(''), 2000);
+  const handleGoToHospital = () => {
+    if (onGoToHospital) {
+      onGoToHospital();
     }
   };
 
@@ -4577,12 +4574,12 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
       }}>
         {/* 타이틀 헤더 카드 */}
         <div style={{
-          background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+          background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
           borderRadius: '16px',
           padding: '20px',
           marginBottom: '16px',
           color: 'white',
-          boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+          boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <span style={{ fontSize: '32px' }}>{petData?.species === 'dog' ? '🐕' : '🐈'}</span>
@@ -4629,7 +4626,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
               width: '22px',
               height: '22px',
               borderRadius: '50%',
-              background: '#22d3ee',
+              background: '#0ea5e9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -4644,16 +4641,16 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '12px',
-                background: 'linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%)',
+                background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
                 padding: '14px',
                 borderRadius: '12px',
-                border: '1px solid #a5f3fc'
+                border: '1px solid #7dd3fc'
               }}>
                 <div style={{
                   width: '28px',
                   height: '28px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+                  background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -4668,7 +4665,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                   <h4 style={{
                     fontSize: '14px',
                     fontWeight: '600',
-                    color: '#0e7490',
+                    color: '#0369a1',
                     margin: '0 0 4px 0'
                   }}>
                     {item.title}
@@ -4793,7 +4790,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                 <span style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: '#0891b2'
+                  color: '#0ea5e9'
                 }}>
                   {completedCount}/{totalCount} 완료
                 </span>
@@ -4811,7 +4808,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                 <div style={{
                   width: `${(completedCount / totalCount) * 100}%`,
                   height: '100%',
-                  background: 'linear-gradient(90deg, #22d3ee, #06b6d4)',
+                  background: 'linear-gradient(90deg, #0ea5e9, #0284c7)',
                   borderRadius: '4px',
                   transition: 'width 0.3s ease'
                 }} />
@@ -4824,10 +4821,10 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                     alignItems: 'center',
                     gap: '12px',
                     padding: '12px',
-                    background: item.checked ? '#ecfeff' : '#f8fafc',
+                    background: item.checked ? '#e0f2fe' : '#f8fafc',
                     borderRadius: '10px',
                     cursor: 'pointer',
-                    border: item.checked ? '1px solid #a5f3fc' : '1px solid #e2e8f0',
+                    border: item.checked ? '1px solid #7dd3fc' : '1px solid #e2e8f0',
                     transition: 'all 0.2s'
                   }}>
                     <div style={{
@@ -4835,7 +4832,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                       height: '22px',
                       borderRadius: '6px',
                       border: item.checked ? 'none' : '2px solid #cbd5e1',
-                      background: item.checked ? 'linear-gradient(135deg, #22d3ee, #06b6d4)' : 'white',
+                      background: item.checked ? 'linear-gradient(135deg, #0ea5e9, #0284c7)' : 'white',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -4853,7 +4850,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                     />
                     <span style={{
                       fontSize: '14px',
-                      color: item.checked ? '#0e7490' : '#475569',
+                      color: item.checked ? '#0369a1' : '#475569',
                       textDecoration: item.checked ? 'line-through' : 'none',
                       flex: 1
                     }}>
@@ -4867,11 +4864,11 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
                 <div style={{
                   marginTop: '12px',
                   padding: '10px',
-                  background: '#ecfeff',
+                  background: '#e0f2fe',
                   borderRadius: '8px',
                   textAlign: 'center',
                   fontSize: '13px',
-                  color: '#0891b2',
+                  color: '#0ea5e9',
                   fontWeight: '500'
                 }}>
                   {saveMessage}
@@ -4948,7 +4945,7 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
             ← 진단서로 돌아가기
           </button>
           <button
-            onClick={handleSaveChecklist}
+            onClick={handleGoToHospital}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -4957,15 +4954,15 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack }) {
               padding: '14px 16px',
               borderRadius: '12px',
               border: 'none',
-              background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
               color: 'white',
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(6, 182, 212, 0.3)'
+              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
             }}
           >
-            💾 체크리스트 저장
+            🏥 병원 예약하기
           </button>
         </div>
       </div>
@@ -5098,8 +5095,19 @@ function App() {
         throw error;
       }
     };
+    window.seedMedicationData = async (uid) => {
+      try {
+        const result = await seedMedicationData(uid);
+        console.log('✅ 약물 처방 정보 추가 완료:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ 약물 처방 정보 추가 오류:', error);
+        throw error;
+      }
+    };
     console.log('💡 테스트 데이터 시드 함수가 등록되었습니다.');
     console.log('   사용법: const user = window.auth.currentUser; await window.seedGuardianData(user.uid, user.email);');
+    console.log('   약물 처방 정보 추가: await window.seedMedicationData(user.uid);');
   }, []);
 
   // 로그인 성공 핸들러
@@ -5303,6 +5311,31 @@ function App() {
         setPets(userPets);
         if (userPets.length > 0) {
           setPetData(userPets[0]);
+          
+          // 테스트 계정 보호자이고 약물 처방 정보가 없으면 자동 추가
+          if (mode === 'guardian' && (user.email === 'guardian@test.com' || user.email?.includes('test'))) {
+            try {
+              // medicationLogs 컬렉션에서 기존 약물 정보 확인
+              const { collection, query, where, getDocs } = await import('firebase/firestore');
+              const { db } = await import('./src/lib/firebase');
+              const medicationQuery = query(
+                collection(db, 'medicationLogs'),
+                where('userId', '==', user.uid)
+              );
+              const medicationSnapshot = await getDocs(medicationQuery);
+              
+              // 약물 정보가 없으면 자동 추가
+              if (medicationSnapshot.empty) {
+                console.log('💊 테스트 계정: 약물 처방 정보 자동 추가 중...');
+                await seedMedicationData(user.uid);
+                console.log('✅ 약물 처방 정보 추가 완료');
+              } else {
+                console.log(`✅ 기존 약물 처방 정보 ${medicationSnapshot.size}개 확인됨`);
+              }
+            } catch (medError) {
+              console.warn('약물 처방 정보 확인/추가 실패:', medError);
+            }
+          }
         } else {
           setPetData(null);
         }
@@ -5501,6 +5534,10 @@ function App() {
           petData={petData}
           diagnosisResult={lastDiagnosis}
           onBack={() => setCurrentView('diagnosis-result')}
+          onGoToHospital={() => {
+            setCurrentView(null);
+            setCurrentTab('hospital');
+          }}
         />
       )}
 
