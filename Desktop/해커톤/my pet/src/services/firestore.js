@@ -263,12 +263,40 @@ export const bookingService = {
   },
 
   // 예약 상태 업데이트
-  async updateBookingStatus(bookingId, status) {
+  async updateBookingStatus(bookingIdOrDocId, status) {
     try {
-      await updateDoc(doc(db, COLLECTIONS.BOOKINGS, bookingId), {
+      const bookingsRef = collection(db, COLLECTIONS.BOOKINGS);
+
+      // 1차 시도: 이 값을 "문서 ID"라고 가정
+      let targetRef = doc(db, COLLECTIONS.BOOKINGS, bookingIdOrDocId);
+      let snap = await getDoc(targetRef);
+
+      // 문서가 없으면 → 예전 방식 bookingId 필드로 저장된 것일 수 있음
+      if (!snap.exists()) {
+        console.warn(
+          '[예약 상태 업데이트] 문서 ID로는 예약을 찾을 수 없음, bookingId 필드로 조회 시도:',
+          bookingIdOrDocId
+        );
+
+        const q = query(bookingsRef, where('bookingId', '==', bookingIdOrDocId));
+        const qs = await getDocs(q);
+
+        if (qs.empty) {
+          throw new Error(
+            `해당 ID 또는 bookingId로 예약을 찾을 수 없습니다: ${bookingIdOrDocId}`
+          );
+        }
+
+        // bookingId 가 같은 문서 중 첫 번째 문서 사용
+        targetRef = qs.docs[0].ref;
+      }
+
+      await updateDoc(targetRef, {
         status,
         updatedAt: serverTimestamp()
       });
+
+      console.log('[예약 상태 업데이트] 성공:', bookingIdOrDocId, '→', status);
       return { success: true };
     } catch (error) {
       console.error('예약 상태 업데이트 오류:', error);
