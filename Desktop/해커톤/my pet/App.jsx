@@ -916,7 +916,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   // 현재 반려동물의 메인 캐릭터 이미지 가져오기
   const getMainCharacterImagePath = () => {
     if (!petData) {
-      return '/icon/main-image/dog_main-removebg-preview.png';
+      return getMainCharacterImage('dog');
     }
     
     // 사용자가 등록한 프로필 이미지가 있으면 우선 사용
@@ -927,12 +927,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
     // 동물 종류에 따라 기본 이미지 반환
     const species = petData.species || 'dog';
     const imagePath = getMainCharacterImage(species);
-    
-    console.log('[이미지 경로]', {
-      species,
-      imagePath,
-      petName: petData?.petName || petData?.name
-    });
     
     return imagePath;
   };
@@ -1003,23 +997,27 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                             className="w-full h-full object-contain"
                             style={{ objectPosition: 'center', display: 'block' }}
                             onError={(e) => {
-                              console.error('이미지 로드 실패:', e.target.src);
-                              // 동물 종류에 따라 기본 이미지 설정
-                              const species = petData?.species || 'dog';
-                              let fallbackImage = '/icon/main-image/dog_main-removebg-preview.png';
-                              
-                              if (species === 'cat') {
-                                fallbackImage = '/icon/main-image/Cat_main-removebg-preview.png';
-                              } else if (species && MAIN_CHARACTER_IMAGES[species]) {
-                                fallbackImage = MAIN_CHARACTER_IMAGES[species];
+                              // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
+                              if (e.target.dataset.retryAttempted === 'true') {
+                                console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                                e.target.style.display = 'none';
+                                return;
                               }
                               
-                              e.target.src = fallbackImage;
-                              // 여전히 실패하면 기본 강아지 이미지
-                              e.target.onerror = () => {
-                                e.target.src = '/icon/main-image/dog_main-removebg-preview.png';
-                                e.target.onerror = null; // 무한 루프 방지
-                              };
+                              console.error('이미지 로드 실패:', e.target.src);
+                              e.target.dataset.retryAttempted = 'true';
+                              
+                              // 동물 종류에 따라 기본 이미지 설정
+                              const species = petData?.species || 'dog';
+                              const fallbackImage = getMainCharacterImage(species);
+                              
+                              // 다른 이미지로 시도
+                              if (e.target.src !== fallbackImage) {
+                                e.target.src = fallbackImage;
+                              } else {
+                                // 이미 fallback 이미지인데도 실패하면 숨김
+                                e.target.style.display = 'none';
+                              }
                             }}
                           />
                         </div>
@@ -1395,15 +1393,27 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     className="w-full h-full object-cover"
                     style={{ objectPosition: 'center', display: 'block' }}
                     onError={(e) => {
+                      // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
+                      if (e.target.dataset.retryAttempted === 'true') {
+                        console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                        e.target.style.display = 'none';
+                        return;
+                      }
+                      
                       console.error('이미지 로드 실패:', e.target.src);
+                      e.target.dataset.retryAttempted = 'true';
+                      
                       // 동물 종류에 따라 기본 이미지 설정
                       const species = petData?.species || 'dog';
-                      const fallbackImage = `/icon/main-image/${species === 'cat' ? 'Cat' : species}_main-removebg-preview.png`;
-                      e.target.src = fallbackImage;
-                      // 여전히 실패하면 기본 강아지 이미지
-                      e.target.onerror = () => {
-                        e.target.src = '/icon/main-image/dog_main-removebg-preview.png';
-                      };
+                      const fallbackImage = getMainCharacterImage(species);
+                      
+                      // 다른 이미지로 시도
+                      if (e.target.src !== fallbackImage) {
+                        e.target.src = fallbackImage;
+                      } else {
+                        // 이미 fallback 이미지인데도 실패하면 숨김
+                        e.target.style.display = 'none';
+                      }
                     }}
                   />
                 </div>
