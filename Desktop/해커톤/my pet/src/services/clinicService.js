@@ -52,10 +52,12 @@ export async function getUserClinics(userId) {
     const clinics = [];
     for (const staffDoc of staffSnapshot.docs) {
       const staffData = staffDoc.data();
-      const clinicDoc = await getDoc(doc(db, 'clinics', staffData.clinicId));
+      const clinicRef = doc(db, 'clinics', staffData.clinicId);
+      const clinicDoc = await getDoc(clinicRef);
 
       if (clinicDoc.exists()) {
         clinics.push({
+          id: clinicDoc.id,        // 🔴 병원 문서 ID를 명시적으로 포함
           ...clinicDoc.data(),
           staffRole: staffData.role,
           staffId: staffDoc.id
