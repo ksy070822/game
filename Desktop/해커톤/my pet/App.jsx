@@ -919,12 +919,19 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
   // 현재 반려동물의 메인 캐릭터 이미지 가져오기
   const getMainCharacterImagePath = () => {
-    const imagePath = getPetImage(petData, true); // 메인 화면이므로 true
-    console.log('[이미지 경로]', {
-      petData: petData?.species,
-      imagePath,
-      petName: petData?.petName
-    });
+    if (!petData) {
+      return getMainCharacterImage('dog');
+    }
+    
+    // 사용자가 등록한 프로필 이미지가 있으면 우선 사용
+    if (petData.profileImage) {
+      return petData.profileImage;
+    }
+    
+    // 동물 종류에 따라 기본 이미지 반환
+    const species = petData.species || 'dog';
+    const imagePath = getMainCharacterImage(species);
+    
     return imagePath;
   };
 
@@ -951,18 +958,15 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         {/* 좌측: 모바일 화면 미리보기 */}
         <div className="flex-shrink-0 flex items-center justify-center">
           <div className="relative w-[430px] h-[932px] rounded-[3rem] shadow-2xl border-8 border-gray-800 overflow-hidden bg-white">
-            {/* 노치 */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
-            
             {/* 모바일 컨텐츠 */}
             <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
-              {/* Header - 노치 영역 확보 */}
-              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-12 pb-4 shadow-lg">
-                <div className="flex items-center justify-center gap-2">
+              {/* Header - 회사 로고 가운데 배치 */}
+              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-4 pb-4 shadow-lg">
+                <div className="flex items-center justify-center">
                   <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-xl">🐾</span>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center ml-2">
                     <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
                     <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
                   </div>
@@ -990,24 +994,43 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-200/20 rounded-full blur-2xl"></div>
 
                       <div className="relative flex items-stretch gap-3">
-                        <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white">
+                        <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
                           <img
                             src={getMainCharacterImagePath()}
-                            alt={petData?.petName || '반려동물'}
-                            className="w-full h-full object-cover"
+                            alt={petData?.petName || petData?.name || '반려동물'}
+                            className="w-full h-full object-contain"
                             style={{ objectPosition: 'center', display: 'block' }}
                             onError={(e) => {
+                              // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
+                              if (e.target.dataset.retryAttempted === 'true') {
+                                console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                                e.target.style.display = 'none';
+                                return;
+                              }
+                              
                               console.error('이미지 로드 실패:', e.target.src);
-                              e.target.src = '/icon/dog.png';
+                              e.target.dataset.retryAttempted = 'true';
+                              
+                              // 동물 종류에 따라 기본 이미지 설정
+                              const species = petData?.species || 'dog';
+                              const fallbackImage = getMainCharacterImage(species);
+                              
+                              // 다른 이미지로 시도
+                              if (e.target.src !== fallbackImage) {
+                                e.target.src = fallbackImage;
+                              } else {
+                                // 이미 fallback 이미지인데도 실패하면 숨김
+                                e.target.style.display = 'none';
+                              }
                             }}
                           />
                         </div>
 
                         <div className="flex-1 flex flex-col justify-between py-1">
-                          <div>
-                            <p className="text-sm font-bold text-gray-800">AI 전문 의료진 24시간 상주</p>
-                            <p className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                            <p className="text-sm text-sky-700 font-semibold mt-1">
+                          <div className="flex flex-col items-center justify-center text-center w-full">
+                            <p className="text-base font-bold text-gray-800 w-full">AI 전문 의료진 24시간 대기</p>
+                            <p className="text-base font-bold text-gray-800 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                            <p className="text-base font-bold text-sky-700 mt-2 w-full">
                               오늘도 든든한 케어 시작!
                             </p>
                           </div>
@@ -1330,17 +1353,14 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         </div>
 
         <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
-          {/* 노치 (태블릿에서만) */}
-          <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
-
           <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
-      {/* Header - 회사명 가운데 정렬, 노치 영역 확보 */}
-      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-14 pb-4 shadow-lg">
-        <div className="flex items-center justify-center gap-2">
+      {/* Header - 회사 로고 가운데 배치 */}
+      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-4 pb-4 shadow-lg">
+        <div className="flex items-center justify-center">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
             <span className="text-xl">🐾</span>
           </div>
-          <div className="text-center">
+          <div className="text-center ml-2">
             <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
             <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
           </div>
@@ -1377,17 +1397,36 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     className="w-full h-full object-cover"
                     style={{ objectPosition: 'center', display: 'block' }}
                     onError={(e) => {
+                      // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
+                      if (e.target.dataset.retryAttempted === 'true') {
+                        console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                        e.target.style.display = 'none';
+                        return;
+                      }
+                      
                       console.error('이미지 로드 실패:', e.target.src);
-                      e.target.src = '/icon/dog.png';
+                      e.target.dataset.retryAttempted = 'true';
+                      
+                      // 동물 종류에 따라 기본 이미지 설정
+                      const species = petData?.species || 'dog';
+                      const fallbackImage = getMainCharacterImage(species);
+                      
+                      // 다른 이미지로 시도
+                      if (e.target.src !== fallbackImage) {
+                        e.target.src = fallbackImage;
+                      } else {
+                        // 이미 fallback 이미지인데도 실패하면 숨김
+                        e.target.style.display = 'none';
+                      }
                     }}
                   />
                 </div>
 
                 <div className="flex-1 flex flex-col justify-between py-1">
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">AI 전문 의료진 24시간 상주</p>
-                    <p className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                    <p className="text-sm text-sky-700 font-semibold mt-1">
+                  <div className="flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-base font-bold text-gray-800 w-full">AI 전문 의료진 24시간 대기</p>
+                    <p className="text-base font-bold text-gray-800 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                    <p className="text-base font-bold text-sky-700 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
                   </div>
@@ -1895,7 +1934,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         <p className="text-sm text-slate-500 mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
       </div>
 
-      <div className="px-4 pt-4 pb-32 space-y-4">
+      <div className="px-4 pt-4 pb-24 space-y-4">
         {/* 진료과목 선택 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <h3 className="font-bold text-slate-800 mb-1 text-sm">어디가 불편해 보이나요? *</h3>
@@ -4752,8 +4791,8 @@ function App() {
         </div>
       )}
 
-      {/* 하단 탭 네비게이션 - 보호자 모드에서만 표시 */}
-      {userMode === 'guardian' && currentTab && (!currentView || currentView === 'ai-consultation') && (
+      {/* 하단 탭 네비게이션 - 보호자 모드에서 항상 표시 (특정 화면 제외) */}
+      {userMode === 'guardian' && currentTab && (
         <BottomTabNavigation
           currentTab={currentTab}
           onTabChange={handleTabChange}

@@ -5,30 +5,36 @@
  * 기타 영역: profile_background_less 폴더 사용
  */
 
-// 메인 화면용 이미지 (main-image 폴더)
+// base 경로 가져오기 (vite.config.js의 base 설정)
+const BASE_PATH = import.meta.env.BASE_URL || '/ai-factory/';
+
+/**
+ * 메인 화면용 이미지 (main-image 폴더)
+ * @type {Record<string, string>}
+ */
 export const MAIN_CHARACTER_IMAGES = {
-  dog: '/icon/main-image/dog_main-removebg-preview.png',
-  cat: '/icon/main-image/Cat_main-removebg-preview.png',
-  rabbit: '/icon/main-image/rabbit_main-removebg-preview.png',
-  hamster: '/icon/main-image/hamster_main-removebg-preview.png',
-  bird: '/icon/main-image/bird_main-removebg-preview.png',
-  hedgehog: '/icon/main-image/hedgehog_main-removebg-preview.png',
-  reptile: '/icon/main-image/reptile_main-removebg-preview.png',
-  etc: '/icon/main-image/etc_main-removebg-preview.png',
-  other: '/icon/main-image/etc_main-removebg-preview.png'
+  dog: `${BASE_PATH}icon/main-image/dog_main-removebg-preview.png`,
+  cat: `${BASE_PATH}icon/main-image/Cat_main-removebg-preview.png`,
+  rabbit: `${BASE_PATH}icon/main-image/rabbit_main-removebg-preview.png`,
+  hamster: `${BASE_PATH}icon/main-image/hamster_main-removebg-preview.png`,
+  bird: `${BASE_PATH}icon/main-image/bird_main-removebg-preview.png`,
+  hedgehog: `${BASE_PATH}icon/main-image/hedgehog_main-removebg-preview.png`,
+  reptile: `${BASE_PATH}icon/main-image/reptile_main-removebg-preview.png`,
+  etc: `${BASE_PATH}icon/main-image/etc_main-removebg-preview.png`,
+  other: `${BASE_PATH}icon/main-image/etc_main-removebg-preview.png`
 };
 
 // 기타 영역용 이미지 (profile_background_less 폴더)
 export const PROFILE_IMAGES = {
-  dog: '/icon/profile_background_less/dog-removebg-preview.png',
-  cat: '/icon/profile_background_less/cat-removebg-preview.png',
-  rabbit: '/icon/profile_background_less/rabbit-removebg-preview.png',
-  hamster: '/icon/profile_background_less/hamster-removebg-preview.png',
-  bird: '/icon/profile_background_less/bird-removebg-preview.png',
-  hedgehog: '/icon/profile_background_less/hedgehog-removebg-preview.png',
-  reptile: '/icon/profile_background_less/reptile-removebg-preview.png',
-  etc: '/icon/profile_background_less/etc-removebg-preview.png',
-  other: '/icon/profile_background_less/etc-removebg-preview.png'
+  dog: `${BASE_PATH}icon/profile_background_less/dog-removebg-preview.png`,
+  cat: `${BASE_PATH}icon/profile_background_less/cat-removebg-preview.png`,
+  rabbit: `${BASE_PATH}icon/profile_background_less/rabbit-removebg-preview.png`,
+  hamster: `${BASE_PATH}icon/profile_background_less/hamster-removebg-preview.png`,
+  bird: `${BASE_PATH}icon/profile_background_less/bird-removebg-preview.png`,
+  hedgehog: `${BASE_PATH}icon/profile_background_less/hedgehog-removebg-preview.png`,
+  reptile: `${BASE_PATH}icon/profile_background_less/reptile-removebg-preview.png`,
+  etc: `${BASE_PATH}icon/profile_background_less/etc-removebg-preview.png`,
+  other: `${BASE_PATH}icon/profile_background_less/etc-removebg-preview.png`
 };
 
 /**
@@ -60,4 +66,5 @@ export function getPetImage(petData, useMainImage = false) {
   const species = petData.species || 'dog';
   return useMainImage ? getMainCharacterImage(species) : getProfileImage(species);
 }
+
 

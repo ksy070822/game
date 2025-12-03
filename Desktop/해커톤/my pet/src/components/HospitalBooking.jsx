@@ -5,7 +5,7 @@ import { getApiKey, API_KEY_TYPES } from '../services/apiKeyManager';
 import { getNearbyHospitalsFromFirestore, searchHospitalsByRegion, searchHospitals } from '../lib/firestoreHospitals';
 import { bookingService } from '../services/firestore';
 import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { sendNotificationToClinicStaff } from '../services/pushNotificationService';
 
 // 동물 이미지 경로 유틸리티 import
@@ -68,6 +68,50 @@ const calculateAge = (birthDate) => {
   const today = new Date();
   const age = today.getFullYear() - birth.getFullYear();
   return `${age}세`;
+};
+
+// 오늘 날짜의 체중을 dailyLogs에서 가져오는 함수
+const getTodayWeightFromDailyLogs = async (petId) => {
+  if (!petId) return null;
+
+  const todayStr = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+  const docId = `${petId}_${todayStr}`; // dailyLogService.saveLog와 동일한 규칙
+
+  try {
+    const ref = doc(db, 'dailyLogs', docId);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) return null;
+
+    const data = snap.data();
+    const w = data?.weight;
+
+    return typeof w === 'number' ? w : null;
+  } catch (e) {
+    console.warn('[예약] dailyLogs 조회 중 오류:', e);
+    return null;
+  }
+};
+
+// Firestore에 쓰기 전에 undefined를 제거/변환하는 유틸
+const sanitizeForFirestore = (data) => {
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item));
+  }
+
+  if (data && typeof data === 'object') {
+    const result = {};
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined) {
+        result[key] = null; // undefined를 null로 변환
+      } else {
+        result[key] = sanitizeForFirestore(value);
+      }
+    });
+    return result;
+  }
+
+  return data;
 };
 
 export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser }) {
@@ -357,19 +401,40 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       return;
     }
 
-    // 반려동물 상세 정보
+    // 🔹 1단계: 오늘자 체중 시도 (dailyLogs에서 조회)
+    const petId = petData?.id;
+    const todayWeight = await getTodayWeightFromDailyLogs(petId);
+
+    // 🔹 2단계: 체중 우선순위 (오늘 체중 > petData.weight > null)
+    const resolvedWeight =
+      typeof todayWeight === 'number'
+        ? todayWeight
+        : typeof petData?.weight === 'number'
+        ? petData.weight
+        : petData?.weight
+        ? Number(petData.weight) || null
+        : null;
+
+    // 반려동물 상세 정보 (모든 필드 null-safe)
     const petProfile = {
-      id: petData?.id,
-      name: petData?.petName || petData?.name,
-      species: petData?.species,
-      breed: petData?.breed,
-      birthDate: petData?.birthDate,
-      age: petData?.birthDate ? calculateAge(petData.birthDate) : petData?.age,
-      sex: petData?.sex,
-      neutered: petData?.neutered,
-      weight: petData?.weight,
-      allergies: petData?.allergies || [],
-      chronicConditions: petData?.chronicConditions || []
+      id: petData?.id || null,
+      name: petData?.petName || petData?.name || null,
+      species: petData?.species || null,
+      breed: petData?.breed || null,
+      birthDate: petData?.birthDate || null,
+      age: petData?.birthDate
+        ? calculateAge(petData.birthDate)
+        : (typeof petData?.age === 'number' ? petData.age : null),
+      sex: petData?.sex || null,
+      neutered:
+        typeof petData?.neutered === 'boolean'
+          ? petData.neutered
+          : null,
+      weight: resolvedWeight, // 🔹 undefined 방지: dailyLogs > petData.weight > null
+      allergies: Array.isArray(petData?.allergies) ? petData.allergies : [],
+      chronicConditions: Array.isArray(petData?.chronicConditions)
+        ? petData.chronicConditions
+        : []
     };
 
     // AI 진단 상세 정보 (첨부 시)
@@ -459,7 +524,10 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         animalHospitalId: animalHospitalId, // 원본 ID 보관 (하위 호환)
         hospitalId: animalHospitalId // 추가 필드로 보관
       };
-      const result = await bookingService.createBooking(firestoreBookingData);
+
+      // 🔹 Firestore 쓰기 전에 undefined 제거
+      const sanitizedBookingData = sanitizeForFirestore(firestoreBookingData);
+      const result = await bookingService.createBooking(sanitizedBookingData);
       if (result.success) {
         console.log('✅ 예약 Firestore 저장 완료:', result.id, 'clinicId:', actualClinicId);
         console.log('📋 예약 데이터:', {

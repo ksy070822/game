@@ -14,6 +14,14 @@ import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, getDoc, doc } from 'firebase/firestore';
 import { getPetImage } from '../utils/imagePaths';
 
+// 로컬 타임존 기준으로 YYYY-MM-DD 문자열을 반환
+const getLocalDateString = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // 예: "2025-12-03"
+};
+
 export function ClinicDashboard({ currentUser, onBack }) {
   const [loading, setLoading] = useState(true);
   const [currentClinic, setCurrentClinic] = useState(null);
@@ -44,7 +52,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
   useEffect(() => {
     if (!currentClinic?.id) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString(); // 🔴 로컬 KST 기준 날짜
     console.log('[실시간 구독 시작] clinicId:', currentClinic.id, '병원명:', currentClinic.name, '날짜:', today);
     
     const unsubscribes = [];
