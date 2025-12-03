@@ -49,30 +49,45 @@ export function TreatmentSheet({ booking, clinic, onClose, onSaved }) {
       // 2) 예약 상태를 완료로 변경
       await bookingService.updateBookingStatus(booking.id, 'completed');
 
-      // 3) clinicPatients에 누적/갱신
-      const patientDocId = `${clinic.id}_${booking.petId}`;
-      await setDoc(
-        doc(db, 'clinicPatients', patientDocId),
-        {
+      // 3) clinicPatients에 누적/갱신 (실패해도 진료 결과는 저장됨)
+      try {
+        const patientDocId = `${clinic.id}_${booking.petId}`;
+        const patientData = {
           clinicId: clinic.id,
           clinicName: clinic.name,
           petId: booking.petId,
           petName: booking.pet?.name || booking.petName || null,
-          species: booking.pet?.species ?? null,  // 🔥 undefined 방지
-          speciesLabelKo: booking.pet?.speciesLabelKo ?? null,  // 🔥 undefined 방지
-          ownerUserId: booking.userId ?? null,  // 🔥 undefined 방지
-          ownerName: booking.owner?.name ?? null,  // 🔥 undefined 방지
-          ownerPhone: booking.owner?.phone ?? null,  // 🔥 undefined 방지
-          lastVisitDate: booking.date ?? null,  // 🔥 undefined 방지
-          lastDiagnosis: mainDiagnosis ?? null,  // 🔥 undefined 방지
+          species: booking.pet?.species ?? null,
+          speciesLabelKo: booking.pet?.speciesLabelKo ?? null,
+          ownerUserId: booking.userId ?? null,
+          ownerName: booking.owner?.name ?? null,
+          ownerPhone: booking.owner?.phone ?? null,
+          lastVisitDate: booking.date ?? null,
+          lastDiagnosis: mainDiagnosis ?? null,
           lastTriageLevel: triageScore >= 4 ? 'high' : triageScore >= 2 ? 'medium' : 'low',
           lastWeightKg: booking.pet?.weight ?? null,
           visitCount: increment(1),
           updatedAt: serverTimestamp(),
           createdAt: serverTimestamp()
-        },
-        { merge: true }
-      );
+        };
+
+        console.log('💾 [clinicPatients] 저장 시도:', {
+          docId: patientDocId,
+          clinicId: patientData.clinicId,
+          petId: patientData.petId,
+          ownerUserId: patientData.ownerUserId
+        });
+
+        await setDoc(
+          doc(db, 'clinicPatients', patientDocId),
+          patientData,
+          { merge: true }
+        );
+
+        console.log('✅ [clinicPatients] 저장 성공');
+      } catch (patientError) {
+        console.warn('⚠️ [clinicPatients] 저장 실패 (진료 결과는 저장됨):', patientError);
+      }
 
       alert('진료 결과가 저장되었습니다.');
       onSaved && onSaved();

@@ -534,71 +534,85 @@ export async function getUpcomingVaccinations(clinicId) {
  * @returns {Promise<Object>} 통계 데이터
  */
 export async function getClinicStats(clinicId) {
+  const today = getLocalDateString(); // 🔴 로컬 기준 YYYY-MM-DD
+  const thisMonth = today.substring(0, 7);
+
+  console.log('🔍 [getClinicStats] 입력:', {
+    clinicId,
+    today,
+    thisMonth
+  });
+
+  let todayBookingsCount = 0;
+  let monthlyVisitsCount = 0;
+  let totalPatientsCount = 0;
+  let upcomingVaccCount = 0;
+
+  // 오늘 예약 수 (실패해도 계속 진행)
   try {
-    const today = getLocalDateString(); // 🔴 로컬 기준 YYYY-MM-DD
-    const thisMonth = today.substring(0, 7);
-
-    console.log('🔍 [getClinicStats] 입력:', {
-      clinicId,
-      today,
-      thisMonth
-    });
-
-    // 오늘 예약 수
     const todayBookingsQuery = query(
       collection(db, 'bookings'),
       where('clinicId', '==', clinicId),
       where('date', '==', today)
     );
     const todayBookingsSnapshot = await getDocs(todayBookingsQuery);
-    console.log('📊 [getClinicStats] 오늘 예약:', todayBookingsSnapshot.size);
+    todayBookingsCount = todayBookingsSnapshot.size;
+    console.log('📊 [getClinicStats] 오늘 예약:', todayBookingsCount);
+  } catch (bookingError) {
+    console.warn('⚠️ [getClinicStats] 오늘 예약 조회 실패 (무시):', bookingError.message);
+  }
 
-    // 이번 달 진료 수 (visitDate 필드 사용)
+  // 이번 달 진료 수 (실패해도 계속 진행)
+  try {
     const monthlyResultsQuery = query(
       collection(db, 'clinicResults'),
       where('clinicId', '==', clinicId),
       where('visitDate', '>=', `${thisMonth}-01`)
     );
     const monthlyResultsSnapshot = await getDocs(monthlyResultsQuery);
-    console.log('📊 [getClinicStats] 이번 달 진료:', monthlyResultsSnapshot.size);
+    monthlyVisitsCount = monthlyResultsSnapshot.size;
+    console.log('📊 [getClinicStats] 이번 달 진료:', monthlyVisitsCount);
+  } catch (resultsError) {
+    console.warn('⚠️ [getClinicStats] 이번 달 진료 조회 실패 (무시):', resultsError.message);
+  }
 
-    // 총 환자 수
+  // 총 환자 수 (실패해도 계속 진행)
+  try {
     const patientsQuery = query(
       collection(db, 'clinicPatients'),
       where('clinicId', '==', clinicId)
     );
     const patientsSnapshot = await getDocs(patientsQuery);
-    console.log('📊 [getClinicStats] 총 환자:', patientsSnapshot.size);
-
-    // 예정된 예방접종 (옵션 - 실패해도 계속 진행)
-    let upcomingVaccCount = 0;
-    try {
-      const upcomingVaccQuery = query(
-        collection(db, 'vaccinations'),
-        where('clinicId', '==', clinicId),
-        where('status', '==', 'scheduled'),
-        where('scheduledDate', '>=', today)
-      );
-      const upcomingVaccSnapshot = await getDocs(upcomingVaccQuery);
-      upcomingVaccCount = upcomingVaccSnapshot.size;
-      console.log('📊 [getClinicStats] 예정 예방접종:', upcomingVaccCount);
-    } catch (vaccError) {
-      console.warn('⚠️ [getClinicStats] 예방접종 조회 실패 (무시):', vaccError.message);
-    }
-
-    const stats = {
-      todayBookings: todayBookingsSnapshot.size,
-      monthlyVisits: monthlyResultsSnapshot.size,
-      totalPatients: patientsSnapshot.size,
-      upcomingVaccinations: upcomingVaccCount
-    };
-
-    console.log('✅ [getClinicStats] 최종 통계:', stats);
-    return stats;
-  } catch (error) {
-    console.error('❌ [getClinicStats] 통계 조회 실패:', error);
-    throw error;
+    totalPatientsCount = patientsSnapshot.size;
+    console.log('📊 [getClinicStats] 총 환자:', totalPatientsCount);
+  } catch (patientsError) {
+    console.warn('⚠️ [getClinicStats] 총 환자 조회 실패 (무시):', patientsError.message);
   }
+
+  // 예정된 예방접종 (실패해도 계속 진행)
+  try {
+    const upcomingVaccQuery = query(
+      collection(db, 'vaccinations'),
+      where('clinicId', '==', clinicId),
+      where('status', '==', 'scheduled'),
+      where('scheduledDate', '>=', today)
+    );
+    const upcomingVaccSnapshot = await getDocs(upcomingVaccQuery);
+    upcomingVaccCount = upcomingVaccSnapshot.size;
+    console.log('📊 [getClinicStats] 예정 예방접종:', upcomingVaccCount);
+  } catch (vaccError) {
+    console.warn('⚠️ [getClinicStats] 예방접종 조회 실패 (무시):', vaccError.message);
+  }
+
+  const stats = {
+    todayBookings: todayBookingsCount,
+    monthlyVisits: monthlyVisitsCount,
+    totalPatients: totalPatientsCount,
+    upcomingVaccinations: upcomingVaccCount
+  };
+
+  console.log('✅ [getClinicStats] 최종 통계:', stats);
+  return stats;
 }
 
 // ============================================

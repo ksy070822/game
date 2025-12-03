@@ -58,10 +58,12 @@ https://console.firebase.google.com/project/[YOUR-PROJECT-ID]/firestore/indexes?
   - createdAt (Descending)
 ```
 
-**Firebase Console 링크:**
+**Firebase Console 링크 (실제 프로젝트):**
 ```
-https://console.firebase.google.com/project/[YOUR-PROJECT-ID]/firestore/indexes?create_composite=ClZ-cHJvamVjdHMvW1lPVVItUFJPSkVDVC1JRF0vZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL2RpYWdub3Nlcy9pbmRleGVzL18QARoKCgZjbGluaWNJZBABGgoKBm93bmVySWQQARoJCgVwZXRJZBABGgsKB2NyZWF0ZWRBdBAC
+https://console.firebase.google.com/v1/r/project/ai-factory-c6d58/firestore/indexes?create_composite=ClJwcm9qZWN0cy9haS1mYWN0b3J5LWM2ZDU4L2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9kaWFnbm9zZXMvaW5kZXhlcy9fEAEaDAoIY2xpbmljSWQQARoLCgdvd25lcklkEAEaCQoFcGV0SWQQARoNCgljcmVhdGVkQXQQAhoMCghfX25hbWVfXxAC
 ```
+
+**⚠️ 바로 위 링크를 클릭하여 인덱스를 생성하세요!** (테스트 로그에서 자동 생성된 URL)
 
 #### 2-2. 보호자 모드: 펫별 진단 기록 조회
 ```
