@@ -214,44 +214,68 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-blue-50 flex flex-col items-center justify-center p-6 pt-12">
-      {/* 로고 */}
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg mx-auto mb-4 flex items-center justify-center">
-          <span className="text-4xl">🐾</span>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 flex flex-col items-center justify-center p-6" style={{ WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale' }}>
+      {/* 상단 헤더 */}
+      <div className="w-full max-w-md mb-8">
+        <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-3xl p-6 shadow-lg">
+          <div className="flex items-center gap-3 justify-center">
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md">
+              <span className="text-2xl">🐾</span>
+            </div>
+            <div className="text-white">
+              <h1 className="text-2xl font-bold">PetMedical.AI</h1>
+              <p className="text-sm text-cyan-100">AI 기반 반려동물 건강 관리 서비스</p>
+            </div>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
-        <p className="text-slate-500 mt-1 text-sm">반려동물 건강 관리의 시작</p>
       </div>
 
       {/* 모드 선택 카드 */}
-      <div className="w-full max-w-sm mb-6">
-        <div className="flex gap-3">
+      <div className="w-full max-w-md mb-6">
+        <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setUserMode('guardian')}
-            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-2 ${
+            className={`relative bg-white rounded-2xl p-6 shadow-md transition-all duration-300 ${
               userMode === 'guardian'
-                ? 'ring-2 ring-sky-500 bg-sky-50'
-                : 'hover:shadow-lg'
+                ? 'ring-3 ring-cyan-400 shadow-lg scale-105'
+                : 'hover:shadow-lg hover:scale-102'
             }`}
           >
-            <span className="text-3xl">🐕</span>
-            <span className="font-bold text-slate-800">보호자</span>
-            <span className="text-xs text-slate-500">반려동물 건강 관리</span>
+            <div className="text-center">
+              <div className="text-5xl mb-3">🐕</div>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">보호자</h3>
+              <p className="text-xs text-gray-500">반려동물 건강 관리</p>
+            </div>
+            {userMode === 'guardian' && (
+              <div className="absolute top-3 right-3 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
           </button>
           <button
             type="button"
             onClick={() => setUserMode('clinic')}
-            className={`flex-1 py-5 px-4 rounded-xl bg-white shadow-md transition-all flex flex-col items-center gap-2 ${
+            className={`relative bg-white rounded-2xl p-6 shadow-md transition-all duration-300 ${
               userMode === 'clinic'
-                ? 'ring-2 ring-sky-500 bg-sky-50'
-                : 'hover:shadow-lg'
+                ? 'ring-3 ring-cyan-400 shadow-lg scale-105'
+                : 'hover:shadow-lg hover:scale-102'
             }`}
           >
-            <span className="text-3xl">📋</span>
-            <span className="font-bold text-slate-800">병원</span>
-            <span className="text-xs text-slate-500">예약 및 환자 관리</span>
+            <div className="text-center">
+              <div className="text-5xl mb-3">📋</div>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">병원</h3>
+              <p className="text-xs text-gray-500">예약 및 환자 관리</p>
+            </div>
+            {userMode === 'clinic' && (
+              <div className="absolute top-3 right-3 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
           </button>
         </div>
       </div>
@@ -263,7 +287,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           <button
             onClick={() => setShowEmailForm(true)}
             disabled={loading}
-            className="w-full py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
+            className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30"
           >
             {loading ? (
               <>
@@ -290,7 +314,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                     setResetSuccess(false);
                     setResetEmail('');
                   }}
-                  className="w-full py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors"
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:from-cyan-600 hover:to-cyan-700 transition-all"
                 >
                   로그인으로 돌아가기
                 </button>
@@ -307,13 +331,13 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                   placeholder="가입한 이메일"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
                   required
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50"
+                  className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50"
                 >
                   {loading ? '전송 중...' : '재설정 링크 보내기'}
                 </button>
@@ -360,7 +384,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
+              className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30"
             >
               {loading ? (
                 <>
@@ -388,7 +412,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                   setShowPasswordReset(true);
                   setError('');
                 }}
-                className="text-sky-600 text-sm hover:underline font-medium"
+                className="text-cyan-600 text-sm hover:underline font-medium"
               >
                 비밀번호 찾기
               </button>
@@ -398,7 +422,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
               <button
                 type="button"
                 onClick={onGoToRegister}
-                className="text-sky-600 font-bold text-sm hover:underline"
+                className="text-cyan-600 font-bold text-sm hover:underline"
               >
                 회원가입
               </button>
@@ -421,7 +445,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 <div className="w-full border-t border-slate-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-gradient-to-b from-sky-100 to-blue-50 text-slate-500">또는</span>
+                <span className="px-3 bg-gradient-to-b from-cyan-50 to-blue-50 text-slate-500">또는</span>
               </div>
             </div>
 
@@ -467,7 +491,7 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
           <div className="mt-4">
             <button
               onClick={onSkipLogin}
-              className="w-full py-3 bg-white/50 text-slate-600 font-medium rounded-xl hover:bg-white transition-colors flex items-center justify-center gap-2 border border-slate-200"
+              className="w-full py-3 bg-white/80 text-cyan-700 font-medium rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 border border-cyan-200 shadow-sm"
             >
               <span className="material-symbols-outlined text-sm">rocket_launch</span>
               로그인 없이 바로 입장하기

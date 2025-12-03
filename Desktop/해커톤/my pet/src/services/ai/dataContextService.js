@@ -62,14 +62,16 @@ export async function fetchRelatedFAQs(species = 'dog', symptomKeywords = '') {
  * @returns {Array} 과거 진단 기록 목록
  */
 export async function fetchPastDiagnoses(petId) {
-  if (!petId) return [];
+  // petId가 문자열인지 확인 (객체나 undefined일 수 있음)
+  const petIdStr = typeof petId === 'string' ? petId : petId?.toString?.() || null;
+  if (!petIdStr) return [];
 
   try {
     const diagnosesRef = collection(db, 'diagnoses');
     // 복합 인덱스 필요 없이 단순 쿼리 후 클라이언트 정렬
     const q = query(
       diagnosesRef,
-      where('petId', '==', petId),
+      where('petId', '==', petIdStr),
       limit(10)
     );
 
@@ -146,11 +148,13 @@ export async function fetchSimilarCases(species, symptomKeywords) {
  * @returns {Array} 케어 로그 목록
  */
 export async function fetchRecentCareLogs(petId, days = 7) {
-  if (!petId) return [];
+  // petId가 문자열인지 확인 (객체나 undefined일 수 있음)
+  const petIdStr = typeof petId === 'string' ? petId : petId?.toString?.() || null;
+  if (!petIdStr) return [];
 
   try {
     // 서브컬렉션 경로: pets/{petId}/careLogs
-    const careLogsRef = collection(db, 'pets', petId, 'careLogs');
+    const careLogsRef = collection(db, 'pets', petIdStr, 'careLogs');
     const q = query(
       careLogsRef,
       orderBy('date', 'desc'),

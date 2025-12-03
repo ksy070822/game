@@ -8,7 +8,8 @@ export const callCareAgent = async (petData, opsData, medicalDiagnosis, triageRe
     throw new Error('Gemini API 키가 설정되지 않았습니다. 마이페이지 > API 설정에서 키를 입력해주세요.');
   }
 
-  const model = import.meta.env.VITE_GEMINI_CARE_MODEL || 'gemini-1.5-pro';
+  // gemini-2.0-flash 사용 (다른 에이전트와 통일, 더 빠르고 안정적)
+  const model = import.meta.env.VITE_GEMINI_CARE_MODEL || 'gemini-2.0-flash';
 
   const prompt = `${COMMON_CONTEXT}
 
