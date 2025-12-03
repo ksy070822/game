@@ -915,7 +915,13 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
   // 현재 반려동물의 메인 캐릭터 이미지 가져오기
   const getMainCharacterImagePath = () => {
-    return getPetImage(petData, true); // 메인 화면이므로 true
+    const imagePath = getPetImage(petData, true); // 메인 화면이므로 true
+    console.log('[이미지 경로]', {
+      petData: petData?.species,
+      imagePath,
+      petName: petData?.petName
+    });
+    return imagePath;
   };
 
   // 동물 분류 표시 (강아지/고양이는 품종, 나머지는 대분류)
@@ -946,8 +952,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             
             {/* 모바일 컨텐츠 */}
             <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
-              {/* Header */}
-              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
+              {/* Header - 노치 영역 확보 */}
+              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-12 pb-4 shadow-lg">
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-xl">🐾</span>
@@ -983,18 +989,22 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white">
                           <img
                             src={getMainCharacterImagePath()}
-                            alt="Pet Character"
+                            alt={petData?.petName || '반려동물'}
                             className="w-full h-full object-cover"
                             style={{ objectPosition: 'center', display: 'block' }}
+                            onError={(e) => {
+                              console.error('이미지 로드 실패:', e.target.src);
+                              e.target.src = '/icon/dog.png';
+                            }}
                           />
                         </div>
 
                         <div className="flex-1 flex flex-col justify-between py-1">
                           <div>
-                            <p className="text-base font-bold text-gray-800 whitespace-nowrap">AI 전문 의료진이,</p>
-                            <p className="text-base font-bold text-gray-800 whitespace-nowrap">24시간 {petData?.petName || petData?.name || '반려동물'}를 지켜줄게요 ❤️</p>
-                            <p className="text-sm text-sky-700 font-semibold mt-1 whitespace-nowrap">
-                              오늘도 든든한 {petData?.petName || petData?.name || '반려동물'} 케어 시작!
+                            <p className="text-sm font-bold text-gray-800">AI 전문 의료진 24시간 상주</p>
+                            <p className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                            <p className="text-sm text-sky-700 font-semibold mt-1">
+                              오늘도 든든한 케어 시작!
                             </p>
                           </div>
 
@@ -1321,7 +1331,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
           <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
       {/* Header - 회사명 가운데 정렬, 노치 영역 확보 */}
-      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-10 md:pt-12 pb-4 shadow-lg">
+      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-14 pb-4 shadow-lg">
         <div className="flex items-center justify-center gap-2">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
             <span className="text-xl">🐾</span>
@@ -1359,18 +1369,22 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white">
                   <img
                     src={getMainCharacterImagePath()}
-                    alt="Pet Character"
+                    alt={petData?.petName || '반려동물'}
                     className="w-full h-full object-cover"
                     style={{ objectPosition: 'center', display: 'block' }}
+                    onError={(e) => {
+                      console.error('이미지 로드 실패:', e.target.src);
+                      e.target.src = '/icon/dog.png';
+                    }}
                   />
                 </div>
 
                 <div className="flex-1 flex flex-col justify-between py-1">
                   <div>
-                    <p className="text-base font-bold text-gray-800 whitespace-nowrap">AI 전문 의료진이,</p>
-                    <p className="text-base font-bold text-gray-800 whitespace-nowrap">24시간 {petData?.petName || petData?.name || '반려동물'}를 지켜줄게요 ❤️</p>
-                    <p className="text-sm text-sky-700 font-semibold mt-1 whitespace-nowrap">
-                      오늘도 든든한 {petData?.petName || petData?.name || '반려동물'} 케어 시작!
+                    <p className="text-sm font-bold text-gray-800">AI 전문 의료진 24시간 상주</p>
+                    <p className="text-base font-bold text-gray-800">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                    <p className="text-sm text-sky-700 font-semibold mt-1">
+                      오늘도 든든한 케어 시작!
                     </p>
                   </div>
 
