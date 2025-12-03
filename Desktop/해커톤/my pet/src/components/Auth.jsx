@@ -236,9 +236,9 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 : 'hover:shadow-lg'
             }`}
           >
-            <img 
-              src="/icon/login/main_friend.png" 
-              alt="보호자" 
+            <img
+              src={`${import.meta.env.BASE_URL}icon/login/main_friend.png`}
+              alt="보호자"
               className="w-16 h-16 object-contain"
             />
             <span className="font-bold text-slate-800">보호자</span>
@@ -253,9 +253,9 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
                 : 'hover:shadow-lg'
             }`}
           >
-            <img 
-              src="/icon/login/main_hospital.png" 
-              alt="병원" 
+            <img
+              src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
+              alt="병원"
               className="w-16 h-16 object-contain"
             />
             <span className="font-bold text-slate-800">병원</span>
