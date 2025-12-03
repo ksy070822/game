@@ -37,7 +37,8 @@ import { diagnosisService, bookingService, petService } from './src/services/fir
 import { requestPushPermission, setupForegroundMessageHandler } from './src/services/pushNotificationService'
 import { getUserClinics } from './src/services/clinicService'
 import { getSpeciesDisplayName } from './src/services/ai/commonContext'
-import { getPetImage } from './src/utils/imagePaths'
+// 동물 이미지 경로 유틸리티 import
+import { getMainCharacterImage, getPetImage, PROFILE_IMAGES } from './src/utils/imagePaths'
 
 // 동물 종류 한글 매핑
 const SPECIES_LABELS_APP = {
@@ -228,9 +229,6 @@ const PET_CHARACTERS = {
     { id: 'other_pet', emoji: '🐾', label: '기타', color: '#808080' },
   ]
 };
-
-// 동물 이미지 경로 유틸리티 import
-import { getMainCharacterImage, getPetImage, PROFILE_IMAGES } from './src/utils/imagePaths';
 
 // 동물 종류 옵션 - PROFILE_IMAGES 사용하여 배포 환경 호환
 const SPECIES_OPTIONS = [
