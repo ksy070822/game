@@ -228,7 +228,7 @@ const SPECIES_OPTIONS = [
 ];
 
 // 동물 이미지 경로 유틸리티 import
-import { getMainCharacterImage, getPetImage } from './src/utils/imagePaths';
+import { getMainCharacterImage, getPetImage, MAIN_CHARACTER_IMAGES } from './src/utils/imagePaths';
 
 // 개/고양이 대표 품종 목록
 const DOG_BREEDS = [
@@ -915,12 +915,25 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
   // 현재 반려동물의 메인 캐릭터 이미지 가져오기
   const getMainCharacterImagePath = () => {
-    const imagePath = getPetImage(petData, true); // 메인 화면이므로 true
+    if (!petData) {
+      return '/icon/main-image/dog_main-removebg-preview.png';
+    }
+    
+    // 사용자가 등록한 프로필 이미지가 있으면 우선 사용
+    if (petData.profileImage) {
+      return petData.profileImage;
+    }
+    
+    // 동물 종류에 따라 기본 이미지 반환
+    const species = petData.species || 'dog';
+    const imagePath = getMainCharacterImage(species);
+    
     console.log('[이미지 경로]', {
-      petData: petData?.species,
+      species,
       imagePath,
-      petName: petData?.petName
+      petName: petData?.petName || petData?.name
     });
+    
     return imagePath;
   };
 
@@ -983,31 +996,39 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-200/20 rounded-full blur-2xl"></div>
 
                       <div className="relative flex items-stretch gap-3">
-                        <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white">
+                        <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
                           <img
                             src={getMainCharacterImagePath()}
-                            alt={petData?.petName || '반려동물'}
-                            className="w-full h-full object-cover"
+                            alt={petData?.petName || petData?.name || '반려동물'}
+                            className="w-full h-full object-contain"
                             style={{ objectPosition: 'center', display: 'block' }}
                             onError={(e) => {
                               console.error('이미지 로드 실패:', e.target.src);
                               // 동물 종류에 따라 기본 이미지 설정
                               const species = petData?.species || 'dog';
-                              const fallbackImage = `/icon/main-image/${species === 'cat' ? 'Cat' : species}_main-removebg-preview.png`;
+                              let fallbackImage = '/icon/main-image/dog_main-removebg-preview.png';
+                              
+                              if (species === 'cat') {
+                                fallbackImage = '/icon/main-image/Cat_main-removebg-preview.png';
+                              } else if (species && MAIN_CHARACTER_IMAGES[species]) {
+                                fallbackImage = MAIN_CHARACTER_IMAGES[species];
+                              }
+                              
                               e.target.src = fallbackImage;
                               // 여전히 실패하면 기본 강아지 이미지
                               e.target.onerror = () => {
                                 e.target.src = '/icon/main-image/dog_main-removebg-preview.png';
+                                e.target.onerror = null; // 무한 루프 방지
                               };
                             }}
                           />
                         </div>
 
                         <div className="flex-1 flex flex-col justify-between py-1">
-                          <div className="flex flex-col items-center justify-center text-center">
-                            <p className="text-base font-bold text-gray-800">AI 전문 의료진 24시간 대기</p>
-                            <p className="text-base font-bold text-gray-800 mt-1">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                            <p className="text-base font-bold text-sky-700 mt-2">
+                          <div className="flex flex-col items-center justify-center text-center w-full">
+                            <p className="text-base font-bold text-gray-800 w-full">AI 전문 의료진 24시간 대기</p>
+                            <p className="text-base font-bold text-gray-800 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                            <p className="text-base font-bold text-sky-700 mt-2 w-full">
                               오늘도 든든한 케어 시작!
                             </p>
                           </div>
@@ -1388,10 +1409,10 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 </div>
 
                 <div className="flex-1 flex flex-col justify-between py-1">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <p className="text-base font-bold text-gray-800">AI 전문 의료진 24시간 대기</p>
-                    <p className="text-base font-bold text-gray-800 mt-1">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                    <p className="text-base font-bold text-sky-700 mt-2">
+                  <div className="flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-base font-bold text-gray-800 w-full">AI 전문 의료진 24시간 대기</p>
+                    <p className="text-base font-bold text-gray-800 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
+                    <p className="text-base font-bold text-sky-700 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
                   </div>

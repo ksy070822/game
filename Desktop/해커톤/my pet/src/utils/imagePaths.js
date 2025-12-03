@@ -5,7 +5,10 @@
  * 기타 영역: profile_background_less 폴더 사용
  */
 
-// 메인 화면용 이미지 (main-image 폴더)
+/**
+ * 메인 화면용 이미지 (main-image 폴더)
+ * @type {Record<string, string>}
+ */
 export const MAIN_CHARACTER_IMAGES = {
   dog: '/icon/main-image/dog_main-removebg-preview.png',
   cat: '/icon/main-image/Cat_main-removebg-preview.png',
