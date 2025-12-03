@@ -964,7 +964,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50">
       {/* PC 레이아웃 (임시 비활성화) */}
       <div className="hidden">
         {/* 좌측: 모바일 화면 미리보기 */}
@@ -973,14 +973,14 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             {/* 모바일 컨텐츠 */}
             <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
               {/* Header - 회사 로고 가운데 배치 */}
-              <header className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-4 pt-4 pb-4 shadow-lg">
+              <header className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 pt-4 pb-4 shadow-lg">
                 <div className="flex items-center justify-center">
                   <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-xl">🐾</span>
                   </div>
                   <div className="text-center ml-2">
                     <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
-                    <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
+                    <p className="text-cyan-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
                   </div>
                 </div>
               </header>
@@ -993,7 +993,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
                     <button
                       onClick={() => onNavigate('profile-registration')}
-                      className="w-full py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                      className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                     >
                       반려동물 등록하기
                     </button>
@@ -1041,31 +1041,31 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           <div className="flex flex-col items-center justify-center text-center w-full">
                             <p className="text-lg font-display font-bold text-gray-900 w-full">AI 전문 의료진 24시간 대기</p>
                             <p className="text-lg font-display font-bold text-gray-900 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                            <p className="text-base font-semibold text-sky-600 mt-2 w-full">
+                            <p className="text-base font-semibold text-cyan-600 mt-2 w-full">
                               오늘도 든든한 케어 시작!
                             </p>
                           </div>
 
                           <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                            <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                            <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                               {getSpeciesDisplay()}
                             </span>
                             {getSexDisplay() && (
-                              <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                              <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                                 {getSexDisplay()}
                               </span>
                             )}
-                            <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                            <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                               {calculateAge(petData.birthDate)}
                             </span>
                             {todayWeight && (
-                              <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                              <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                                 {todayWeight}kg
                               </span>
                             )}
                             <button
                               onClick={() => onNavigate('profile-list')}
-                              className="px-3 py-1 bg-sky-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
+                              className="px-3 py-1 bg-cyan-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-cyan-600 transition-colors"
                             >
                               변경
                             </button>
@@ -1075,7 +1075,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                       <button
                         onClick={() => onNavigate('symptom-input')}
-                        className="w-full mt-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                        className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
                       >
                         PetMedical.AI 종합의료센터 바로 방문 &gt;
                       </button>
@@ -1104,7 +1104,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         </div>
                         <button
                           onClick={() => onNavigate('records')}
-                          className="text-xs text-sky-600 font-semibold"
+                          className="text-xs text-cyan-600 font-semibold"
                         >
                           전체보기 &gt;
                         </button>
@@ -1239,7 +1239,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     <p className="text-gray-500 mb-6">맞춤형 AI 건강관리 서비스를 시작하세요</p>
                     <button
                       onClick={() => onNavigate('profile-registration')}
-                      className="px-8 py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                      className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                     >
                       반려동물 등록하기
                     </button>
@@ -1251,11 +1251,11 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => onNavigate('symptom-input')}
-                      className="bg-gradient-to-br from-sky-400 to-sky-500 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
+                      className="bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
                     >
                       <span className="text-3xl mb-3 block">🏥</span>
                       <h3 className="text-lg font-bold">AI 종합진료센터</h3>
-                      <p className="text-sky-100 text-sm mt-1">증상을 입력하고 AI 진단받기</p>
+                      <p className="text-cyan-100 text-sm mt-1">증상을 입력하고 AI 진단받기</p>
                     </button>
                     <button
                       onClick={() => onNavigate('ai-consultation')}
@@ -1275,7 +1275,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                           <span>🔔</span> 케어 주요알림
                         </h3>
-                        <button onClick={() => onNavigate('records')} className="text-sm text-sky-600 font-medium">
+                        <button onClick={() => onNavigate('records')} className="text-sm text-cyan-600 font-medium">
                           전체보기 &gt;
                         </button>
                       </div>
@@ -1336,7 +1336,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                       <div className="grid grid-cols-5 gap-3 mb-4">
                         {[
                           { icon: '🍚', label: '식사', key: 'meal', bg: 'bg-gray-50', points: 5 },
-                          { icon: '💧', label: '물', key: 'water', bg: 'bg-sky-50', points: 3 },
+                          { icon: '💧', label: '물', key: 'water', bg: 'bg-cyan-50', points: 3 },
                           { icon: '🩴', label: '산책', key: 'walk', bg: 'bg-yellow-50', points: 10 },
                           { icon: '🍖', label: '간식', key: 'treats', bg: 'bg-orange-50', points: 2 },
                           { icon: '🗑️', label: '배변', key: 'grooming', bg: 'bg-amber-50', points: 7 }
@@ -1374,7 +1374,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                             placeholder="5.2"
                             value={todayWeight}
                             onChange={(e) => setTodayWeight(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-sky-400 focus:outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-cyan-400 focus:outline-none"
                           />
                         </div>
                         <button
@@ -1382,7 +1382,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                             careSaved
                               ? 'bg-green-500 text-white'
-                              : 'bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:shadow-lg'
+                              : 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:shadow-lg'
                           }`}
                         >
                           {careSaved ? '저장 완료!' : `오늘 ${petData?.petName || petData?.name || '반려동물'} 케어 완료`}
@@ -1401,20 +1401,20 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       <div className="md:flex md:items-center md:justify-center md:p-8 md:min-h-screen">
         {/* 모바일 프레임 (태블릿에서만 보임) */}
         <div className="hidden md:block fixed inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50"></div>
         </div>
 
         <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
           <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
       {/* Header - 회사 로고 가운데 배치 */}
-      <header className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-4 pt-4 pb-4 shadow-lg">
+      <header className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 pt-4 pb-4 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
             <span className="text-xl">🐾</span>
           </div>
           <div className="text-center ml-2">
             <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
-            <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
+            <p className="text-cyan-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
           </div>
         </div>
       </header>
@@ -1427,7 +1427,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
             <button
               onClick={() => onNavigate('profile-registration')}
-              className="w-full py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
             >
               반려동물 등록하기
             </button>
@@ -1476,31 +1476,31 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   <div className="flex flex-col items-center justify-center text-center w-full">
                     <p className="text-lg font-display font-bold text-gray-900 w-full">AI 전문 의료진 24시간 대기</p>
                     <p className="text-lg font-display font-bold text-gray-900 mt-1 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
-                    <p className="text-base font-semibold text-sky-600 mt-2 w-full">
+                    <p className="text-base font-semibold text-cyan-600 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
                   </div>
 
                   <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                    <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                    <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                       {getSpeciesDisplay()}
                     </span>
                     {getSexDisplay() && (
-                      <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                      <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                         {getSexDisplay()}
                       </span>
                     )}
-                    <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                    <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                       {calculateAge(petData.birthDate)}
                     </span>
                     {todayWeight && (
-                      <span className="text-[11px] text-sky-700 font-semibold bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                      <span className="text-[11px] text-cyan-700 font-semibold bg-cyan-100 px-2.5 py-1 rounded-full border border-cyan-200">
                         {todayWeight}kg
                       </span>
                     )}
                     <button
                       onClick={() => onNavigate('profile-list')}
-                      className="px-3 py-1 bg-sky-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
+                      className="px-3 py-1 bg-cyan-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-cyan-600 transition-colors"
                     >
                       변경
                     </button>
@@ -1510,7 +1510,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <button
                 onClick={() => onNavigate('symptom-input')}
-                className="w-full mt-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
               >
                 PetMedical.AI 종합의료센터 바로 방문 &gt;
               </button>
@@ -1539,7 +1539,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 </div>
                 <button
                   onClick={() => onNavigate('records')}
-                  className="text-xs text-sky-600 font-semibold"
+                  className="text-xs text-cyan-600 font-semibold"
                 >
                   전체보기 &gt;
                 </button>
@@ -1619,7 +1619,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <button
-                      className="w-12 h-12 bg-sky-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="w-12 h-12 bg-cyan-50 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                       onClick={() => {
                         setCareActions(prev => ({ ...prev, water: prev.water + 1 }));
                         setHealthPoints(prev => {
@@ -1722,7 +1722,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   placeholder="5.2"
                   value={todayWeight}
                   onChange={(e) => setTodayWeight(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-sky-400 focus:outline-none text-sm"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-cyan-400 focus:outline-none text-sm"
                 />
               </div>
 
@@ -1732,7 +1732,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 <input
                   type="text"
                   placeholder="오늘의 특이사항을 기록하세요"
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-sky-400 focus:outline-none text-sm"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-cyan-400 focus:outline-none text-sm"
                 />
               </div>
 
@@ -1741,7 +1741,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                   careSaved
                     ? 'bg-green-500 text-white'
-                    : 'bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:shadow-lg'
+                    : 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white hover:shadow-lg'
                 }`}
               >
                 {careSaved ? '저장 완료!' : `오늘 ${petData?.petName || petData?.name || '반려동물'} 케어 완료`}
@@ -1867,7 +1867,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 text-center max-w-sm">
-          <div className="w-20 h-20 bg-sky-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+          <div className="w-20 h-20 bg-cyan-100 rounded-full mx-auto mb-4 flex items-center justify-center">
             <span className="text-4xl">🐾</span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h2>
@@ -1877,7 +1877,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
           </p>
           <button
             onClick={() => onRegister ? onRegister() : onBack()}
-            className="w-full py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors"
+            className="w-full py-3 bg-cyan-500 text-white font-bold rounded-xl hover:bg-cyan-600 transition-colors"
           >
             반려동물 등록하기
           </button>
@@ -1994,17 +1994,17 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
                   onClick={() => handleDepartmentSelect(dept)}
                   className={`p-3 rounded-xl text-left transition-all border-2 ${
                     isSelected
-                      ? 'bg-sky-50 border-sky-500'
+                      ? 'bg-cyan-50 border-cyan-500'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">{info.icon}</span>
-                    <span className={`font-bold text-sm ${isSelected ? 'text-sky-700' : 'text-slate-800'}`}>
+                    <span className={`font-bold text-sm ${isSelected ? 'text-cyan-700' : 'text-slate-800'}`}>
                       {dept}
                     </span>
           </div>
-                  <p className={`text-xs ${isSelected ? 'text-sky-600' : 'text-slate-500'}`}>
+                  <p className={`text-xs ${isSelected ? 'text-cyan-600' : 'text-slate-500'}`}>
                     {info.desc}
                   </p>
                 </button>
@@ -2027,8 +2027,8 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
                   onClick={() => toggleSymptom(symptom)}
                   className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
                     selectedSymptoms.includes(symptom)
-                      ? 'bg-sky-500 text-white border-sky-500'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-sky-300'
+                      ? 'bg-cyan-500 text-white border-cyan-500'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-cyan-300'
                   }`}
                 >
                   {symptom}
@@ -2036,8 +2036,8 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
               ))}
             </div>
             {selectedSymptoms.length > 0 && (
-              <div className="mt-3 p-3 bg-sky-50 rounded-xl">
-                <p className="text-xs text-sky-700 font-medium">
+              <div className="mt-3 p-3 bg-cyan-50 rounded-xl">
+                <p className="text-xs text-cyan-700 font-medium">
                   ✓ 선택됨: {selectedSymptoms.join(', ')}
                 </p>
               </div>
@@ -2050,7 +2050,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
           <h3 className="font-bold text-slate-800 mb-1 text-sm">증상 상세 설명</h3>
           <p className="text-xs text-slate-500 mb-3">추가로 설명하고 싶은 내용이 있다면 적어주세요</p>
           <textarea
-            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[80px] text-sm resize-none"
+            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 min-h-[80px] text-sm resize-none"
             placeholder="예: 3일 전부터 밥을 잘 안 먹고, 자꾸 구석에 숨어요..."
             value={symptomText}
             onChange={(e) => setSymptomText(e.target.value)}
@@ -2072,7 +2072,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
                 </button>
               </div>
             ))}
-            <label className="w-20 h-20 shrink-0 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-sky-500 hover:bg-sky-50 transition-all">
+            <label className="w-20 h-20 shrink-0 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-cyan-500 hover:bg-cyan-50 transition-all">
               <span className="text-2xl text-slate-400">📷</span>
               <span className="text-[10px] text-slate-400 mt-1">추가</span>
               <input
@@ -2093,7 +2093,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         <button 
           onClick={handleSubmit}
           disabled={loading || (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0)}
-          className="w-full bg-sky-500 text-white py-6 px-8 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
+          className="w-full bg-cyan-500 text-white py-6 px-8 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 active:bg-cyan-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40"
         >
           {loading ? (
             <>
