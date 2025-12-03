@@ -626,7 +626,11 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
       {/* 로고 */}
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-white rounded-2xl shadow-lg mx-auto mb-3 flex items-center justify-center">
-          <span className="text-3xl">🐾</span>
+          <img
+            src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+            alt="PetMedical.AI"
+            className="w-10 h-10 object-contain"
+          />
         </div>
         <h1 className="text-xl font-bold text-slate-900 font-display">회원가입</h1>
       </div>
@@ -676,10 +680,14 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                   formData.userMode === 'guardian' ? 'bg-cyan-100' : 'bg-slate-100'
                 }`}>
-                  🐕
+                  <img
+                    src={`${import.meta.env.BASE_URL}icon/login/main_friend.png`}
+                    alt="보호자"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -709,10 +717,14 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                   formData.userMode === 'clinic' ? 'bg-cyan-100' : 'bg-slate-100'
                 }`}>
-                  🏥
+                  <img
+                    src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
+                    alt="병원"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -754,7 +766,11 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
         {step === 2 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{formData.userMode === 'guardian' ? '🐕' : '🏥'}</span>
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/${formData.userMode === 'guardian' ? 'main_friend.png' : 'main_hospital.png'}`}
+                alt={formData.userMode === 'guardian' ? '보호자' : '병원'}
+                className="w-8 h-8 object-contain"
+              />
               <span className="text-sm font-medium text-slate-500">
                 {formData.userMode === 'guardian' ? '보호자' : '병원'} 회원가입
               </span>
@@ -823,7 +839,12 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
             {formData.userMode === 'clinic' && (
               <div className="pt-4 border-t border-slate-200 space-y-4">
                 <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <span>🏥</span> 병원 정보
+                  <img
+                    src={`${import.meta.env.BASE_URL}icon/login/main_hospital.png`}
+                    alt="병원"
+                    className="w-5 h-5 object-contain"
+                  />
+                  병원 정보
                 </p>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">병원명 *</label>
@@ -1038,7 +1059,11 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
               환영합니다, {formData.name}님!
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full mb-6">
-              <span className="text-lg">{formData.userMode === 'guardian' ? '🐕' : '🏥'}</span>
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/${formData.userMode === 'guardian' ? 'main_friend.png' : 'main_hospital.png'}`}
+                alt={formData.userMode === 'guardian' ? '보호자' : '병원'}
+                className="w-6 h-6 object-contain"
+              />
               <span className="text-sm font-medium text-slate-700">
                 {formData.userMode === 'guardian' ? '보호자' : '병원'} 회원
               </span>
