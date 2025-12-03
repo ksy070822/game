@@ -959,9 +959,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         <div className="flex-shrink-0 flex items-center justify-center">
           <div className="relative w-[430px] h-[932px] rounded-[3rem] shadow-2xl border-8 border-gray-800 overflow-hidden bg-white">
             {/* 모바일 컨텐츠 */}
-            <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
+            <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
               {/* Header - 회사 로고 가운데 배치 */}
-              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-4 pb-4 shadow-lg">
+              <header className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-4 pt-4 pb-4 shadow-lg">
                 <div className="flex items-center justify-center">
                   <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-xl">🐾</span>
@@ -976,12 +976,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
               <div className="px-4 pt-4 pb-4">
                 {/* 반려동물 등록 카드 */}
                 {!petData ? (
-                  <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-sky-100 rounded-2xl p-6 shadow-lg border border-sky-200/50">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
                     <h3 className="text-lg font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h3>
                     <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
                     <button
                       onClick={() => onNavigate('profile-registration')}
-                      className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                      className="w-full py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                     >
                       반려동물 등록하기
                     </button>
@@ -989,9 +989,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 ) : (
                   <>
                     {/* Pet Profile Banner */}
-                    <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-sky-100 rounded-2xl p-4 shadow-lg border border-sky-200/50 relative overflow-hidden mb-4">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-sky-200/30 rounded-full blur-3xl"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-200/20 rounded-full blur-2xl"></div>
+                    <div className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
+                      {/* 배경 장식 제거 - 깔끔한 흰색 배경 */}
 
                       <div className="relative flex items-stretch gap-3">
                         <div className="flex-shrink-0 w-24 h-36 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
@@ -1064,7 +1063,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
                       <button
                         onClick={() => onNavigate('symptom-input')}
-                        className="w-full mt-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                        className="w-full mt-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
                       >
                         PetMedical.AI 종합의료센터 바로 방문 &gt;
                       </button>
@@ -1209,7 +1208,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     <p className="text-gray-500 mb-6">맞춤형 AI 건강관리 서비스를 시작하세요</p>
                     <button
                       onClick={() => onNavigate('profile-registration')}
-                      className="px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                      className="px-8 py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                     >
                       반려동물 등록하기
                     </button>
@@ -1221,7 +1220,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => onNavigate('symptom-input')}
-                      className="bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
+                      className="bg-gradient-to-br from-sky-400 to-sky-500 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all text-left"
                     >
                       <span className="text-3xl mb-3 block">🏥</span>
                       <h3 className="text-lg font-bold">AI 종합진료센터</h3>
@@ -1330,7 +1329,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                           className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                             careSaved
                               ? 'bg-green-500 text-white'
-                              : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:shadow-lg'
+                              : 'bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:shadow-lg'
                           }`}
                         >
                           {careSaved ? '저장 완료!' : `오늘 ${petData?.petName || petData?.name || '반려동물'} 케어 완료`}
@@ -1353,9 +1352,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         </div>
 
         <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
-          <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
+          <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
       {/* Header - 회사 로고 가운데 배치 */}
-      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 pt-4 pb-4 shadow-lg">
+      <header className="bg-gradient-to-r from-sky-400 to-sky-500 text-white px-4 pt-4 pb-4 shadow-lg">
         <div className="flex items-center justify-center">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
             <span className="text-xl">🐾</span>
@@ -1370,12 +1369,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
       <div className="px-4 pt-4 pb-4">
         {/* 반려동물 등록 카드 */}
         {!petData ? (
-          <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-sky-100 rounded-2xl p-6 shadow-lg border border-sky-200/50">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
             <h3 className="text-lg font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h3>
             <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
             <button
               onClick={() => onNavigate('profile-registration')}
-              className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              className="w-full py-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
             >
               반려동물 등록하기
             </button>
@@ -1383,10 +1382,8 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         ) : (
           <>
             {/* Pet Profile Banner - 캐릭터 이미지 포함 */}
-            <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-sky-100 rounded-2xl p-4 shadow-lg border border-sky-200/50 relative overflow-hidden mb-4">
-              {/* 배경 장식 */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-sky-200/30 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-200/20 rounded-full blur-2xl"></div>
+            <div className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
+              {/* 배경 장식 제거 - 깔끔한 흰색 배경 */}
 
               <div className="relative flex items-stretch gap-3">
                 {/* 캐릭터 이미지 - 세로로 길게, 가로 좁게 */}
@@ -1460,7 +1457,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
 
               <button
                 onClick={() => onNavigate('symptom-input')}
-                className="w-full mt-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="w-full mt-3 bg-gradient-to-r from-sky-400 to-sky-500 text-white font-bold text-sm py-3 rounded-xl shadow-md hover:shadow-lg transition-all"
               >
                 PetMedical.AI 종합의료센터 바로 방문 &gt;
               </button>
@@ -1696,7 +1693,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                 className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                   careSaved
                     ? 'bg-green-500 text-white'
-                    : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:shadow-lg'
+                    : 'bg-gradient-to-r from-sky-400 to-sky-500 text-white hover:shadow-lg'
                 }`}
               >
                 {careSaved ? '저장 완료!' : `오늘 ${petData?.petName || petData?.name || '반려동물'} 케어 완료`}
