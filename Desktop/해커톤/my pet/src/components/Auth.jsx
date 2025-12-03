@@ -214,19 +214,20 @@ export function LoginScreen({ onLogin, onGoToRegister, onSkipLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 pt-8 sm:pt-12">
-      {/* 로고 - 좌측 정렬 */}
-      <div className="w-full max-w-sm mb-6 sm:mb-8">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <img
-            src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
-            alt="PetMedical.AI"
-            className="w-12 h-12 sm:w-16 sm:h-16 object-contain flex-shrink-0"
-          />
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-display truncate">PetMedical.AI</h1>
-            <p className="text-slate-500 text-xs sm:text-sm leading-tight">AI 기반 반려동물 건강 관리 서비스</p>
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex flex-col items-center justify-center p-6 pt-12">
+      {/* 로고 - 가운데 정렬 (PC 모드에서 더 크게, 원형 배경) */}
+      <div className="w-full max-w-sm md:max-w-2xl mb-8">
+        <div className="flex flex-col items-center text-center gap-2 md:gap-3">
+          <div className="w-28 h-28 md:w-44 md:h-44 rounded-full bg-white shadow-lg flex items-center justify-center overflow-hidden border-4 border-sky-100">
+            <img
+              src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+              alt="PetMedical.AI"
+              className="w-full h-full object-cover p-2"
+            />
           </div>
+          <h1 className="text-3xl md:text-5xl font-bold text-slate-900 font-display">PetMedical.AI</h1>
+          <p className="text-slate-500 text-base md:text-lg">AI 기반 반려동물 건강 관리 서비스</p>
+        </div>
         </div>
       </div>
 

@@ -29,6 +29,7 @@ import { LoginScreen, RegisterScreen, getAuthSession, clearAuthSession } from '.
 import { OCRUpload } from './src/components/OCRUpload'
 import { ClinicAdmin } from './src/components/ClinicAdmin'
 import { seedGuardianData, seedClinicData } from './src/utils/seedTestDataUtils'
+import { seedMedicationData } from './src/utils/seedMedicationData'
 import { auth } from './src/lib/firebase'
 import { ClinicDashboard } from './src/components/ClinicDashboard'
 import { AICareConsultation } from './src/components/AICareConsultation'
@@ -1048,6 +1049,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                             <p className="text-base font-semibold text-sky-600 mt-2 w-full">
                               오늘도 든든한 케어 시작!
                             </p>
+                            <button
+                              onClick={() => onNavigate('profile-list')}
+                              className="text-xs text-sky-600 font-semibold mt-2"
+                            >
+                              반려동물 변경하기 &gt;
+                            </button>
                           </div>
 
                           <div className="flex items-center gap-1.5 flex-wrap mt-2">
@@ -1067,12 +1074,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                                 {todayWeight}kg
                               </span>
                             )}
-                            <button
-                              onClick={() => onNavigate('profile-list')}
-                              className="px-3 py-1 bg-sky-500 text-white text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
-                            >
-                              변경
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -1446,6 +1447,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                     <p className="text-xs sm:text-sm font-semibold text-sky-600 mt-2 w-full">
                       오늘도 든든한 케어 시작!
                     </p>
+                    <button
+                      onClick={() => onNavigate('profile-list')}
+                      className="text-xs text-sky-600 font-semibold mt-2"
+                    >
+                      반려동물 변경하기 &gt;
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-1 flex-wrap mt-2 justify-center">
@@ -1465,12 +1472,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
                         {todayWeight}kg
                       </span>
                     )}
-                    <button
-                      onClick={() => onNavigate('profile-list')}
-                      className="px-2 py-0.5 bg-sky-500 text-white text-[10px] sm:text-[11px] font-bold rounded-full shadow-md hover:bg-sky-600 transition-colors"
-                    >
-                      변경
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1934,7 +1935,7 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">{petData.petName || petData.name || '반려동물'}의 증상을 알려주세요</p>
       </div>
 
-      <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-24 space-y-3 sm:space-y-4">
+      <div className="px-4 pt-4 pb-32 space-y-4">
         {/* 진료과목 선택 */}
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-100">
           <h3 className="font-bold text-slate-800 mb-0.5 sm:mb-1 text-xs sm:text-sm">어디가 불편해 보이나요? *</h3>
@@ -2043,22 +2044,22 @@ function SymptomInput({ petData, onComplete, onBack, onRegister }) {
         </div>
       </div>
 
-      {/* Bottom Button - AI 진료실 전용 확대 버튼 (하단 내비게이션바 숨김) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-4 sm:p-6 z-50">
-        <button
+      {/* Bottom Button - 내비게이션바 위에 배치 */}
+      <div className="fixed bottom-16 left-0 right-0 md:left-1/2 md:-translate-x-1/2 md:w-[430px] bg-white/95 backdrop-blur-sm border-t border-slate-100 p-4 z-40">
+        <button 
           onClick={handleSubmit}
           disabled={loading || (selectedSymptoms.length === 0 && !symptomText.trim() && images.length === 0)}
-          className="w-full bg-sky-500 text-white py-4 sm:py-6 px-6 sm:px-8 rounded-xl font-bold text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-2 sm:gap-3 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
+          className="w-full bg-sky-500 text-white py-3 px-6 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-600 active:bg-sky-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-500/30"
         >
           {loading ? (
             <>
-              <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span className="text-base sm:text-lg font-bold">AI 분석 중...</span>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="text-base font-bold">AI 분석 중...</span>
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined text-xl sm:text-2xl">psychology</span>
-              <span className="text-base sm:text-lg font-bold">AI 분석하기</span>
+              <span className="material-symbols-outlined text-xl">psychology</span>
+              <span className="text-base font-bold">AI 분석하기</span>
             </>
           )}
         </button>
@@ -5031,8 +5032,19 @@ function App() {
         throw error;
       }
     };
+    window.seedMedicationData = async (uid) => {
+      try {
+        const result = await seedMedicationData(uid);
+        console.log('✅ 약물 처방 정보 추가 완료:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ 약물 처방 정보 추가 오류:', error);
+        throw error;
+      }
+    };
     console.log('💡 테스트 데이터 시드 함수가 등록되었습니다.');
     console.log('   사용법: const user = window.auth.currentUser; await window.seedGuardianData(user.uid, user.email);');
+    console.log('   약물 처방 정보 추가: await window.seedMedicationData(user.uid);');
   }, []);
 
   // 로그인 성공 핸들러
@@ -5236,6 +5248,31 @@ function App() {
         setPets(userPets);
         if (userPets.length > 0) {
           setPetData(userPets[0]);
+          
+          // 테스트 계정 보호자이고 약물 처방 정보가 없으면 자동 추가
+          if (mode === 'guardian' && (user.email === 'guardian@test.com' || user.email?.includes('test'))) {
+            try {
+              // medicationLogs 컬렉션에서 기존 약물 정보 확인
+              const { collection, query, where, getDocs } = await import('firebase/firestore');
+              const { db } = await import('./src/lib/firebase');
+              const medicationQuery = query(
+                collection(db, 'medicationLogs'),
+                where('userId', '==', user.uid)
+              );
+              const medicationSnapshot = await getDocs(medicationQuery);
+              
+              // 약물 정보가 없으면 자동 추가
+              if (medicationSnapshot.empty) {
+                console.log('💊 테스트 계정: 약물 처방 정보 자동 추가 중...');
+                await seedMedicationData(user.uid);
+                console.log('✅ 약물 처방 정보 추가 완료');
+              } else {
+                console.log(`✅ 기존 약물 처방 정보 ${medicationSnapshot.size}개 확인됨`);
+              }
+            } catch (medError) {
+              console.warn('약물 처방 정보 확인/추가 실패:', medError);
+            }
+          }
         } else {
           setPetData(null);
         }
@@ -5967,14 +6004,14 @@ function App() {
         </div>
       )}
 
-      {/* 하단 탭 네비게이션 - 보호자 모드에서 항상 표시 (AI 진료실 제외) */}
+      {/* 하단 탭 네비게이션 - 보호자 모드에서 항상 표시 */}
       {userMode === 'guardian' && currentTab && (
         <BottomTabNavigation
           currentTab={currentTab}
           onTabChange={handleTabChange}
           onModeSwitch={() => handleModeSwitch('clinic')}
           showModeSwitch={!!currentUser}
-          hideInDiagnosis={currentView === 'symptom-input'}
+          hideInDiagnosis={false}
         />
       )}
         </>
