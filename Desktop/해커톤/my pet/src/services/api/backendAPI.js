@@ -245,34 +245,6 @@ export const requestCharacter = async (characterData) => {
   }
 };
 
-/**
- * 질문 답변 요청
- * @param {Object} questionData - 질문 데이터
- * @returns {Promise<Object>} 답변 결과
- */
-export const requestQuestionAnswer = async (questionData) => {
-  try {
-    const QUESTION_ENDPOINT = `${API_ENDPOINTS.TRIAGE.replace('/triage', '/question')}`;
-    
-    const response = await fetch(QUESTION_ENDPOINT, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(questionData),
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-      throw new Error(errorData.detail || `HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.warn('[requestQuestionAnswer] 백엔드 API 실패:', error);
-    throw error;
-  }
-};
-
 export default {
   requestTriage,
   streamTriageProgress,
@@ -281,5 +253,4 @@ export default {
   requestQuestionAnswer,
   runMultiAgentDiagnosisViaBackend,
   requestCharacter,
-  requestQuestionAnswer,
 };
