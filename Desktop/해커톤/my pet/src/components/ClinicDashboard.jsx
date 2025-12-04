@@ -859,24 +859,22 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
       `}</style>
 
-      {/* Header - 로고 중앙 정렬 (파스텔 레드 테마) */}
+      {/* Header - 로고 중앙 정렬 (로그인 화면과 유사한 형태) */}
       <header className="bg-gradient-to-r from-red-300 to-rose-300 px-4 pt-8 pb-8 shadow-lg">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <button onClick={onBack} className="p-2 hover:bg-white/20 rounded-full transition-colors text-gray-800">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <div className="flex items-center justify-center flex-1">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+          <div className="flex flex-col items-center justify-center flex-1">
+            <div className="flex items-center gap-3">
               <img
                 src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
                 alt="PetMedical.AI"
-                className="w-8 h-8 object-contain"
+                className="w-12 h-12 object-contain"
               />
-            </div>
-            <div className="text-center ml-3">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">PetMedical.AI</h1>
-              <p className="text-rose-700 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
             </div>
+            <p className="text-rose-700 text-xs font-medium mt-1">AI기반 반려동물 건강관리 플랫폼</p>
           </div>
           <button onClick={handleLogout} className="p-2 hover:bg-white/20 rounded-full transition-colors text-gray-800" title="로그아웃">
             <span className="material-symbols-outlined">logout</span>
@@ -970,9 +968,9 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
               {/* 오늘 진료 카드 */}
               <div
                 onClick={() => { setActiveTab('today'); setTodayFilter('confirmed'); }}
-                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95"
+                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95 text-center"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-rose-400">medical_services</span>
                   <span className="text-sm font-semibold text-gray-700">오늘 진료</span>
                 </div>
@@ -983,9 +981,9 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
               {/* 확정 대기 카드 */}
               <div
                 onClick={() => { setActiveTab('today'); setTodayFilter('pending'); }}
-                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95"
+                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95 text-center"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-amber-500">pending_actions</span>
                   <span className="text-sm font-semibold text-gray-700">확정 대기</span>
                 </div>
@@ -996,9 +994,9 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
               {/* 이번달 진료 카드 */}
               <div
                 onClick={() => setActiveTab('stats')}
-                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95"
+                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95 text-center"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-rose-400">analytics</span>
                   <span className="text-sm font-semibold text-gray-700">이번달 진료</span>
           </div>
@@ -1009,9 +1007,9 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
               {/* 예약 달력 카드 */}
               <div
                 onClick={() => setActiveTab('calendar')}
-                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95"
+                className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 cursor-pointer hover:shadow-xl transition-all active:scale-95 text-center"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-rose-400">calendar_month</span>
                   <span className="text-sm font-semibold text-gray-700">예약 달력</span>
           </div>

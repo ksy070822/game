@@ -47,6 +47,8 @@ import { CharacterStyleModal } from './src/components/CharacterStyleModal'
 import { CharacterResultModal } from './src/components/CharacterResultModal'
 import { generatePetCharacter } from './src/services/ai/characterGenerator'
 import { uploadImage, generateFileName } from './src/lib/storageUtils'
+// 동적 import 대신 정적 import로 변경 (빌드 시 chunk 분리로 인한 404 오류 방지)
+import { runMultiAgentDiagnosis } from './src/services/ai/agentOrchestrator'
 
 // 동물 종류 한글 매핑
 const SPECIES_LABELS_APP = {
@@ -1336,7 +1338,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
 
                         <div className="flex-1 flex flex-col justify-between py-2">
                           <div className="flex flex-col items-center justify-center text-center w-full">
-                            <span className="inline-block bg-sky-500 text-white text-sm font-bold px-4 py-1.5 rounded-lg shadow-md mb-2">
+                            <span className="inline-block bg-sky-400 text-white text-sm font-bold px-4 py-1.5 rounded-lg shadow-md mb-2">
                               AI 전문 의료진 24시간 대기
                             </span>
                             <p className="text-xl font-display font-bold text-gray-900 mt-1.5 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
@@ -1700,7 +1702,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
             className="p-2 hover:bg-white/20 rounded-full transition-colors"
             title="로그아웃"
           >
-            <span className="text-xl">🚪</span>
+            <span className="material-symbols-outlined text-white text-2xl">logout</span>
           </button>
         </div>
       </header>
@@ -1759,7 +1761,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
 
                 <div className="flex-1 flex flex-col justify-between py-2 min-w-0">
                   <div className="flex flex-col items-center justify-center text-center w-full">
-                    <span className="inline-block bg-gradient-to-r from-sky-500 to-sky-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-md mb-2">
+                    <span className="inline-block bg-sky-400 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full shadow-md mb-2">
                       AI 전문 의료진 24시간 대기
                     </span>
                     <p className="text-base sm:text-lg font-display font-bold text-gray-900 mt-1.5 w-full leading-tight truncate">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
@@ -2672,8 +2674,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
         if (!isMounted) return;
 
         // 프론트엔드 모드로 실행 (agentOrchestrator 사용)
-        const { runMultiAgentDiagnosis } = await import('./src/services/ai/agentOrchestrator');
-        
+        // 정적 import로 변경됨 - 파일 상단에서 import
         try {
           const frontendResult = await runMultiAgentDiagnosis(
             petData,
@@ -2686,9 +2687,12 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
                 icon: log.icon || '💬',
                 type: log.type || 'cs',
                 content: log.content || log.message || '',
+                isQuestionPhase: log.isQuestionPhase || false,
+                questions: log.questions || null,
                 timestamp: Date.now()
               }]);
-            }
+            },
+            handleWaitForGuardianResponse // 보호자 응답 대기 콜백 추가
           );
           
           if (frontendResult && frontendResult.finalDiagnosis) {
@@ -4797,27 +4801,41 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
           color: 'white',
           boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '32px' }}>{petData?.species === 'dog' ? '🐕' : '🐈'}</span>
-            <div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: 'bold',
-                margin: '0 0 4px 0',
-                lineHeight: '1.3'
-              }}>
-                {petData?.petName || petData?.name || '반려동물'}의 치료 가이드
-              </h2>
-              {diagnosisResult && (
-                <p style={{
-                  fontSize: '13px',
-                  opacity: 0.9,
-                  margin: 0
-                }}>
-                  {diagnosisResult.diagnosis}
-                </p>
-              )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <img
+                src={PROFILE_IMAGES[petData?.species] || PROFILE_IMAGES.dog}
+                alt={petData?.species || 'pet'}
+                style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+              />
             </div>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              margin: '0 0 4px 0',
+              lineHeight: '1.3'
+            }}>
+              {petData?.petName || petData?.name || '반려동물'}의 치료 가이드
+            </h2>
+            {diagnosisResult && (
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.9,
+                margin: 0
+              }}>
+                {diagnosisResult.diagnosis}
+              </p>
+            )}
           </div>
         </div>
 

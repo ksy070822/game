@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { diagnosisService, clinicResultService } from '../services/firestore';
+import { diagnosisService, clinicResultService, medicationLogService } from '../services/firestore';
 
 const DIAGNOSIS_KEY = 'petMedical_diagnoses';
 const CLINIC_RESULTS_KEY = 'petMedical_clinicResults';
@@ -362,6 +362,7 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
   }, []);
   const [diagnoses, setDiagnoses] = useState([]);
   const [clinicResults, setClinicResults] = useState([]);
+  const [medicationLogs, setMedicationLogs] = useState([]); // Firestore 약물 처방 기록
   const [medicationFeedback, setMedicationFeedback] = useState({});
   const [useDummyData, setUseDummyData] = useState(true); // 더미데이터 사용 플래그 - 샘플 데이터 표시
   const [showCheckupDetail, setShowCheckupDetail] = useState(false); // 건강검진 상세 보기
@@ -420,6 +421,25 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
     };
 
     loadClinicResults();
+  }, [petData]);
+
+  // 약물 처방 기록 로드 (Firestore - medicationLogs 컬렉션)
+  useEffect(() => {
+    const loadMedicationLogs = async () => {
+      if (!petData?.id) return;
+
+      try {
+        const medRes = await medicationLogService.getMedicationsByPet(petData.id);
+        if (medRes.success && medRes.data.length > 0) {
+          console.log('💊 약물 처방 기록 로드 성공:', medRes.data.length, '개');
+          setMedicationLogs(medRes.data);
+        }
+      } catch (error) {
+        console.warn('Firestore 약물 기록 로드 오류:', error);
+      }
+    };
+
+    loadMedicationLogs();
   }, [petData]);
 
   // 의약품 피드백 로드
@@ -501,8 +521,44 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
     return useDummyData ? [...realData, ...DUMMY_VISITS] : realData;
   })();
 
-  // 의약품 기록 (병원 처방 + AI 진단 처방)
+  // 의약품 기록 (Firestore medicationLogs + 병원 처방 + AI 진단 처방)
   const medicationRecords = (() => {
+    // Firestore medicationLogs에서 약물 처방 기록 추출
+    const firestoreMedications = medicationLogs.map(log => {
+      // 부작용 레벨에 따라 상태 결정
+      let feedbackStatus = 'none';
+      if (log.evaluation) {
+        if (log.evaluation.sideEffectLevel >= 3) {
+          feedbackStatus = 'side_effect';
+        } else if (log.evaluation.effectivenessRating >= 4) {
+          feedbackStatus = 'effective';
+        }
+        // 사용자 피드백이 있으면 우선 적용
+        if (log.evaluation.userFeedback) {
+          feedbackStatus = log.evaluation.userFeedback;
+        }
+      }
+      // localStorage 피드백 확인
+      if (medicationFeedback[log.id]?.status) {
+        feedbackStatus = medicationFeedback[log.id].status;
+      }
+
+      return {
+        id: log.id,
+        date: log.administeredAt || log.createdAt,
+        name: log.medication?.name || '약물',
+        dosage: log.medication?.dosage,
+        days: log.medication?.duration?.replace('일분', ''),
+        instructions: log.medication?.usage,
+        hospitalName: '처방 기록',
+        petId: log.petId,
+        source: 'firestore',
+        feedbackStatus,
+        evaluation: log.evaluation,
+        effectComment: log.evaluation?.effectComment
+      };
+    });
+
     // 병원 진료 결과에서 의약품 추출
     const clinicMedications = clinicResults
       .filter(result => result.medications && result.medications.length > 0)
@@ -535,7 +591,7 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
         feedbackStatus: medicationFeedback[d.id]?.status || 'none'
       }));
 
-    const realData = [...clinicMedications, ...aiMedications].sort((a, b) =>
+    const realData = [...firestoreMedications, ...clinicMedications, ...aiMedications].sort((a, b) =>
       new Date(b.date) - new Date(a.date)
     );
 
@@ -887,6 +943,94 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
                           </span>
                         )}
                       </div>
+
+                      {/* 피드백 버튼 */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveMedicationFeedback(record.id, 'effective');
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            record.feedbackStatus === 'effective'
+                              ? 'bg-green-500 text-white shadow-md'
+                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">thumb_up</span>
+                          잘 맞았어요
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveMedicationFeedback(record.id, 'side_effect');
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            record.feedbackStatus === 'side_effect'
+                              ? 'bg-red-500 text-white shadow-md'
+                              : 'bg-red-50 text-red-700 hover:bg-red-100'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">thumb_down</span>
+                          부작용 있었어요
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Firestore 약물 처방 기록 */}
+                  {record.source === 'firestore' && (
+                    <>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-sky-100 text-sky-700 rounded-full text-xs font-medium">
+                              처방 기록
+                            </span>
+                            <span className="text-xs text-slate-500">{formatDateShort(record.date)}</span>
+                          </div>
+                          <h4 className="text-slate-900 font-bold text-base">{record.name}</h4>
+                        </div>
+                        {/* 현재 피드백 상태 표시 */}
+                        {record.feedbackStatus === 'effective' && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">check</span>
+                            잘 맞음
+                          </span>
+                        )}
+                        {record.feedbackStatus === 'side_effect' && (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">warning</span>
+                            부작용
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 약품 상세 정보 */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {record.dosage && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            💉 {record.dosage}
+                          </span>
+                        )}
+                        {record.days && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            📅 {record.days}
+                          </span>
+                        )}
+                        {record.instructions && (
+                          <span className="px-2 py-1 bg-white text-slate-600 rounded text-xs">
+                            📝 {record.instructions}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 효과 코멘트 */}
+                      {record.effectComment && (
+                        <div className="bg-white rounded-lg p-2 mb-3 text-sm text-slate-600">
+                          💬 {record.effectComment}
+                        </div>
+                      )}
 
                       {/* 피드백 버튼 */}
                       <div className="flex gap-2">

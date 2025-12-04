@@ -1040,6 +1040,51 @@ export const commentTemplateService = {
   }
 };
 
+// ============ 약물 처방 기록 서비스 ============
+export const medicationLogService = {
+  // 반려동물의 약물 처방 기록 조회
+  async getMedicationsByPet(petId) {
+    try {
+      console.log('🔍 [getMedicationsByPet] 입력:', { petId });
+
+      const q = query(
+        collection(db, 'medicationLogs'),
+        where('petId', '==', petId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+
+      console.log('📊 [getMedicationsByPet] 조회 결과:', {
+        count: querySnapshot.size
+      });
+
+      const medications = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      return { success: true, data: medications };
+    } catch (error) {
+      console.error('❌ [getMedicationsByPet] 약물 기록 조회 오류:', error);
+      return { success: false, error, data: [] };
+    }
+  },
+
+  // 약물 피드백 업데이트
+  async updateMedicationFeedback(medicationId, feedback) {
+    try {
+      const medRef = doc(db, 'medicationLogs', medicationId);
+      await updateDoc(medRef, {
+        'evaluation.userFeedback': feedback,
+        'evaluation.feedbackAt': serverTimestamp()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('약물 피드백 업데이트 오류:', error);
+      return { success: false, error };
+    }
+  }
+};
+
 export default {
   userService,
   petService,
@@ -1051,5 +1096,6 @@ export default {
   preQuestionnaireService,  // 🔥 사전 문진 서비스
   medicalRecordService,  // 🔥 환자 기록 서비스
   commentTemplateService,  // 🔥 코멘트 템플릿 서비스
+  medicationLogService,  // 🔥 약물 처방 기록 서비스
   migrationHelper
 };
