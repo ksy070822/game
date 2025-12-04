@@ -254,6 +254,30 @@ const SPECIES_OPTIONS = [
   { id: 'other', label: '기타', emoji: '🐾', icon: PROFILE_IMAGES.etc },
 ];
 
+// 동물 종류별 메인 캐릭터 이미지 (프로필 배너용)
+const MAIN_CHARACTER_IMAGES = {
+  dog: '/icon/main-image/dog_main-removebg-preview.png',
+  cat: '/icon/main-image/Cat_main-removebg-preview.png',
+  rabbit: '/icon/main-image/rabbit_main-removebg-preview.png',
+  hamster: '/icon/main-image/hamster_main-removebg-preview.png',
+  bird: '/icon/main-image/bird_main-removebg-preview.png',
+  hedgehog: '/icon/main-image/hedgehog_main-removebg-preview.png',
+  reptile: '/icon/main-image/reptile_main-removebg-preview.png',
+  other: '/icon/main-image/etc_main-removebg-preview.png'
+};
+
+// 동물 종류별 프로필 아이콘 이미지 (원형 배경 포함)
+const PROFILE_ICON_IMAGES = {
+  dog: '/icon/dog.png',
+  cat: '/icon/cat.png',
+  rabbit: '/icon/rabbit.png',
+  hamster: '/icon/hamster.png',
+  bird: '/icon/bird.png',
+  hedgehog: '/icon/hedgehog.png',
+  reptile: '/icon/reptile.png',
+  other: '/icon/etc.png'
+};
+
 // 개/고양이 대표 품종 목록
 const DOG_BREEDS = [
   '믹스견', '말티즈', '푸들', '포메라니안', '치와와', '시츄', '요크셔테리어',
@@ -836,7 +860,9 @@ function ProfileList({ pets, onSelectPet, onAddNew, onNavigate }) {
       <div className="pt-20 p-4 max-w-md mx-auto space-y-4">
         {pets.length === 0 ? (
           <div className="text-center py-20 animate-fade-in">
-            <div className="text-6xl mb-4">🐾</div>
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+              <img src={PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+            </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">등록된 반려동물이 없습니다</h2>
             <p className="text-gray-500 mb-6">새 반려동물을 등록해주세요</p>
             <button 
@@ -854,12 +880,8 @@ function ProfileList({ pets, onSelectPet, onAddNew, onNavigate }) {
                 className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md hover:border-teal-200 transition-all cursor-pointer"
                 onClick={() => onSelectPet(pet)}
               >
-                <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={getPetImage(pet, false)}
-                    alt={pet.petName || pet.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-16 h-16 rounded-full overflow-hidden">
+                  <img src={PROFILE_ICON_IMAGES[pet.species] || PROFILE_ICON_IMAGES.other} alt={pet.petName} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-gray-900 text-lg">{pet.petName}</h3>
@@ -1234,20 +1256,16 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
         <div className="flex-shrink-0 flex items-center justify-center">
           <div className="relative w-[430px] h-[932px] rounded-[3rem] shadow-2xl border-8 border-gray-800 overflow-hidden bg-white">
             {/* 모바일 컨텐츠 */}
-            <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
-              {/* Header - 회사 로고 가운데 배치 */}
-              <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
-                <div className="flex items-center justify-center relative">
-                  <div className="flex items-center">
-                    <img
-                      src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
-                      alt="PetMedical.AI"
-                      className="w-12 h-12 object-contain"
-                    />
-                    <div className="text-left ml-3">
-                      <h1 className="text-2xl font-bold tracking-tight">PetMedical.AI</h1>
-                      <p className="text-sky-100 text-sm font-medium">AI기반 반려동물 건강관리 플랫폼</p>
-                    </div>
+            <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
+              {/* Header */}
+              <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
+                <div className="flex items-center justify-center gap-2 relative">
+                  <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+                    <img src={PROFILE_ICON_IMAGES[petData?.species] || PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-center">
+                    <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
+                    <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
                   </div>
                   <button
                     onClick={() => {
@@ -1284,13 +1302,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                     <div className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
                       {/* 배경 장식 제거 - 깔끔한 흰색 배경 */}
 
-                      <div className="relative flex items-stretch gap-4">
-                        <div className="flex-shrink-0 w-28 h-40 bg-white/80 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
+                      <div className="relative flex items-stretch gap-3">
+                        <div className="flex-shrink-0 w-28 h-36 rounded-2xl overflow-hidden">
                           <img
                             src={getMainCharacterImagePath()}
-                            alt={petData?.petName || petData?.name || '반려동물'}
-                            className="w-full h-full object-contain"
-                            style={{ objectPosition: 'center', display: 'block' }}
+                            alt="Pet Character"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
                               if (e.target.dataset.retryAttempted === 'true') {
@@ -1495,7 +1512,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
               {!petData ? (
                 <div className="bg-white rounded-2xl p-8 shadow-lg">
                   <div className="text-center">
-                    <div className="text-6xl mb-4">🐾</div>
+                    <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+                      <img src={PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+                    </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">반려동물을 등록해주세요</h3>
                     <p className="text-gray-500 mb-6">맞춤형 AI 건강관리 서비스를 시작하세요</p>
                     <button
@@ -1650,26 +1669,27 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
         </main>
       </div>
 
-      {/* 메인 레이아웃 (모든 화면) - 일반 화면 */}
-      <div className="min-h-screen">
-        <div className="relative overflow-hidden">
-          <div className="min-h-screen overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
-      {/* Header - 회사 로고 가운데 배치 */}
-      <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="w-10"></div>
-          <div className="flex items-center">
-            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-              <img
-                src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
-                alt="PetMedical.AI"
-                className="w-12 h-12 object-contain"
-              />
-            </div>
-            <div className="text-center ml-4">
-              <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
-              <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
-            </div>
+      {/* 태블릿/모바일 레이아웃 (lg 미만) */}
+      <div className="lg:hidden md:flex md:items-center md:justify-center md:p-8 md:min-h-screen">
+        {/* 모바일 프레임 (태블릿에서만 보임) */}
+        <div className="hidden md:block fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-sky-100 to-blue-200"></div>
+        </div>
+
+        <div className="relative md:w-[430px] md:h-[932px] md:rounded-[3rem] md:shadow-2xl md:border-8 md:border-gray-800 overflow-hidden">
+          {/* 노치 (태블릿에서만) */}
+          <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-800 rounded-b-2xl z-50"></div>
+
+          <div className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-sky-50 to-white pb-20">
+      {/* Header - 회사명 가운데 정렬 */}
+      <header className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-4 shadow-lg">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+            <img src={PROFILE_ICON_IMAGES[petData?.species] || PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
+            <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
           </div>
           <button
             onClick={() => {
@@ -1704,14 +1724,13 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
             <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
               {/* 배경 장식 제거 - 깔끔한 흰색 배경 */}
 
-              <div className="relative flex items-stretch gap-4">
-                {/* 캐릭터 이미지 - 세로로 길게, 가로 좁게 */}
-                <div className="flex-shrink-0 w-28 h-40 bg-amber-50 rounded-2xl shadow-md overflow-hidden border-2 border-white flex items-center justify-center">
+              <div className="relative flex items-stretch gap-3">
+                {/* 캐릭터 이미지 - 세로로 길게, 가로 좁게, 여백없이 */}
+                <div className="flex-shrink-0 w-28 h-36 rounded-2xl overflow-hidden">
                   <img
                     src={getMainCharacterImagePath()}
-                    alt={petData?.petName || '반려동물'}
+                    alt="Pet Character"
                     className="w-full h-full object-cover"
-                    style={{ objectPosition: 'center', display: 'block' }}
                     onError={(e) => {
                       // 무한 루프 방지: 이미 한 번 시도했으면 더 이상 시도하지 않음
                       if (e.target.dataset.retryAttempted === 'true') {
@@ -6332,7 +6351,9 @@ function App() {
             ) : (
               <div className="min-h-screen bg-background-light flex items-center justify-center p-4">
                 <div className="text-center">
-                  <div className="text-6xl mb-4">🐾</div>
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+                    <img src={PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+                  </div>
                   <h2 className="text-xl font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h2>
                   <button
                     onClick={() => setCurrentView('registration')}
@@ -6398,7 +6419,9 @@ function App() {
             <div className="page-container">
               <div className="px-4 pt-8 pb-24">
                 <div className="text-center mb-8">
-                  <div className="text-6xl mb-4">🐾</div>
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+                    <img src={PROFILE_ICON_IMAGES.other} alt="Pet" className="w-full h-full object-cover" />
+                  </div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">환영합니다!</h2>
                   <p className="text-slate-600">반려동물을 등록하고 AI 건강 관리를 시작하세요</p>
                 </div>
