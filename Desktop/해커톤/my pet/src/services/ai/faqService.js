@@ -160,11 +160,22 @@ export async function getRecommendedFAQs(medicalDiagnosis, symptomData, species 
     });
   }
 
-  // 3개 미만이어도 관련 없는 FAQ는 추가하지 않음 (품질 우선)
-  // 최소 1개 이상의 관련 FAQ가 있을 때만 반환
+  // 관련 FAQ가 없으면 기본 FAQ 제공 (발표용 - 최소 3개 보장)
   if (relatedFAQs.length === 0) {
-    console.log('관련 FAQ 없음 - 빈 배열 반환');
-    return [];
+    console.log('관련 FAQ 없음 - 기본 FAQ 제공');
+    // 해당 종에 맞는 기본 FAQ 3개 제공
+    const defaultFAQs = localFaqData
+      .filter(faq => faq.species_code === species || faq.species_code === 'all')
+      .slice(0, 3)
+      .map((faq, index) => ({
+        id: faq.id || `default_faq_${index}`,
+        question: faq.question_ko,
+        answer: faq.answer_ko,
+        category: faq.department_label_ko || '일반',
+        symptomTag: faq.symptom_tag,
+        keywords: faq.keywords || []
+      }));
+    return defaultFAQs;
   }
 
   // FAQ 형식 정리
