@@ -1030,8 +1030,18 @@ export function ClinicDashboard({ currentUser, onBack }) {
                           </span>
                         )}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(booking.status)}`}>
-                        {getStatusLabel(booking.status)}
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        booking.status === 'completed' && booking.sharedToGuardian
+                          ? 'bg-blue-100 text-blue-800'
+                          : booking.hasResult && !booking.sharedToGuardian
+                          ? 'bg-purple-100 text-purple-800'
+                          : getStatusBadgeClass(booking.status)
+                      }`}>
+                        {booking.status === 'completed' && booking.sharedToGuardian
+                          ? '진료 완료'
+                          : booking.hasResult && !booking.sharedToGuardian
+                          ? '진단서 저장됨'
+                          : getStatusLabel(booking.status)}
                       </span>
                     </div>
 
@@ -1123,12 +1133,20 @@ export function ClinicDashboard({ currentUser, onBack }) {
                           : '예약 상태'}
                       </button>
 
-                      {/* 우측 버튼: 진료 시작 / 진료 결과 보기 */}
+                      {/* 우측 버튼: 진료 시작 / 보호자에게 공유하기 / 진료 결과 보기 */}
                       <button
                         onClick={() => {
-                          if (booking.status === 'confirmed') {
+                          if (booking.status === 'pending') {
+                            // pending 상태에서는 아무 동작 안 함
+                            return;
+                          } else if (booking.status === 'confirmed' && !booking.hasResult) {
+                            // 진료 예정이고 진단서가 없으면 진료 시작
                             handleStartTreatment(booking.id);
-                          } else if (booking.status === 'completed') {
+                          } else if (booking.status === 'confirmed' && booking.hasResult && !booking.sharedToGuardian) {
+                            // 진단서 저장됐지만 공유 전이면 TreatmentSheet 열기 (공유하기)
+                            handleStartTreatment(booking.id);
+                          } else if (booking.status === 'completed' || booking.sharedToGuardian) {
+                            // 완료 상태면 진료 결과 보기
                             handleShowResultDetail(booking);
                           }
                         }}
@@ -1136,8 +1154,8 @@ export function ClinicDashboard({ currentUser, onBack }) {
                         className={`py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
                           ${booking.status === 'pending'
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : booking.status === 'confirmed'
-                            ? 'bg-sky-600 text-white hover:bg-sky-700'
+                            : booking.hasResult && !booking.sharedToGuardian
+                            ? 'bg-purple-600 text-white hover:bg-purple-700'
                             : 'bg-sky-600 text-white hover:bg-sky-700'}`}
                       >
                         {booking.status === 'pending' && (
@@ -1146,13 +1164,19 @@ export function ClinicDashboard({ currentUser, onBack }) {
                             진료 시작
                           </>
                         )}
-                        {booking.status === 'confirmed' && (
+                        {booking.status === 'confirmed' && !booking.hasResult && (
                           <>
                             <span className="material-symbols-outlined text-lg">play_arrow</span>
                             진료 시작
                           </>
                         )}
-                        {booking.status === 'completed' && (
+                        {booking.status === 'confirmed' && booking.hasResult && !booking.sharedToGuardian && (
+                          <>
+                            <span className="material-symbols-outlined text-lg">send</span>
+                            보호자에게 공유하기
+                          </>
+                        )}
+                        {(booking.status === 'completed' || booking.sharedToGuardian) && (
                           <>
                             <span className="material-symbols-outlined text-lg">description</span>
                             진료 결과 보기
@@ -1702,8 +1726,37 @@ export function ClinicDashboard({ currentUser, onBack }) {
           booking={activeTreatmentBooking}
           clinic={currentClinic}
           onClose={() => setActiveTreatmentBooking(null)}
-          onSaved={() => loadClinicData()}
-          onShared={() => {
+          onSaved={async () => {
+            // ✅ 진단서 저장 후 해당 booking의 hasResult를 즉시 갱신
+            const bookingId = activeTreatmentBooking.bookingId || activeTreatmentBooking.id;
+            const enriched = await enrichBookingWithResult(activeTreatmentBooking);
+            
+            setTodayBookings(prev => 
+              prev.map(b => {
+                if (b.id === activeTreatmentBooking.id || b.bookingId === bookingId) {
+                  return enriched;
+                }
+                return b;
+              })
+            );
+            
+            // 전체 데이터도 갱신
+            loadClinicData();
+          }}
+          onShared={async () => {
+            // ✅ 공유 완료 후 해당 booking의 상태를 즉시 갱신
+            const bookingId = activeTreatmentBooking.bookingId || activeTreatmentBooking.id;
+            const enriched = await enrichBookingWithResult(activeTreatmentBooking);
+            
+            setTodayBookings(prev => 
+              prev.map(b => {
+                if (b.id === activeTreatmentBooking.id || b.bookingId === bookingId) {
+                  return { ...enriched, sharedToGuardian: true, status: 'completed' };
+                }
+                return b;
+              })
+            );
+            
             setActiveTreatmentBooking(null);
             loadClinicData();
           }}
