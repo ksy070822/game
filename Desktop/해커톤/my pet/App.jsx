@@ -1442,8 +1442,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                                 <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
                                 {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
                                   <p className="text-blue-600">
-                                    {latestBooking.symptomText || latestBooking.aiDiagnosis ||
-                                      (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : latestBooking.diagnosis?.name || '')}
+                                    {typeof latestBooking.symptomText === 'string' ? latestBooking.symptomText :
+                                      (typeof latestBooking.aiDiagnosis === 'string' ? latestBooking.aiDiagnosis :
+                                        (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : (latestBooking.diagnosis?.name || '')))}
                                   </p>
                                 )}
                               </div>
@@ -1590,8 +1591,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                                 <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
                                 {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
                                   <p className="text-blue-600">
-                                    {latestBooking.symptomText || latestBooking.aiDiagnosis ||
-                                      (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : latestBooking.diagnosis?.name || '')}
+                                    {typeof latestBooking.symptomText === 'string' ? latestBooking.symptomText :
+                                      (typeof latestBooking.aiDiagnosis === 'string' ? latestBooking.aiDiagnosis :
+                                        (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : (latestBooking.diagnosis?.name || '')))}
                                   </p>
                                 )}
                               </div>
@@ -1861,8 +1863,9 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                         <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
                         {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
                           <p className="text-blue-600">
-                            {latestBooking.symptomText || latestBooking.aiDiagnosis ||
-                              (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : latestBooking.diagnosis?.name || '')}
+                            {typeof latestBooking.symptomText === 'string' ? latestBooking.symptomText :
+                              (typeof latestBooking.aiDiagnosis === 'string' ? latestBooking.aiDiagnosis :
+                                (typeof latestBooking.diagnosis === 'string' ? latestBooking.diagnosis : (latestBooking.diagnosis?.name || '')))}
                           </p>
                         )}
                       </div>
