@@ -906,30 +906,31 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
   useEffect(() => {
     const loadRandomMessage = async () => {
       if (!petData?.id) return;
+      const petName = petData?.petName || petData?.name || '반려동물';
 
       try {
-        // 병원 방문 기록 확인 (clinicResults)
-        const clinicResultsResult = await clinicResultService.getByPetId(petData.id);
-        const hasHospitalVisit = clinicResultsResult.success && clinicResultsResult.data && clinicResultsResult.data.length > 0;
-
-        // AI 진단 기록 확인
-        const diagnosesResult = await diagnosisService.getByPetId(petData.id);
-        const hasDiagnosis = diagnosesResult.success && diagnosesResult.data && diagnosesResult.data.length > 0;
-
-        // 조건에 따라 랜덤 메시지 가져오기
-        const result = await commentTemplateService.getRandomTemplate(hasHospitalVisit, hasDiagnosis);
+        // 조건에 따라 랜덤 메시지 가져오기 (getByPetId 오류 방지를 위해 직접 템플릿 조회)
+        const result = await commentTemplateService.getRandomTemplate(false, true);
 
         if (result.success && result.data) {
           // {name} 플레이스홀더를 실제 이름으로 교체
-          const petName = petData?.petName || petData?.name || '반려동물';
           const messageText = result.data.text.replace(/{name}/g, petName);
           setRandomMessage({
             ...result.data,
             displayText: messageText
           });
+        } else {
+          // 기본 케어 메시지 설정
+          setRandomMessage({
+            displayText: `${petName}의 건강한 하루를 위해 충분한 물과 규칙적인 식사를 챙겨주세요! 🐾`
+          });
         }
       } catch (error) {
         console.error('랜덤 메시지 로드 오류:', error);
+        // 오류 시 기본 케어 메시지 설정
+        setRandomMessage({
+          displayText: `${petName}의 건강한 하루를 위해 충분한 물과 규칙적인 식사를 챙겨주세요! 🐾`
+        });
       }
     };
 
@@ -1390,34 +1391,26 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                       </div>
 
                       <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200">
-                        <button
-                          onClick={() => {
-                            setCurrentTab('mypage');
-                            // MyPage의 bookings 탭으로 이동하기 위해 localStorage에 저장
-                            localStorage.setItem('mypage_initialTab', 'bookings');
-                            // 컴포넌트가 마운트된 후 탭 변경을 위해 약간의 지연
-                            setTimeout(() => {
-                              const event = new CustomEvent('mypage-set-tab', { detail: 'bookings' });
-                              window.dispatchEvent(event);
-                            }, 100);
-                          }}
-                          className="w-full flex items-center gap-3 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                        >
+                        {/* 병원 예약일 - 페이지 랜딩 기능 제거 */}
+                        <div className="w-full flex items-center gap-3 py-3 border-b border-gray-100">
                           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                             <span className="text-2xl">📅</span>
                           </div>
                           <div className="flex-1 text-left">
                             <h4 className="text-sm font-bold text-gray-800 mb-0.5">병원 예약일</h4>
-                            <p className="text-xs text-gray-500">
-                              {latestBooking ? (
-                                <>다음 진료: {new Date(latestBooking.bookingDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || ''}</>
-                              ) : (
-                                '예약된 진료가 없습니다'
-                              )}
-                            </p>
+                            {latestBooking ? (
+                              <div className="text-xs text-gray-500 space-y-0.5">
+                                <p className="font-medium text-gray-700">{latestBooking.clinicName || latestBooking.hospitalName || '병원'}</p>
+                                <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
+                                {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
+                                  <p className="text-blue-600">{latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis}</p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500">예약된 진료가 없습니다</p>
+                            )}
                           </div>
-                          <span className="text-gray-400 text-lg">&gt;</span>
-                        </button>
+                        </div>
 
                         <div className="flex items-center gap-3 py-3 bg-yellow-50 rounded-xl px-3">
                           <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -1543,30 +1536,24 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                         </button>
                       </div>
                       <div className="space-y-3">
-                        <button
-                          onClick={() => {
-                            setCurrentTab('mypage');
-                            localStorage.setItem('mypage_initialTab', 'bookings');
-                            setTimeout(() => {
-                              const event = new CustomEvent('mypage-set-tab', { detail: 'bookings' });
-                              window.dispatchEvent(event);
-                            }, 100);
-                          }}
-                          className="w-full flex items-center gap-3 p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer text-left"
-                        >
+                        {/* 병원 예약일 - 페이지 랜딩 기능 제거 */}
+                        <div className="w-full flex items-center gap-3 p-3 bg-blue-50 rounded-xl text-left">
                           <span className="text-2xl">📅</span>
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">병원 예약일</p>
-                            <p className="text-sm text-gray-500">
-                              {latestBooking ? (
-                                <>다음 진료: {new Date(latestBooking.bookingDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || ''}</>
-                              ) : (
-                                '예약된 진료가 없습니다'
-                              )}
-                            </p>
+                            {latestBooking ? (
+                              <div className="text-sm text-gray-500 space-y-0.5">
+                                <p className="font-medium text-gray-700">{latestBooking.clinicName || latestBooking.hospitalName || '병원'}</p>
+                                <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
+                                {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
+                                  <p className="text-blue-600">{latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis}</p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500">예약된 진료가 없습니다</p>
+                            )}
                           </div>
-                          <span className="text-gray-400 text-lg">&gt;</span>
-                        </button>
+                        </div>
                         <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl">
                           <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-xl">💡</span>
@@ -1815,33 +1802,26 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
               </div>
 
               <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200">
-                {/* 병원 예약일 */}
-                <button
-                  onClick={() => {
-                    onNavigate('mypage');
-                    localStorage.setItem('mypage_initialTab', 'bookings');
-                    setTimeout(() => {
-                      const event = new CustomEvent('mypage-set-tab', { detail: 'bookings' });
-                      window.dispatchEvent(event);
-                    }, 100);
-                  }}
-                  className="w-full flex items-center gap-3 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
+                {/* 병원 예약일 - 페이지 랜딩 기능 제거 */}
+                <div className="w-full flex items-center gap-3 py-3 border-b border-gray-100">
                   <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">📅</span>
                   </div>
                   <div className="flex-1 text-left">
                     <h4 className="text-sm font-bold text-gray-800 mb-0.5">병원 예약일</h4>
-                    <p className="text-xs text-gray-500">
-                      {latestBooking ? (
-                        <>다음 진료: {new Date(latestBooking.bookingDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || ''}</>
-                      ) : (
-                        '예약된 진료가 없습니다'
-                      )}
-                    </p>
+                    {latestBooking ? (
+                      <div className="text-xs text-gray-500 space-y-0.5">
+                        <p className="font-medium text-gray-700">{latestBooking.clinicName || latestBooking.hospitalName || '병원'}</p>
+                        <p>{new Date(latestBooking.bookingDate || latestBooking.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} {latestBooking.bookingTime || latestBooking.time || ''}</p>
+                        {(latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis) && (
+                          <p className="text-blue-600">{latestBooking.symptomText || latestBooking.aiDiagnosis || latestBooking.diagnosis}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">예약된 진료가 없습니다</p>
+                    )}
                   </div>
-                  <span className="text-gray-400 text-lg">&gt;</span>
-                </button>
+                </div>
 
                 {/* 오늘의 케어 팁 */}
                 <div className="flex items-center gap-3 py-3 bg-yellow-50 rounded-xl px-3">
