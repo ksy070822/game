@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
-import { runMultiAgentDiagnosisViaBackend } from './src/services/api/backendAPI'
+// 백엔드 API 사용 안 함 - 프론트엔드 모드만 사용
+// import { runMultiAgentDiagnosisViaBackend } from './src/services/api/backendAPI'
 import { requestQuestionAnswer } from './src/services/api/backendAPI'
 import { MyPage } from './src/components/MyPage'
 import { Avatar } from './src/components/Avatar'
@@ -2646,54 +2647,57 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
           }, msg.delay);
         });
 
-        // 백엔드 API 호출
-        const backendResult = await runMultiAgentDiagnosisViaBackend(petData, symptomData);
+        // 프론트엔드 모드로 직접 실행 (백엔드 API 사용 안 함)
+        console.log('[MultiAgentDiagnosis] 프론트엔드 모드로 진단 시작');
         
         if (!isMounted) return;
 
-        if (!backendResult.success || !backendResult.report) {
-          console.error('[MultiAgentDiagnosis] 백엔드 API 오류:', backendResult.error);
-          setIsProcessing(false);
-          alert(backendResult.error || '진단 결과를 생성하는 중 오류가 발생했습니다. 다시 시도해주세요.');
-          return;
-        }
-
-        // 백엔드 응답을 프론트엔드 형식으로 변환
-        const report = backendResult.report;
-        const result = {
-          finalDiagnosis: {
-            id: Date.now().toString(),
-            created_at: Date.now(),
-            petId: petData.id,
-            petName: petData?.petName || petData?.name || '미상',
-            symptom: symptomData.symptomText || symptomData.description || '',
-            diagnosis: report.primary_assessment || report.diagnosis || '진단 결과',
-            description: report.description || report.summary || '',
-            riskLevel: report.risk_level || report.riskLevel || 'moderate',
-            emergency: report.act_color || report.emergency || 'yellow',
-            triage_score: report.triage_score || report.final_triage_score || 2,
-            triage_level: report.act_color || report.triage_level || 'yellow',
-            actions: report.home_care_instructions || report.actions || [],
-            careGuide: report.care_guide || report.supportive_message || '',
-            ownerSheet: {
-              immediate_home_actions: report.home_care_instructions || [],
-              things_to_avoid: report.things_to_avoid || [],
-              monitoring_guide: report.monitoring_guidance || [],
-            },
-            carePlan: {
-              hospital_needed: report.need_hospital_visit || report.final_hospital_visit || false,
-              follow_up_guide: {
-                home_care_duration: report.when_to_see_vet || '2~3일간 관찰',
-                condition_for_hospital: report.emergency_indicators?.[0] || '증상 악화 시',
-              },
-            },
-            possible_diseases: report.possible_diseases || [],
-            reasoning: report.reasoning || [],
-            medicationGuidance: report.medication_guidance || '',
-            faqAnswers: report.faq_answers || [],
-            recommendedFAQs: report.recommended_faqs || [],
+        // 프론트엔드 모드로 실행 (agentOrchestrator 사용)
+        const { runMultiAgentDiagnosis } = await import('./src/services/ai/agentOrchestrator');
+        
+        try {
+          const frontendResult = await runMultiAgentDiagnosis(
+            petData,
+            symptomData,
+            (log) => {
+              // 로그를 메시지로 변환
+              setMessages(prev => [...prev, {
+                agent: log.agent || 'System',
+                role: log.role || '시스템',
+                icon: log.icon || '💬',
+                type: log.type || 'cs',
+                content: log.content || log.message || '',
+                timestamp: Date.now()
+              }]);
+            }
+          );
+          
+          if (frontendResult && frontendResult.finalDiagnosis) {
+            setDiagnosisResult(frontendResult.finalDiagnosis);
+            setShowResult(true);
+            setIsProcessing(false);
+            setChatMode(true);
+            saveDiagnosisToStorage(frontendResult.finalDiagnosis, currentUser?.uid);
+            if (onDiagnosisResult) {
+              onDiagnosisResult(frontendResult.finalDiagnosis);
+            }
+            return;
+          } else {
+            throw new Error('진단 결과를 생성하지 못했습니다.');
           }
-        };
+        } catch (error) {
+          console.error('[MultiAgentDiagnosis] 프론트엔드 모드 실행 실패:', error);
+          setMessages(prev => [...prev, {
+            agent: 'System',
+            role: '시스템',
+            icon: '❌',
+            type: 'error',
+            content: `진단 중 오류가 발생했습니다: ${error.message}`,
+            timestamp: Date.now()
+          }]);
+          setIsProcessing(false);
+          throw error;
+        }
         
         if (!isMounted) return; // 컴포넌트가 언마운트되었으면 무시
 
@@ -5302,9 +5306,69 @@ function App() {
         throw error;
       }
     };
+    
+    // 테스트 계정 반려동물 정리 함수 (뿌꾸, 몽미, 도마만 유지)
+    window.cleanupTestPets = async (userId = null) => {
+      try {
+        const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+        const { db } = await import('./src/lib/firebase');
+        
+        const targetUserId = userId || currentUser?.uid;
+        if (!targetUserId) {
+          console.error('❌ 사용자 ID가 필요합니다.');
+          return;
+        }
+        
+        const KEEP_PETS = ['뿌꾸', '몽미', '도마'];
+        const petsRef = collection(db, 'pets');
+        const petsQuery = query(petsRef, where('userId', '==', targetUserId));
+        const petsSnapshot = await getDocs(petsQuery);
+        
+        if (petsSnapshot.empty) {
+          console.log('✅ 삭제할 반려동물이 없습니다.');
+          return;
+        }
+        
+        console.log(`\n📋 총 ${petsSnapshot.size}마리의 반려동물 발견\n`);
+        
+        const petsToDelete = [];
+        petsSnapshot.forEach((petDoc) => {
+          const petData = petDoc.data();
+          const petName = petData.petName || petData.name || '';
+          const petId = petDoc.id;
+          
+          if (!KEEP_PETS.includes(petName)) {
+            petsToDelete.push({ id: petId, name: petName });
+            console.log(`  ❌ 삭제 예정: ${petName} (${petData.species || '종류 미상'})`);
+          } else {
+            console.log(`  ✅ 유지: ${petName} (${petData.species || '종류 미상'})`);
+          }
+        });
+        
+        if (petsToDelete.length > 0) {
+          console.log(`\n🗑️  ${petsToDelete.length}마리 삭제 중...\n`);
+          for (const pet of petsToDelete) {
+            try {
+              await deleteDoc(doc(db, 'pets', pet.id));
+              console.log(`  ✅ 삭제 완료: ${pet.name}`);
+            } catch (error) {
+              console.error(`  ❌ 삭제 실패: ${pet.name}`, error.message);
+            }
+          }
+          console.log(`\n✅ 정리 완료!`);
+        } else {
+          console.log(`\n✅ 삭제할 반려동물이 없습니다.`);
+        }
+      } catch (error) {
+        console.error('❌ 정리 오류:', error);
+        throw error;
+      }
+    };
+    
     console.log('💡 테스트 데이터 시드 함수가 등록되었습니다.');
     console.log('   사용법: const user = window.auth.currentUser; await window.seedGuardianData(user.uid, user.email);');
     console.log('   약물 처방 정보 추가: await window.seedMedicationData(user.uid);');
+    console.log('   반려동물 정리 (뿌꾸, 몽미, 도마만 유지): await window.cleanupTestPets();');
   }, []);
 
   // 로그인 성공 핸들러
@@ -5484,16 +5548,26 @@ function App() {
             userPets = getPetsForUser(user.uid);
             
             // 보호자 모드이고 동물 데이터가 없으면 시드 데이터 생성
+            // 단, Firestore에서도 확인하여 정말 없을 때만 생성 (중복 생성 방지)
             if (mode === 'guardian' && userPets.length === 0) {
-              console.log('🐾 보호자 테스트 계정: 동물 데이터 자동 생성 중...');
+              // Firestore에서 다시 한 번 확인 (localStorage와 동기화 문제 방지)
               try {
-                await seedGuardianData(user.uid, user.email);
-                // 시드 데이터 생성 후 다시 Firestore에서 가져오기
-                const seedResult = await petService.getPetsByUser(user.uid);
-                if (seedResult.success && seedResult.data && seedResult.data.length > 0) {
-                  userPets = seedResult.data;
+                const firestoreCheck = await petService.getPetsByUser(user.uid);
+                if (firestoreCheck.success && firestoreCheck.data && firestoreCheck.data.length > 0) {
+                  console.log(`✅ Firestore에서 ${firestoreCheck.data.length}마리 반려동물 발견, 시드 데이터 생성 스킵`);
+                  userPets = firestoreCheck.data;
                   savePetsForUser(user.uid, userPets);
-                  console.log(`✅ 시드 데이터 생성 완료: ${userPets.length}마리 반려동물`);
+                } else {
+                  // 정말 없을 때만 시드 데이터 생성
+                  console.log('🐾 보호자 테스트 계정: 동물 데이터 자동 생성 중...');
+                  await seedGuardianData(user.uid, user.email);
+                  // 시드 데이터 생성 후 다시 Firestore에서 가져오기
+                  const seedResult = await petService.getPetsByUser(user.uid);
+                  if (seedResult.success && seedResult.data && seedResult.data.length > 0) {
+                    userPets = seedResult.data;
+                    savePetsForUser(user.uid, userPets);
+                    console.log(`✅ 시드 데이터 생성 완료: ${userPets.length}마리 반려동물`);
+                  }
                 }
               } catch (seedError) {
                 console.warn('시드 데이터 생성 실패:', seedError);
@@ -5505,40 +5579,114 @@ function App() {
           userPets = getPetsForUser(user.uid);
         }
 
-        setPets(userPets);
-        if (userPets.length > 0) {
-          setPetData(userPets[0]);
-          
-          // 약물 정보 조회는 로그인 시에만 실행 (프로필 사진 등록과 무관)
-          // 테스트 계정 보호자이고 약물 처방 정보가 없으면 자동 추가
-          // 단, 약물 정보가 5개 미만일 때만 조회 및 추가 (불필요한 조회 방지)
-          if (mode === 'guardian' && (user.email === 'guardian@test.com' || user.email?.includes('test'))) {
-            // 약물 정보 조회는 백그라운드에서 비동기로 실행 (프로필 등록 블로킹 방지)
-            (async () => {
-              try {
-                const { collection, query, where, getDocs } = await import('firebase/firestore');
-                const { db } = await import('./src/lib/firebase');
-                const medicationQuery = query(
-                  collection(db, 'medicationLogs'),
-                  where('userId', '==', user.uid)
-                );
-                const medicationSnapshot = await getDocs(medicationQuery);
+        // 테스트 계정 보호자: 불필요한 반려동물 자동 정리 (뿌꾸, 몽미, 도마만 유지)
+        // 반려동물이 있든 없든 항상 실행 (조건 밖으로 이동)
+        if (mode === 'guardian' && (user.email === 'guardian@test.com' || user.email?.includes('test'))) {
+          // 백그라운드에서 비동기로 실행 (UI 블로킹 방지)
+          (async () => {
+            try {
+              const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+              const { db } = await import('./src/lib/firebase');
+              
+              const KEEP_PETS = ['뿌꾸', '몽미', '도마'];
+              const petsRef = collection(db, 'pets');
+              const petsQuery = query(petsRef, where('userId', '==', user.uid));
+              const petsSnapshot = await getDocs(petsQuery);
+              
+              if (!petsSnapshot.empty) {
+                const petsToDelete = [];
+                petsSnapshot.forEach((petDoc) => {
+                  const petData = petDoc.data();
+                  const petName = petData.petName || petData.name || '';
+                  if (!KEEP_PETS.includes(petName)) {
+                    petsToDelete.push({ id: petDoc.id, name: petName });
+                  }
+                });
                 
-                // 약물 정보가 5개 미만일 때만 자동 추가 (불필요한 조회 방지)
-                if (medicationSnapshot.size < 5) {
-                  console.log('💊 테스트 계정: 약물 처방 정보 자동 추가 중...');
-                  await seedMedicationData(user.uid);
-                  console.log('✅ 약물 처방 정보 추가 완료');
+                if (petsToDelete.length > 0) {
+                  console.log(`🧹 테스트 계정 반려동물 정리: ${petsToDelete.length}마리 삭제 중...`);
+                  for (const pet of petsToDelete) {
+                    try {
+                      await deleteDoc(doc(db, 'pets', pet.id));
+                      console.log(`  ✅ 삭제 완료: ${pet.name}`);
+                    } catch (error) {
+                      console.warn(`  ⚠️ 삭제 실패: ${pet.name}`, error.message);
+                    }
+                  }
+                  console.log(`✅ 반려동물 정리 완료 (뿌꾸, 몽미, 도마만 유지)`);
+                  
+                  // 삭제 후 반려동물 목록 다시 로드
+                  const updatedPetsResult = await petService.getPetsByUser(user.uid);
+                  if (updatedPetsResult.success && updatedPetsResult.data) {
+                    const updatedPets = updatedPetsResult.data;
+                    setPets(updatedPets);
+                    savePetsForUser(user.uid, updatedPets);
+                    if (updatedPets.length > 0) {
+                      setPetData(updatedPets[0]);
+                    } else {
+                      setPetData(null);
+                    }
+                  }
                 } else {
-                  console.log(`✅ 기존 약물 처방 정보 ${medicationSnapshot.size}개 확인됨`);
+                  // 삭제할 것이 없으면 기존 데이터 그대로 사용
+                  setPets(userPets);
+                  if (userPets.length > 0) {
+                    setPetData(userPets[0]);
+                  } else {
+                    setPetData(null);
+                  }
                 }
-              } catch (medError) {
-                console.warn('약물 처방 정보 확인/추가 실패:', medError);
+              } else {
+                // 반려동물이 없으면 기존 데이터 그대로 사용
+                setPets(userPets);
+                setPetData(null);
               }
-            })();
-          }
+            } catch (cleanupError) {
+              console.warn('반려동물 정리 실패:', cleanupError);
+              // 오류 발생 시 기존 데이터 그대로 사용
+              setPets(userPets);
+              if (userPets.length > 0) {
+                setPetData(userPets[0]);
+              } else {
+                setPetData(null);
+              }
+            }
+          })();
         } else {
-          setPetData(null);
+          // 테스트 계정이 아니면 기존 로직 그대로
+          setPets(userPets);
+          if (userPets.length > 0) {
+            setPetData(userPets[0]);
+          } else {
+            setPetData(null);
+          }
+        }
+        
+        // 테스트 계정 보호자: 약물 정보 자동 추가
+        if (mode === 'guardian' && (user.email === 'guardian@test.com' || user.email?.includes('test'))) {
+          // 약물 정보 조회는 백그라운드에서 비동기로 실행 (프로필 등록 블로킹 방지)
+          (async () => {
+            try {
+              const { collection, query, where, getDocs } = await import('firebase/firestore');
+              const { db } = await import('./src/lib/firebase');
+              const medicationQuery = query(
+                collection(db, 'medicationLogs'),
+                where('userId', '==', user.uid)
+              );
+              const medicationSnapshot = await getDocs(medicationQuery);
+              
+              // 약물 정보가 10개 미만일 때만 자동 추가 (불필요한 조회 방지)
+              if (medicationSnapshot.size < 10) {
+                console.log('💊 테스트 계정: 약물 처방 정보 자동 추가 중...');
+                await seedMedicationData(user.uid);
+                console.log('✅ 약물 처방 정보 추가 완료');
+              } else {
+                console.log(`✅ 기존 약물 처방 정보 ${medicationSnapshot.size}개 확인됨`);
+              }
+            } catch (medError) {
+              console.warn('약물 처방 정보 확인/추가 실패:', medError);
+            }
+          })();
         }
 
         // 푸시 알림 권한 요청 및 토큰 저장
