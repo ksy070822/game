@@ -653,8 +653,16 @@ export async function getClinicResults(clinicId, options = {}) {
 
     // 클라이언트에서 정렬
     results.sort((a, b) => {
-      const dateA = a.visitDate || '';
-      const dateB = b.visitDate || '';
+      const getDateString = (result) => {
+        if (!result.visitDate) return '';
+        // Timestamp 객체인 경우 문자열로 변환
+        return typeof result.visitDate === 'string'
+          ? result.visitDate
+          : (result.visitDate.toDate?.() ? result.visitDate.toDate().toISOString() : '');
+      };
+
+      const dateA = getDateString(a);
+      const dateB = getDateString(b);
       return dateB.localeCompare(dateA);
     });
 
