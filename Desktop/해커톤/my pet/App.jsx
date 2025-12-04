@@ -2668,9 +2668,12 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
                 icon: log.icon || '💬',
                 type: log.type || 'cs',
                 content: log.content || log.message || '',
+                isQuestionPhase: log.isQuestionPhase || false,
+                questions: log.questions || null,
                 timestamp: Date.now()
               }]);
-            }
+            },
+            handleWaitForGuardianResponse // 보호자 응답 대기 콜백 추가
           );
           
           if (frontendResult && frontendResult.finalDiagnosis) {
