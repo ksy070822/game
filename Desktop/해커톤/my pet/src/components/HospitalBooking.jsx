@@ -1065,7 +1065,9 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                       AI 진단명
                     </p>
                     <p className="text-amber-900 font-bold">
-                      {diagnosis.diagnosis || diagnosis.suspectedConditions?.[0]?.name || '진단 정보 없음'}
+                      {typeof diagnosis.diagnosis === 'string'
+                        ? diagnosis.diagnosis
+                        : (diagnosis.diagnosis?.name || diagnosis.suspectedConditions?.[0]?.name || '진단 정보 없음')}
                     </p>
                   </div>
                 )}

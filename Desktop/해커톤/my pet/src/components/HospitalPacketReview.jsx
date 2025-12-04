@@ -178,7 +178,9 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
               <span className="font-bold">AI 진단명</span>
             </div>
             <p className="text-2xl font-bold">
-              {diagnosis.possible_diseases[0]?.name || diagnosis.possible_diseases[0]}
+              {typeof diagnosis.possible_diseases[0] === 'string'
+                ? diagnosis.possible_diseases[0]
+                : (diagnosis.possible_diseases[0]?.name || '진단 정보')}
             </p>
             {diagnosis.possible_diseases[0]?.probability && (
               <p className="text-white/80 text-sm mt-1">
@@ -201,7 +203,7 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
                 {diagnosis.symptomTimeline.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-slate-600">
                     <span className="material-symbols-outlined text-base mt-1 text-primary">check_circle</span>
-                    <p>{item}</p>
+                    <p>{typeof item === 'string' ? item : (item?.text || item?.description || JSON.stringify(item))}</p>
                   </li>
                 ))}
               </ul>
