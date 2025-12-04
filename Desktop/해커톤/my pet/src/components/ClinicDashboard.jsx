@@ -95,7 +95,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
   // 임직원 등록 상태
   const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState('vet');
+  const [newStaffRole, setNewStaffRole] = useState(''); // 초기값을 빈 문자열로 설정
   const [staffList, setStaffList] = useState([]);
   const [isAddingStaff, setIsAddingStaff] = useState(false);
 
@@ -703,6 +703,10 @@ export function ClinicDashboard({ currentUser, onBack }) {
       alert('이메일을 입력해주세요.');
       return;
     }
+    if (!newStaffRole) {
+      alert('직무를 선택해주세요.');
+      return;
+    }
     setIsAddingStaff(true);
     try {
       // 이메일로 사용자 찾기
@@ -723,6 +727,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
       if (result.success) {
         alert('임직원이 등록되었습니다.');
         setNewStaffEmail('');
+        setNewStaffRole(''); // 직무도 초기화
         // 스태프 목록 새로고침
         loadStaffList();
       } else {
@@ -1697,10 +1702,17 @@ export function ClinicDashboard({ currentUser, onBack }) {
                       onChange={e => setNewStaffEmail(e.target.value)}
                     />
                     <select
-                      className="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white cursor-pointer min-w-[100px]"
                       value={newStaffRole}
                       onChange={e => setNewStaffRole(e.target.value)}
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 0.5rem center',
+                        backgroundSize: '12px'
+                      }}
                     >
+                      <option value="" disabled>직무</option>
                       <option value="vet">수의사</option>
                       <option value="nurse">간호사</option>
                       <option value="staff">스태프</option>
