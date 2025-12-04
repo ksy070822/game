@@ -631,23 +631,30 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       // clinics 컬렉션에서 병원명으로 clinics ID 찾기
       let actualClinicId = bookingHospital.id; // 기본값은 animal_hospitals ID
       let animalHospitalId = bookingHospital.id; // 원본 ID 보관
-      
-      try {
-        const clinicsQuery = query(
-          collection(db, 'clinics'),
-          where('name', '==', bookingHospital.name),
-          limit(1)
-        );
-        const clinicsSnapshot = await getDocs(clinicsQuery);
-        
-        if (!clinicsSnapshot.empty) {
-          actualClinicId = clinicsSnapshot.docs[0].id;
-          console.log('[예약] clinics ID 찾음:', actualClinicId, '병원명:', bookingHospital.name);
-        } else {
-          console.warn('[예약] clinics에서 병원을 찾을 수 없음, animal_hospitals ID 사용:', bookingHospital.id);
+
+      // 🧪 테스트 병원인 경우 ID를 직접 사용 (이미 clinicId가 설정되어 있음)
+      if (bookingHospital.isTestHospital) {
+        actualClinicId = bookingHospital.id;
+        console.log('[예약] 테스트 병원 - clinicId 직접 사용:', actualClinicId);
+      } else {
+        // 일반 병원: clinics 컬렉션에서 검색
+        try {
+          const clinicsQuery = query(
+            collection(db, 'clinics'),
+            where('name', '==', bookingHospital.name),
+            limit(1)
+          );
+          const clinicsSnapshot = await getDocs(clinicsQuery);
+
+          if (!clinicsSnapshot.empty) {
+            actualClinicId = clinicsSnapshot.docs[0].id;
+            console.log('[예약] clinics ID 찾음:', actualClinicId, '병원명:', bookingHospital.name);
+          } else {
+            console.warn('[예약] clinics에서 병원을 찾을 수 없음, animal_hospitals ID 사용:', bookingHospital.id);
+          }
+        } catch (clinicSearchError) {
+          console.warn('[예약] clinics 검색 오류:', clinicSearchError);
         }
-      } catch (clinicSearchError) {
-        console.warn('[예약] clinics 검색 오류:', clinicSearchError);
       }
       
       const firestoreBookingData = {
