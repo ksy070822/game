@@ -4778,27 +4778,41 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
           color: 'white',
           boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '32px' }}>{petData?.species === 'dog' ? '🐕' : '🐈'}</span>
-            <div>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: 'bold',
-                margin: '0 0 4px 0',
-                lineHeight: '1.3'
-              }}>
-                {petData?.petName || petData?.name || '반려동물'}의 치료 가이드
-              </h2>
-              {diagnosisResult && (
-                <p style={{
-                  fontSize: '13px',
-                  opacity: 0.9,
-                  margin: 0
-                }}>
-                  {diagnosisResult.diagnosis}
-                </p>
-              )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <img
+                src={PROFILE_IMAGES[petData?.species] || PROFILE_IMAGES.dog}
+                alt={petData?.species || 'pet'}
+                style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+              />
             </div>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              margin: '0 0 4px 0',
+              lineHeight: '1.3'
+            }}>
+              {petData?.petName || petData?.name || '반려동물'}의 치료 가이드
+            </h2>
+            {diagnosisResult && (
+              <p style={{
+                fontSize: '13px',
+                opacity: 0.9,
+                margin: 0
+              }}>
+                {diagnosisResult.diagnosis}
+              </p>
+            )}
           </div>
         </div>
 
