@@ -306,7 +306,7 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
           <div className="dr-header-left">
             <div className="dr-logo-icon">
               <img
-                src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+                src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
                 alt="PetMedical.AI"
                 style={{ width: '32px', height: '32px', objectFit: 'contain' }}
               />

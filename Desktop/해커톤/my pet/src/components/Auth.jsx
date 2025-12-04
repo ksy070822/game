@@ -630,7 +630,7 @@ export function RegisterScreen({ onRegister, onGoToLogin }) {
       <div className="w-full max-w-sm mb-4 sm:mb-6">
         <div className="flex items-center justify-center gap-3 mb-2">
           <img
-            src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+            src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
             alt="PetMedical.AI"
             className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
           />
