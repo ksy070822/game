@@ -335,7 +335,9 @@ const SAMPLE_CHECKUP_DETAIL = {
   nextCheckupDate: '2025-09-05'
 };
 
-export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, onHospitalBooking }) {
+export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR, onHome, onHospitalBooking, onSelectPet }) {
+  const [showPetSelector, setShowPetSelector] = useState(false);
+
   // localStorage에서 초기 탭 확인
   const getInitialTab = () => {
     const savedTab = localStorage.getItem('records_initialTab');
@@ -585,8 +587,64 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
             <span className="text-sm">← 돌아가기</span>
           </button>
         </div>
-        <h1 className="text-xl font-bold text-slate-900">건강 기록</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-slate-900">
+            {petData?.petName || petData?.name || '반려동물'} 건강기록
+          </h1>
+          {pets.length > 1 && (
+            <button
+              onClick={() => setShowPetSelector(true)}
+              className="text-[11px] text-amber-800 font-semibold bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300 hover:bg-amber-200 transition-colors"
+            >
+              동물변경
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* 동물 선택 모달 */}
+      {showPetSelector && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-5">
+            <h3 className="font-bold text-lg text-slate-800 mb-4">반려동물 선택</h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {pets.map(pet => (
+                <button
+                  key={pet.id}
+                  onClick={() => {
+                    onSelectPet && onSelectPet(pet);
+                    setShowPetSelector(false);
+                  }}
+                  className={`w-full p-3 rounded-xl text-left flex items-center gap-3 transition-colors ${
+                    pet.id === petData?.id
+                      ? 'bg-sky-50 border-2 border-sky-500'
+                      : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                    <span className="text-lg">
+                      {pet.species === 'dog' ? '🐕' : pet.species === 'cat' ? '🐱' : '🐾'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">{pet.petName || pet.name}</p>
+                    <p className="text-xs text-slate-500">{pet.breed || '품종 미등록'}</p>
+                  </div>
+                  {pet.id === petData?.id && (
+                    <span className="ml-auto text-sky-500 text-sm">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowPetSelector(false)}
+              className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 font-medium rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="px-4 pt-4 pb-24 space-y-4">
         {/* 일일 기록 */}

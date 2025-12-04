@@ -6156,6 +6156,7 @@ function App() {
           {currentTab === 'records' && petData && (
             <RecordsView
               petData={petData}
+              pets={pets}
               onBack={() => setCurrentTab('care')}
               onHome={handleGoHome}
               onViewDiagnosis={(diagnosis) => {
@@ -6164,6 +6165,7 @@ function App() {
               }}
               onOCR={() => setCurrentView('ocr')}
               onHospitalBooking={() => setCurrentTab('hospital')}
+              onSelectPet={handleSelectPet}
             />
           )}
 
