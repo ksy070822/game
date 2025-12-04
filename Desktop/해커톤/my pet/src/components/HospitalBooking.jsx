@@ -1005,12 +1005,6 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
               <p className="text-sm font-medium text-green-800">
                 내 위치 기반으로 주변 병원을 검색합니다
               </p>
-              <button
-                onClick={handleRefreshLocation}
-                className="ml-auto px-2 py-1 text-xs text-green-600 hover:bg-green-100 rounded"
-              >
-                🔄
-              </button>
             </div>
           </div>
         )}
