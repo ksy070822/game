@@ -363,8 +363,19 @@ export function ClinicDashboard({ currentUser, onBack }) {
       // clinicPatients를 patientList 형식으로 변환
       const patientsFromCollection = clinicPatients.map(patient => {
         const lastVisitDate = formatDateToString(patient.lastVisitDate || patient.updatedAt);
+        // petId가 숫자일 수 있으므로 문자열로 변환
+        // 문서 ID 형식이 "clinicId_petId"인 경우 petId 추출
+        let petId = patient.petId;
+        if (!petId && patient.id) {
+          // 문서 ID에서 petId 추출 (마지막 _ 이후 부분)
+          const parts = String(patient.id).split('_');
+          petId = parts.length > 1 ? parts[parts.length - 1] : patient.id;
+        }
+        // 숫자면 문자열로 변환
+        petId = petId ? String(petId) : patient.id;
+        
         return {
-          id: patient.petId || patient.id,
+          id: petId,
           name: patient.petName || '이름 없음',
           species: patient.species || 'dog',
           breed: patient.breed || '',
@@ -670,12 +681,28 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
     const bookingsByDate = {};
     monthlyBookings.forEach(booking => {
-      const bookingDate = new Date(booking.date);
+      // booking.date가 문자열 형식(YYYY-MM-DD)일 수도 있고 Date 객체일 수도 있음
+      let bookingDate;
+      if (typeof booking.date === 'string') {
+        // 문자열 형식인 경우
+        const [y, m, d] = booking.date.split('-').map(Number);
+        bookingDate = new Date(y, m - 1, d);
+      } else if (booking.date instanceof Date) {
+        bookingDate = booking.date;
+      } else if (booking.date?.toDate) {
+        // Firestore Timestamp인 경우
+        bookingDate = booking.date.toDate();
+      } else {
+        return; // 날짜를 파싱할 수 없으면 스킵
+      }
+      
       if (bookingDate.getMonth() === month && bookingDate.getFullYear() === year) {
         const day = bookingDate.getDate();
         bookingsByDate[day] = (bookingsByDate[day] || 0) + 1;
       }
     });
+    
+    console.log('📅 [renderCalendar] 예약 건수:', bookingsByDate);
 
     const today = new Date();
     const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
@@ -734,12 +761,32 @@ export function ClinicDashboard({ currentUser, onBack }) {
     if (!selectedDate) return [];
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
+    const selectedDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+    
     return monthlyBookings.filter(booking => {
-      const bookingDate = new Date(booking.date);
-      return bookingDate.getDate() === selectedDate &&
-             bookingDate.getMonth() === month &&
-             bookingDate.getFullYear() === year;
-    }).sort((a, b) => a.time.localeCompare(b.time));
+      // booking.date가 문자열 형식(YYYY-MM-DD)일 수도 있고 Date 객체일 수도 있음
+      let bookingDate;
+      if (typeof booking.date === 'string') {
+        // 문자열 형식인 경우 직접 비교
+        if (booking.date === selectedDateStr) {
+          return true;
+        }
+        // 또는 Date 객체로 변환하여 비교
+        const [y, m, d] = booking.date.split('-').map(Number);
+        bookingDate = new Date(y, m - 1, d);
+      } else if (booking.date instanceof Date) {
+        bookingDate = booking.date;
+      } else if (booking.date?.toDate) {
+        // Firestore Timestamp인 경우
+        bookingDate = booking.date.toDate();
+      } else {
+        return false;
+      }
+      
+      return bookingDate.getMonth() === month &&
+        bookingDate.getFullYear() === year &&
+        bookingDate.getDate() === selectedDate;
+    }).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   };
 
   // 이번달 통계 계산 (가상 데이터 포함)
