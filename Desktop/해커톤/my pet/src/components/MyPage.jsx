@@ -711,25 +711,32 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
           source: 'ai'
         }));
 
-        const hospitalRecords = clinicResults.map(result => ({
-          id: result.id,
-          date: result.visitDate || result.createdAt,
-          created_at: result.visitDate || result.createdAt,
-          hospitalName: result.clinicName || result.hospitalName,
-          diagnosis: result.mainDiagnosis || result.finalDiagnosis || result.diagnosis,
-          petName: result.petName,
-          riskLevel: result.triageScore <= 2 ? 'low' : result.triageScore <= 3 ? 'medium' : 'high',
-          treatment: result.soap?.plan || result.treatment,
-          assessment: result.soap?.assessment,
-          subjective: result.soap?.subjective,
-          objective: result.soap?.objective,
-          triageScore: result.triageScore,
-          medications: result.medications,
-          totalCost: result.totalCost,
-          doctorNote: result.doctorNote,
-          source: 'clinic',
-          soap: result.soap
-        }));
+        // ✅ 병원에서 보호자에게 실제로 공유한 진료만 리스트에 포함
+        const hospitalRecords = clinicResults
+          .filter(r => r.sharedToGuardian === true)
+          .map(result => ({
+            id: result.id,
+            date: result.visitDate || result.createdAt,
+            created_at: result.visitDate || result.createdAt,
+            hospitalName: result.clinicName || result.hospitalName,
+            diagnosis: result.mainDiagnosis || result.finalDiagnosis || result.diagnosis,
+            petName: result.petName,
+            petId: result.petId,
+            riskLevel: result.triageScore <= 2 ? 'low' : result.triageScore <= 3 ? 'medium' : 'high',
+            treatment: result.soap?.plan || result.treatment,
+            assessment: result.soap?.assessment,
+            subjective: result.soap?.subjective,
+            objective: result.soap?.objective,
+            triageScore: result.triageScore,
+            medications: result.medications,
+            totalCost: result.totalCost,
+            doctorNote: result.doctorNote,
+            source: 'clinic',
+            soap: result.soap,
+            mainDiagnosis: result.mainDiagnosis || result.finalDiagnosis || result.diagnosis,
+            summary: result.summary || result.description || result.memo || '',
+            description: result.description || result.summary || result.memo || ''
+          }));
 
         const allRecords = [...aiRecords, ...hospitalRecords].sort((a, b) =>
           new Date(b.date || b.created_at) - new Date(a.date || a.created_at)
@@ -757,15 +764,23 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
               </div>
             ) : (
               <div className="space-y-4">
-                {allRecords.map(record => (
+                {allRecords.map(record => {
+                  // 해당 반려동물 찾기
+                  const pet = pets.find(p => p.id === record.petId);
+                  return (
                   <div
                     key={record.id}
-                    className={`rounded-lg p-4 shadow-soft cursor-pointer hover:shadow-md transition-all border-2 ${
+                    className={`rounded-lg p-4 shadow-soft cursor-pointer hover:shadow-md transition-all border-2 active:scale-[0.98] ${
                       record.source === 'clinic'
                         ? 'bg-red-50 border-red-200'
                         : 'bg-sky-50 border-sky-200'
                     }`}
-                    onClick={() => onViewDiagnosis && onViewDiagnosis(record)}
+                    onClick={() => {
+                      if (onViewDiagnosis) {
+                        // source 정보를 함께 전달
+                        onViewDiagnosis({ ...record, pet });
+                      }
+                    }}
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -817,18 +832,9 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
                         <span className="text-slate-600">{record.totalCost.toLocaleString()}원</span>
                       </div>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewDiagnosis && onViewDiagnosis(record);
-                      }}
-                      className="text-primary text-sm font-medium flex items-center gap-1 mt-2"
-                    >
-                      상세 보기
-                      <span className="material-symbols-outlined text-sm">arrow_forward_ios</span>
-                    </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

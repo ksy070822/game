@@ -5152,6 +5152,7 @@ function App() {
   const [currentTab, setCurrentTab] = useState('care');
   const [currentView, setCurrentView] = useState(null); // 모달/서브 화면용
   const [petData, setPetData] = useState(null);
+  const [diagnosisMode, setDiagnosisMode] = useState('ai'); // 'ai' | 'clinic'
   const [pets, setPets] = useState([]);
   const [symptomData, setSymptomData] = useState(null);
   const [lastDiagnosis, setLastDiagnosis] = useState(null);
@@ -5818,8 +5819,14 @@ function App() {
           }}
           onViewDiagnosis={(diagnosis) => {
             setLastDiagnosis(diagnosis);
+            // source에 따라 mode 설정
+            if (diagnosis.source === 'clinic') {
+              setDiagnosisMode('clinic');
+            } else {
+              setDiagnosisMode('ai');
+            }
             // 진단서를 보기 위해 해당 반려동물 찾기
-            const pet = pets.find(p => p.id === diagnosis.petId);
+            const pet = diagnosis.pet || pets.find(p => p.id === diagnosis.petId);
             if (pet) {
               setPetData(pet);
             }
@@ -5831,6 +5838,27 @@ function App() {
       )}
 
       {currentView === 'diagnosis-view' && petData && lastDiagnosis && (
+        <DiagnosisReport
+          petData={petData}
+          diagnosisResult={lastDiagnosis}
+          symptomData={symptomData}
+          userData={currentUser}
+          mode={diagnosisMode}
+          onClose={() => setCurrentView('mypage')}
+          onGoToHospital={() => {
+            setSymptomData({ symptomText: lastDiagnosis.symptom || lastDiagnosis.description });
+            setCurrentTab('hospital');
+            setCurrentView(null);
+          }}
+          onGoToTreatment={() => {
+            setCurrentTab('care');
+            setCurrentView(null);
+          }}
+        />
+      )}
+
+      {/* 기존 커스텀 UI는 제거하고 DiagnosisReport 사용 */}
+      {false && currentView === 'diagnosis-view-old' && petData && lastDiagnosis && (
         <div className="page-container">
           {/* Header */}
           <div className="page-header">

@@ -15,7 +15,8 @@ const SPECIES_LABELS = {
   other: '기타'
 };
 
-function DiagnosisReport({ petData, diagnosisResult, symptomData, userData, onClose, onGoToHospital, onGoToTreatment, onShowDetail }) {
+function DiagnosisReport({ petData, diagnosisResult, symptomData, userData, onClose, onGoToHospital, onGoToTreatment, onShowDetail, mode = 'ai' }) {
+  const isClinic = mode === 'clinic';
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
@@ -77,15 +78,28 @@ function DiagnosisReport({ petData, diagnosisResult, symptomData, userData, onCl
     }
   };
 
-  const emergencyInfo = getEmergencyInfo(diagnosisResult?.emergency);
+  const emergencyInfo = getEmergencyInfo(diagnosisResult?.emergency || diagnosisResult?.riskLevel);
 
   // 급성/만성 판단
   const isAcute = diagnosisResult?.diagnosis?.includes('급성') ||
                   diagnosisResult?.isAcute ||
                   diagnosisResult?.type === 'acute';
 
-  // 신뢰도 계산
-  const confidenceLevel = Math.round((diagnosisResult?.probability || diagnosisResult?.confidence || 0.7) * 100);
+  // 신뢰도 계산 (병원 모드에서는 표시 안 함)
+  const confidenceLevel = isClinic ? 0 : Math.round((diagnosisResult?.probability || diagnosisResult?.confidence || 0.7) * 100);
+
+  // 진단명, 설명 등 필드 매핑
+  const title = isClinic
+    ? (diagnosisResult?.mainDiagnosis || diagnosisResult?.diagnosis || diagnosisResult?.finalDiagnosis || '진단명 없음')
+    : (diagnosisResult?.diagnosis || diagnosisResult?.mainDiagnosis || '진단 결과 없음');
+  
+  const detailText = isClinic
+    ? (diagnosisResult?.summary || diagnosisResult?.description || diagnosisResult?.memo || diagnosisResult?.doctorNote || '')
+    : (diagnosisResult?.description || diagnosisResult?.detailDescription || '');
+  
+  const actions = isClinic
+    ? (diagnosisResult?.soap?.plan ? [diagnosisResult.soap.plan] : [])
+    : (diagnosisResult?.recommendedActions || diagnosisResult?.actions || []);
 
   const handleSaveAsImage = async () => {
     setIsSaving(true);
@@ -211,36 +225,88 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
 
           {/* 상세 콘텐츠 */}
           <div className="dr-content">
+            {/* SOAP 정보 (병원 모드) */}
+            {isClinic && diagnosisResult?.soap && (
+              <>
+                {diagnosisResult.soap.subjective && (
+                  <div className="dr-section">
+                    <h3 className="dr-section-title">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#38bdf8"} strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                      </svg>
+                      Subjective (보호자 설명)
+                    </h3>
+                    <div className="dr-description-box" style={{ borderLeftColor: isClinic ? '#dc2626' : '#38bdf8' }}>
+                      {diagnosisResult.soap.subjective}
+                    </div>
+                  </div>
+                )}
+                {diagnosisResult.soap.objective && (
+                  <div className="dr-section">
+                    <h3 className="dr-section-title">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#38bdf8"} strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                      </svg>
+                      Objective (진찰 소견)
+                    </h3>
+                    <div className="dr-description-box" style={{ borderLeftColor: isClinic ? '#dc2626' : '#38bdf8' }}>
+                      {diagnosisResult.soap.objective}
+                    </div>
+                  </div>
+                )}
+                {diagnosisResult.soap.assessment && (
+                  <div className="dr-section">
+                    <h3 className="dr-section-title">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#38bdf8"} strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                      </svg>
+                      Assessment (평가)
+                    </h3>
+                    <div className="dr-description-box" style={{ borderLeftColor: isClinic ? '#dc2626' : '#38bdf8' }}>
+                      {diagnosisResult.soap.assessment}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* 상세 설명 */}
-            {diagnosisResult?.description && (
+            {detailText && (
               <div className="dr-section">
                 <h3 className="dr-section-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#38bdf8"} strokeWidth="2">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                     <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
                   </svg>
-                  상세 설명
+                  {isClinic ? '진료 내용' : '상세 설명'}
                 </h3>
-                <div className="dr-description-box">
-                  {diagnosisResult.description}
+                <div className="dr-description-box" style={{ borderLeftColor: isClinic ? '#dc2626' : '#38bdf8' }}>
+                  {detailText}
                 </div>
               </div>
             )}
 
-            {/* 권장 조치사항 */}
-            {diagnosisResult?.actions?.length > 0 && (
+            {/* 권장 조치사항 / 치료 계획 */}
+            {actions.length > 0 && (
               <div className="dr-section">
                 <h3 className="dr-section-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#38bdf8"} strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                     <polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
-                  권장 조치사항
+                  {isClinic ? '치료 계획' : '권장 조치사항'}
                 </h3>
                 <div className="dr-actions-list">
-                  {diagnosisResult.actions.map((action, idx) => (
+                  {actions.map((action, idx) => (
                     <div key={idx} className="dr-action-item">
-                      <div className="dr-action-num">{idx + 1}</div>
+                      <div className="dr-action-num" style={{
+                        background: isClinic
+                          ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                          : 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)'
+                      }}>{idx + 1}</div>
                       <p className="dr-action-text">{action}</p>
                     </div>
                   ))}
@@ -302,7 +368,11 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
     <div className="dr-overlay">
       <div className="dr-container" ref={reportRef}>
         {/* 헤더 */}
-        <div className="dr-header">
+        <div className="dr-header" style={{
+          background: isClinic 
+            ? 'linear-gradient(135deg, #fecaca 0%, #fca5a5 50%, #ef4444 100%)'
+            : 'linear-gradient(135deg, #7dd3fc 0%, #38bdf8 50%, #0ea5e9 100%)'
+        }}>
           <div className="dr-header-left">
             <div className="dr-logo-icon">
               <img
@@ -312,8 +382,8 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
               />
             </div>
             <div className="dr-header-text">
-              <h1>PetMedical.AI 진단서</h1>
-              <p>AI 기반 반려동물 건강 분석 리포트</p>
+              <h1>{isClinic ? '병원 진료서' : 'PetMedical.AI 진단서'}</h1>
+              <p>{isClinic ? '병원 진료 결과' : 'AI 기반 반려동물 건강 분석 리포트'}</p>
             </div>
           </div>
           <button className="dr-close-btn" onClick={onClose}>
@@ -384,15 +454,24 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
           </div>
 
           {/* 진단 결과 카드 */}
-          <div className="dr-diagnosis-card">
-            <div className="dr-diagnosis-header">
+          <div className="dr-diagnosis-card" style={{
+            borderColor: isClinic ? '#fecaca' : '#fecaca',
+            borderWidth: '2px',
+            borderStyle: 'solid'
+          }}>
+            <div className="dr-diagnosis-header" style={{
+              background: isClinic
+                ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)'
+                : 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+              borderBottomColor: isClinic ? '#fecaca' : '#fecaca'
+            }}>
               <div className="dr-diagnosis-title-row">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isClinic ? "#dc2626" : "#ef4444"} strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8" x2="12" y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                <h3>진단 결과</h3>
+                <h3 style={{ color: isClinic ? '#dc2626' : '#dc2626' }}>{isClinic ? '진료 결과' : '진단 결과'}</h3>
               </div>
               <div className="dr-emergency-badges">
                 {isAcute && (
@@ -406,16 +485,18 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
 
             <div className="dr-diagnosis-content">
               <div className="dr-diagnosis-inner-card">
-                <h4 className="dr-diagnosis-name">{diagnosisResult?.diagnosis || '진단 결과 없음'}</h4>
+                <h4 className="dr-diagnosis-name">{title}</h4>
 
-                {/* 신뢰도 바 */}
-                <div className="dr-confidence">
-                  <span className="dr-confidence-label">신뢰도</span>
-                  <div className="dr-confidence-bar">
-                    <div className="dr-confidence-fill" style={{ width: `${confidenceLevel}%` }}></div>
+                {/* 신뢰도 바 (AI 모드에서만 표시) */}
+                {!isClinic && (
+                  <div className="dr-confidence">
+                    <span className="dr-confidence-label">신뢰도</span>
+                    <div className="dr-confidence-bar">
+                      <div className="dr-confidence-fill" style={{ width: `${confidenceLevel}%` }}></div>
+                    </div>
+                    <span className="dr-confidence-value">{confidenceLevel}%</span>
                   </div>
-                  <span className="dr-confidence-value">{confidenceLevel}%</span>
-                </div>
+                )}
               </div>
 
               {/* 중증도 평가 */}
@@ -441,8 +522,15 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
               )}
 
               {/* 상세 진단 내용 보기 버튼 */}
-              <button className="dr-detail-btn" onClick={handleShowDetail}>
-                상세 진단 내용 보기
+              <button className="dr-detail-btn" onClick={handleShowDetail} style={{
+                background: isClinic
+                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                  : 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)',
+                boxShadow: isClinic
+                  ? '0 4px 14px rgba(239, 68, 68, 0.35)'
+                  : '0 4px 14px rgba(56, 189, 248, 0.35)'
+              }}>
+                {isClinic ? '상세 진료 내용 보기' : '상세 진단 내용 보기'}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -453,8 +541,9 @@ ${diagnosisResult?.actions?.map((action, idx) => `${idx + 1}. ${action}`).join('
           {/* 하단 안내 */}
           <div className="dr-footer-notice">
             <span className="dr-notice-icon">💡</span>
-            본 진단서는 AI 분석 결과로 참고용입니다.
-            <br />정확한 진단은 반드시 전문 수의사와 상담하세요.
+            {isClinic 
+              ? '본 진료서는 병원에서 작성한 공식 진료 기록입니다.'
+              : '본 진단서는 AI 분석 결과로 참고용입니다.\n정확한 진단은 반드시 전문 수의사와 상담하세요.'}
           </div>
         </div>
 
