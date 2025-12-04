@@ -1044,18 +1044,18 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             {/* 모바일 컨텐츠 */}
             <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
               {/* Header - 회사 로고 가운데 배치 */}
-              <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-4 pb-4 shadow-lg">
+              <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
                 <div className="flex items-center justify-center">
-                  <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
                     <img
                       src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
                       alt="PetMedical.AI"
-                      className="w-6 h-6 object-contain"
+                      className="w-10 h-10 object-contain"
                     />
                   </div>
-                  <div className="text-center ml-2">
-                    <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
-                    <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
+                  <div className="text-center ml-3">
+                    <h1 className="text-2xl font-bold tracking-tight">PetMedical.AI</h1>
+                    <p className="text-sky-100 text-sm font-medium">AI기반 반려동물 건강관리 플랫폼</p>
                   </div>
                 </div>
               </header>
@@ -1453,18 +1453,18 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
         <div className="relative overflow-hidden">
           <div className="min-h-screen overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
       {/* Header - 회사 로고 가운데 배치 */}
-      <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-4 pb-4 shadow-lg">
+      <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
         <div className="flex items-center justify-center">
-          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+          <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
             <img
               src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
               alt="PetMedical.AI"
-              className="w-6 h-6 object-contain"
+              className="w-10 h-10 object-contain"
             />
           </div>
-          <div className="text-center ml-2">
-            <h1 className="text-xl font-bold tracking-tight">PetMedical.AI</h1>
-            <p className="text-sky-100 text-xs font-medium">AI 기반 반려동물 건강 관리 서비스</p>
+          <div className="text-center ml-3">
+            <h1 className="text-2xl font-bold tracking-tight">PetMedical.AI</h1>
+            <p className="text-sky-100 text-sm font-medium">AI기반 반려동물 건강관리 플랫폼</p>
           </div>
         </div>
       </header>
