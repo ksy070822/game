@@ -4087,7 +4087,7 @@ function MultiAgentDiagnosis({ petData, symptomData, onComplete, onBack, onDiagn
                         margin: 0,
                         flex: 1
                       }}>
-                        {action}
+                        {typeof action === 'string' ? action : (action?.title || action?.description || action?.name || '')}
                       </p>
                     </div>
                   ))}
@@ -4482,7 +4482,7 @@ function DiagnosisResultView({ petData, diagnosisResult, symptomData, onGoToTrea
                     margin: 0,
                     flex: 1
                   }}>
-                    {action}
+                    {typeof action === 'string' ? action : (action?.title || action?.description || action?.name || '')}
                   </p>
                 </div>
               ))}
@@ -6217,7 +6217,7 @@ function App() {
                   {lastDiagnosis.actions.map((action, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
                       <span className="material-symbols-outlined text-green-500 text-base mt-0.5">check_circle</span>
-                      <span>{action}</span>
+                      <span>{typeof action === 'string' ? action : (action?.title || action?.description || action?.name || '')}</span>
                     </li>
                   ))}
                 </ul>
