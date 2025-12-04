@@ -99,6 +99,12 @@ export function ClinicDashboard({ currentUser, onBack }) {
   const [staffList, setStaffList] = useState([]);
   const [isAddingStaff, setIsAddingStaff] = useState(false);
 
+  // 환자정보 탭 상태
+  const [patientList, setPatientList] = useState([]); // 고유 환자(pet) 목록
+  const [selectedPatient, setSelectedPatient] = useState(null); // 선택된 환자
+  const [patientRecords, setPatientRecords] = useState([]); // 선택된 환자의 진료기록
+  const [patientRecordsLoading, setPatientRecordsLoading] = useState(false);
+
   // 초기 데이터 로드
   useEffect(() => {
     if (currentUser?.uid) {
@@ -328,6 +334,96 @@ export function ClinicDashboard({ currentUser, onBack }) {
     } catch (error) {
       console.error('월별 진료 결과 로드 실패:', error);
     }
+  };
+
+  // 환자 목록 로드 (예약 기록에서 고유 환자 추출)
+  const loadPatientList = async () => {
+    try {
+      // 모든 예약에서 고유 환자(pet) 추출
+      const allBookings = await bookingService.getBookingsByClinic(currentClinic.id);
+      const allResults = await getClinicResults(currentClinic.id, { limit: 200 });
+
+      const petsMap = new Map();
+
+      // 예약에서 환자 정보 수집
+      allBookings.forEach(booking => {
+        if (booking.pet?.id || booking.petId) {
+          const petId = booking.pet?.id || booking.petId;
+          if (!petsMap.has(petId)) {
+            petsMap.set(petId, {
+              id: petId,
+              name: booking.pet?.name || booking.petName || '이름 없음',
+              species: booking.pet?.species || booking.petSpecies || 'dog',
+              breed: booking.pet?.breed || booking.petBreed || '',
+              profileImage: booking.pet?.profileImage,
+              guardianName: booking.guardianName || booking.guardian?.displayName || '',
+              guardianId: booking.userId || booking.guardianId,
+              lastVisit: booking.date,
+              visitCount: 0,
+              bookings: []
+            });
+          }
+          const pet = petsMap.get(petId);
+          pet.visitCount++;
+          pet.bookings.push(booking);
+          if (booking.date > pet.lastVisit) {
+            pet.lastVisit = booking.date;
+          }
+        }
+      });
+
+      // 진료 결과에서도 정보 보강
+      allResults.forEach(result => {
+        const petId = result.petId;
+        if (petId && petsMap.has(petId)) {
+          const pet = petsMap.get(petId);
+          if (!pet.results) pet.results = [];
+          pet.results.push(result);
+        }
+      });
+
+      // 최근 방문순으로 정렬
+      const sortedPatients = Array.from(petsMap.values()).sort((a, b) =>
+        (b.lastVisit || '').localeCompare(a.lastVisit || '')
+      );
+
+      setPatientList(sortedPatients);
+    } catch (error) {
+      console.error('환자 목록 로드 실패:', error);
+    }
+  };
+
+  // 선택된 환자의 진료 기록 로드
+  const loadPatientRecords = async (petId) => {
+    setPatientRecordsLoading(true);
+    try {
+      // 해당 환자의 모든 예약 조회
+      const allBookings = await bookingService.getBookingsByClinic(currentClinic.id);
+      const petBookings = allBookings.filter(b =>
+        (b.pet?.id || b.petId) === petId
+      ).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+      // 각 예약에 진료 결과 정보 추가
+      const enrichedBookings = await Promise.all(
+        petBookings.map(async (booking) => {
+          const enriched = await enrichBookingWithResult(booking);
+          return enriched;
+        })
+      );
+
+      setPatientRecords(enrichedBookings);
+    } catch (error) {
+      console.error('환자 기록 로드 실패:', error);
+      setPatientRecords([]);
+    } finally {
+      setPatientRecordsLoading(false);
+    }
+  };
+
+  // 환자 선택 핸들러
+  const handleSelectPatient = (patient) => {
+    setSelectedPatient(patient);
+    loadPatientRecords(patient.id);
   };
 
   const handleLogout = () => {
@@ -648,6 +744,13 @@ export function ClinicDashboard({ currentUser, onBack }) {
     }
   }, [currentClinic?.id, activeTab]);
 
+  // 환자정보 탭 선택 시 환자 목록 로드
+  useEffect(() => {
+    if (currentClinic?.id && activeTab === 'patients') {
+      loadPatientList();
+    }
+  }, [currentClinic?.id, activeTab]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-100">
@@ -704,6 +807,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
         {[
           { id: 'home', icon: 'home', label: '홈' },
           { id: 'today', icon: 'today', label: '오늘 예약' },
+          { id: 'patients', icon: 'folder_shared', label: '환자정보' },
           { id: 'calendar', icon: 'calendar_month', label: '예약 달력' },
           { id: 'stats', icon: 'analytics', label: '진료 현황' },
           { id: 'settings', icon: 'settings', label: '병원 설정' }
@@ -1062,6 +1166,168 @@ export function ClinicDashboard({ currentUser, onBack }) {
           </div>
         );
         })()}
+
+        {/* 환자정보 Tab */}
+        {activeTab === 'patients' && (
+          <div>
+            {selectedPatient ? (
+              // 선택된 환자의 진료 기록 뷰
+              <div>
+                {/* 뒤로가기 헤더 */}
+                <div className="flex items-center gap-3 mb-4">
+                  <button
+                    onClick={() => { setSelectedPatient(null); setPatientRecords([]); }}
+                    className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-gray-600">arrow_back</span>
+                  </button>
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 overflow-hidden border-2 border-rose-200">
+                      <img
+                        src={selectedPatient.profileImage || getPetImage({ species: selectedPatient.species }, false)}
+                        alt={selectedPatient.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">{selectedPatient.name}</h2>
+                      <p className="text-sm text-gray-500">
+                        {SPECIES_LABELS[selectedPatient.species] || '기타'} · 방문 {selectedPatient.visitCount}회
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 진료 기록 목록 */}
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
+                  진료 기록 ({patientRecords.length}건)
+                </h3>
+
+                {patientRecordsLoading ? (
+                  <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-200">
+                    <div className="animate-spin text-4xl mb-2">🔄</div>
+                    <p className="text-gray-400">진료 기록을 불러오는 중...</p>
+                  </div>
+                ) : patientRecords.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-200">
+                    <div className="text-5xl mb-3">📋</div>
+                    <p className="text-gray-400">진료 기록이 없습니다</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {patientRecords.map((record, index) => (
+                      <div
+                        key={record.id || index}
+                        className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+                      >
+                        {/* 날짜 & 상태 */}
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <span className="text-sm font-bold text-gray-900">{record.date}</span>
+                            <span className="text-gray-400 ml-2">{record.time}</span>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeClass(record.status)}`}>
+                            {getStatusLabel(record.status)}
+                          </span>
+                        </div>
+
+                        {/* 증상/진단 */}
+                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                          <div className="text-xs text-gray-500 mb-1">증상</div>
+                          <p className="text-sm text-gray-900">
+                            {record.aiDiagnosis?.diagnosis || record.symptom || '일반 진료'}
+                          </p>
+                        </div>
+
+                        {/* 진료 결과 (있는 경우) */}
+                        {record.result && (
+                          <div className="bg-emerald-50 rounded-lg p-3 mb-3">
+                            <div className="flex items-center gap-1 text-xs text-emerald-600 mb-1">
+                              <span className="material-symbols-outlined text-sm">check_circle</span>
+                              병원 진료 결과
+                            </div>
+                            <p className="text-sm text-emerald-900 font-medium">
+                              {record.result.diagnosis || record.result.summary || '진료 완료'}
+                            </p>
+                            {record.result.treatment && (
+                              <p className="text-xs text-emerald-700 mt-1">
+                                처치: {record.result.treatment}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* AI 진단서 보기 버튼 */}
+                        {(record.aiDiagnosis || record.diagnosisId) && (
+                          <button
+                            onClick={() => handleShowAIDiagnosis(record)}
+                            className="w-full py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-lg">smart_toy</span>
+                            AI 진단서 보기
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // 환자 목록 (폴더) 뷰
+              <div>
+                <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
+                  환자 목록 ({patientList.length}마리)
+                </h2>
+
+                {patientList.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-200">
+                    <div className="text-5xl mb-3">📁</div>
+                    <p className="text-gray-400">등록된 환자가 없습니다</p>
+                    <p className="text-gray-300 text-sm mt-1">예약이 들어오면 자동으로 추가됩니다</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {patientList.map((patient, index) => (
+                      <div
+                        key={patient.id || index}
+                        onClick={() => handleSelectPatient(patient)}
+                        className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
+                      >
+                        {/* 환자 이미지 */}
+                        <div className="flex justify-center mb-3">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 overflow-hidden border-2 border-rose-200 shadow-md">
+                            <img
+                              src={patient.profileImage || getPetImage({ species: patient.species }, false)}
+                              alt={patient.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 환자 정보 */}
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-gray-900 truncate">{patient.name}</h3>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {SPECIES_LABELS[patient.species] || '기타'}
+                          </p>
+                          <div className="flex items-center justify-center gap-1 text-xs text-rose-500 mt-2">
+                            <span className="material-symbols-outlined text-sm">folder</span>
+                            진료 {patient.visitCount}건
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            최근: {patient.lastVisit || '-'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 예약 달력 Tab */}
         {activeTab === 'calendar' && (
