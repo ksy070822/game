@@ -1455,13 +1455,13 @@ export function ClinicDashboard({ currentUser, onBack }) {
 
             {/* 요약 카드 */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-gradient-to-br from-red-300 to-rose-400 text-white p-4 rounded-2xl shadow-lg">
+              <div className="bg-gradient-to-br from-red-300 to-rose-400 text-white p-4 rounded-2xl shadow-lg text-center">
                 <div className="text-3xl font-bold">{monthlyStats.total}</div>
                 <div className="text-red-100 text-sm">총 진료 완료</div>
               </div>
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-4 rounded-2xl shadow-lg">
+              <div className="bg-gradient-to-br from-sky-400 to-sky-500 text-white p-4 rounded-2xl shadow-lg text-center">
                 <div className="text-3xl font-bold">{monthlyStats.estimatedRevenue.toLocaleString()}원</div>
-                <div className="text-blue-100 text-sm">예상 매출</div>
+                <div className="text-sky-100 text-sm">예상 매출</div>
               </div>
             </div>
 
