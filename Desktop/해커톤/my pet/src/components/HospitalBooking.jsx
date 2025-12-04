@@ -1220,12 +1220,12 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                       href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-1.5 sm:px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-[10px] sm:text-xs font-bold rounded hover:bg-[#F5E100] transition-colors flex-shrink-0"
+                      className="px-1 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-[9px] sm:text-[10px] font-medium rounded hover:bg-[#F5E100] transition-colors flex-shrink-0"
                     >
                       상세정보
                     </a>
                     {hospital.is24Hours && (
-                      <span className="px-1.5 sm:px-2 py-0.5 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded flex-shrink-0">24시</span>
+                      <span className="px-1 py-0.5 bg-red-500 text-white text-[9px] sm:text-[10px] font-medium rounded flex-shrink-0">24시</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
@@ -1254,9 +1254,9 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   ) : (
                     <button
                       onClick={() => generateReviewSummary(hospital)}
-                      className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 bg-sky-50 px-2 py-1.5 rounded-lg hover:bg-sky-100 transition-colors"
+                      className="text-[10px] sm:text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-0.5 bg-sky-50 px-1.5 py-1 rounded hover:bg-sky-100 transition-colors"
                     >
-                      <span className="text-xs">🤖</span>
+                      <span className="text-[10px]">🤖</span>
                       <span>AI 병원 분석</span>
                     </button>
                   )}
