@@ -70,6 +70,9 @@ export function ClinicDashboard({ currentUser, onBack }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  // 오늘 예약 필터 ('all', 'confirmed', 'pending')
+  const [todayFilter, setTodayFilter] = useState('all');
+
   // 진료서 작성 관련 상태
   const [activeTreatmentBooking, setActiveTreatmentBooking] = useState(null);
 
@@ -509,8 +512,8 @@ export function ClinicDashboard({ currentUser, onBack }) {
           key={day}
           onClick={() => count > 0 && handleDateClick(day)}
           className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer
-            ${isSelected ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg scale-105' :
-              isToday ? 'bg-white border-2 border-rose-500 shadow-md' :
+            ${isSelected ? 'bg-gradient-to-br from-red-300 to-rose-400 text-white shadow-lg scale-105' :
+              isToday ? 'bg-white border-2 border-red-300 shadow-md' :
               count > 0 ? 'bg-white/90 shadow-sm hover:shadow-md hover:scale-105' :
               'bg-white/30'}
           `}
@@ -518,7 +521,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
         >
           <div className={`text-sm font-bold
             ${isSelected ? 'text-white' :
-              isToday ? 'text-rose-600' :
+              isToday ? 'text-red-400' :
               count > 0 ? 'text-gray-900' :
               isSunday ? 'text-red-400' :
               isSaturday ? 'text-blue-400' :
@@ -528,7 +531,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
           </div>
           {count > 0 && (
             <div className={`absolute bottom-1 text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm
-              ${isSelected ? 'bg-white text-rose-600' : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white'}`}
+              ${isSelected ? 'bg-white text-rose-500' : 'bg-gradient-to-r from-red-300 to-rose-400 text-white'}`}
             >
               {count}
             </div>
@@ -552,7 +555,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
     }).sort((a, b) => a.time.localeCompare(b.time));
   };
 
-  // 이번달 통계 계산
+  // 이번달 통계 계산 (가상 데이터 포함)
   const getMonthlyStats = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -564,22 +567,36 @@ export function ClinicDashboard({ currentUser, onBack }) {
       return date.getMonth() === month && date.getFullYear() === year;
     });
 
-    // 종류별 진료 수
+    // 종류별 진료 수 (실제 데이터)
     const speciesCount = {};
     completedThisMonth.forEach(r => {
       const species = r.pet?.species || r.species || 'other';
       speciesCount[species] = (speciesCount[species] || 0) + 1;
     });
 
-    // 예상 매출 (진료당 평균 5만원 가정 - 실제 데이터가 있으면 대체)
-    const estimatedRevenue = completedThisMonth.length * 50000;
+    // 가상 데이터 추가 (발표용 - 실제 데이터가 없을 때)
+    const demoSpeciesCount = {
+      dog: 23,
+      cat: 18,
+      rabbit: 5,
+      hamster: 3,
+      bird: 2
+    };
+
+    const realTotal = completedThisMonth.length;
+    const demoTotal = 51; // 가상 총 진료수
+    const demoRevenue = 3850000; // 가상 매출 (385만원)
+
+    // 실제 데이터가 있으면 사용, 없으면 가상 데이터 사용
+    const useDemo = realTotal === 0;
 
     return {
-      total: completedThisMonth.length,
-      speciesCount,
-      estimatedRevenue,
+      total: useDemo ? demoTotal : realTotal,
+      speciesCount: useDemo ? demoSpeciesCount : (Object.keys(speciesCount).length > 0 ? speciesCount : demoSpeciesCount),
+      estimatedRevenue: useDemo ? demoRevenue : (realTotal * 75000), // 진료당 평균 7.5만원
       pendingCount: monthlyBookings.filter(b => b.status === 'pending').length,
-      confirmedCount: monthlyBookings.filter(b => b.status === 'confirmed').length
+      confirmedCount: monthlyBookings.filter(b => b.status === 'confirmed').length,
+      isDemo: useDemo
     };
   };
 
@@ -653,8 +670,8 @@ export function ClinicDashboard({ currentUser, onBack }) {
         .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
       `}</style>
 
-      {/* Header - 병원 테마 (로즈) */}
-      <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white">
+      {/* Header - 병원 테마 (파스텔 레드/코랄) */}
+      <div className="bg-gradient-to-r from-red-300 to-rose-300 text-white">
         <div className="flex items-center justify-between p-4">
           <button onClick={onBack} className="p-2 hover:bg-white/20 rounded-full transition-colors">
             <span className="material-symbols-outlined">arrow_back</span>
@@ -671,22 +688,31 @@ export function ClinicDashboard({ currentUser, onBack }) {
             <span className="material-symbols-outlined">local_hospital</span>
             {currentClinic?.name || '행복한 동물병원'}
           </h1>
-          <p className="text-rose-100 text-sm mt-1">병원 관리자 모드</p>
+          <p className="text-red-100 text-sm mt-1">병원 관리자 모드</p>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - 클릭 시 해당 화면으로 이동 */}
         <div className="grid grid-cols-3 gap-3 px-4 pb-4">
-          <div className="bg-white/20 backdrop-blur p-3 rounded-xl text-center">
+          <div
+            onClick={() => { setActiveTab('today'); setTodayFilter('confirmed'); }}
+            className="bg-white/30 backdrop-blur p-3 rounded-xl text-center cursor-pointer hover:bg-white/40 transition-colors active:scale-95"
+          >
             <div className="text-2xl font-bold">{todayBookings.filter(b => b.status === 'confirmed' && !b.hasResult).length}</div>
-            <div className="text-xs text-rose-100">오늘 진료</div>
+            <div className="text-xs text-red-50">오늘 진료</div>
           </div>
-          <div className="bg-white/20 backdrop-blur p-3 rounded-xl text-center">
+          <div
+            onClick={() => { setActiveTab('today'); setTodayFilter('pending'); }}
+            className="bg-white/30 backdrop-blur p-3 rounded-xl text-center cursor-pointer hover:bg-white/40 transition-colors active:scale-95"
+          >
             <div className="text-2xl font-bold">{todayBookings.filter(b => b.status === 'pending').length}</div>
-            <div className="text-xs text-rose-100">확정 대기</div>
+            <div className="text-xs text-red-50">확정 대기</div>
           </div>
-          <div className="bg-white/20 backdrop-blur p-3 rounded-xl text-center">
+          <div
+            onClick={() => setActiveTab('stats')}
+            className="bg-white/30 backdrop-blur p-3 rounded-xl text-center cursor-pointer hover:bg-white/40 transition-colors active:scale-95"
+          >
             <div className="text-2xl font-bold">{monthlyStats.total}</div>
-            <div className="text-xs text-rose-100">이번달 진료</div>
+            <div className="text-xs text-red-50">이번달 진료</div>
           </div>
         </div>
       </div>
@@ -716,22 +742,58 @@ export function ClinicDashboard({ currentUser, onBack }) {
       {/* Content */}
       <div className="p-4 pb-24">
         {/* 오늘 예약 Tab */}
-        {activeTab === 'today' && (
+        {activeTab === 'today' && (() => {
+          // 필터 적용
+          const filteredBookings = todayFilter === 'all'
+            ? todayBookings
+            : todayFilter === 'confirmed'
+            ? todayBookings.filter(b => b.status === 'confirmed' && !b.hasResult)
+            : todayBookings.filter(b => b.status === 'pending');
+
+          return (
           <div>
+            {/* 필터 버튼 */}
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setTodayFilter('all')}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  todayFilter === 'all' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                전체 ({todayBookings.length})
+              </button>
+              <button
+                onClick={() => setTodayFilter('confirmed')}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  todayFilter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                오늘 진료 ({todayBookings.filter(b => b.status === 'confirmed' && !b.hasResult).length})
+              </button>
+              <button
+                onClick={() => setTodayFilter('pending')}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  todayFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                확정 대기 ({todayBookings.filter(b => b.status === 'pending').length})
+              </button>
+            </div>
+
             <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
-              오늘의 진료 일정 ({todayBookings.length}건)
+              {todayFilter === 'all' ? '오늘의 진료 일정' : todayFilter === 'confirmed' ? '오늘 진료 대상' : '확정 대기 예약'} ({filteredBookings.length}건)
             </h2>
 
-            {todayBookings.length === 0 ? (
+            {filteredBookings.length === 0 ? (
               <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center shadow-sm">
-                <div className="text-6xl mb-3">📅</div>
-                <p className="text-gray-400">오늘 예약이 없습니다</p>
+                <div className="text-6xl mb-3">{todayFilter === 'pending' ? '✅' : '📅'}</div>
+                <p className="text-gray-400">{todayFilter === 'pending' ? '확정 대기 중인 예약이 없습니다' : '오늘 예약이 없습니다'}</p>
                 <p className="text-gray-300 text-sm mt-1">새 예약이 들어오면 실시간으로 표시됩니다</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {todayBookings.map((booking, index) => (
+                {filteredBookings.map((booking, index) => (
                   <div
                     key={booking.id || index}
                     className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -889,7 +951,8 @@ export function ClinicDashboard({ currentUser, onBack }) {
               </div>
             )}
           </div>
-        )}
+        );
+        })()}
 
         {/* 예약 달력 Tab */}
         {activeTab === 'calendar' && (
@@ -930,7 +993,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
               <div className="bg-white border-2 border-rose-300 rounded-2xl p-5 mb-4 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1 rounded-lg">
+                    <span className="bg-gradient-to-r from-red-300 to-rose-400 text-white px-3 py-1 rounded-lg">
                       {selectedDate}일
                     </span>
                     예약 목록
@@ -1001,15 +1064,15 @@ export function ClinicDashboard({ currentUser, onBack }) {
         {activeTab === 'stats' && (
           <div>
             <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-rose-500">analytics</span>
+              <span className="material-symbols-outlined text-red-400">analytics</span>
               {currentMonth.getMonth() + 1}월 진료 현황
             </h2>
 
             {/* 요약 카드 */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-gradient-to-br from-rose-500 to-pink-500 text-white p-4 rounded-2xl shadow-lg">
+              <div className="bg-gradient-to-br from-red-300 to-rose-400 text-white p-4 rounded-2xl shadow-lg">
                 <div className="text-3xl font-bold">{monthlyStats.total}</div>
-                <div className="text-rose-100 text-sm">총 진료 완료</div>
+                <div className="text-red-50 text-sm">총 진료 완료</div>
               </div>
               <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-4 rounded-2xl shadow-lg">
                 <div className="text-3xl font-bold">{monthlyStats.estimatedRevenue.toLocaleString()}원</div>
@@ -1038,7 +1101,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
             {/* 종류별 진료 수 */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-rose-500">pets</span>
+                <span className="material-symbols-outlined text-red-400">pets</span>
                 종류별 진료 수
               </h3>
               {Object.keys(monthlyStats.speciesCount).length === 0 ? (
@@ -1077,7 +1140,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
             <div>
               <h2 className="font-bold text-gray-900 mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-rose-500">local_hospital</span>
+                  <span className="material-symbols-outlined text-red-400">local_hospital</span>
                   병원 정보
                 </span>
                 {!isEditingClinic && (
@@ -1187,7 +1250,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
             {/* 임직원 관리 섹션 */}
             <div>
               <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-rose-500">group</span>
+                <span className="material-symbols-outlined text-red-400">group</span>
                 임직원 관리
               </h2>
 
@@ -1276,7 +1339,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto">
             {/* 헤더 */}
-            <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-4 rounded-t-2xl">
+            <div className="bg-gradient-to-r from-red-300 to-rose-400 text-white p-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-lg">환자 정보</h3>
                 <button onClick={() => { setDetailModalType(null); setSelectedBooking(null); }} className="p-1 hover:bg-white/20 rounded-full">
@@ -1573,7 +1636,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
       {resultModalOpen && selectedResult && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-4 rounded-t-2xl">
+            <div className="bg-gradient-to-r from-red-300 to-rose-400 text-white p-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-lg">병원 진단서</h3>
                 <button onClick={() => { setResultModalOpen(false); setSelectedResult(null); }} className="p-1 hover:bg-white/20 rounded-full">
