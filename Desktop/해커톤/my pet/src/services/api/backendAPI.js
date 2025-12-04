@@ -127,6 +127,35 @@ export const requestWithRetry = async (requestFn, maxRetries = API_CONFIG.RETRY_
 };
 
 /**
+ * 질문 답변 요청
+ * @param {Object} questionData - 질문 데이터
+ * @returns {Promise<Object>} 답변 결과
+ */
+export const requestQuestionAnswer = async (questionData) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.QUESTION_ANSWER, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(questionData),
+      signal: AbortSignal.timeout(API_CONFIG.TIMEOUT),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+      throw new Error(error.detail || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { success: true, ...result };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { success: false, error: '요청 시간이 초과되었습니다. 다시 시도해주세요.' };
+    }
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * 멀티에이전트 진단 요청 (프론트엔드 데이터 → 백엔드 형식 변환)
  * @param {Object} petData - 반려동물 정보
  * @param {Object} symptomData - 증상 데이터
@@ -157,5 +186,6 @@ export default {
   streamTriageProgress,
   checkHealth,
   requestWithRetry,
+  requestQuestionAnswer,
   runMultiAgentDiagnosisViaBackend,
 };
