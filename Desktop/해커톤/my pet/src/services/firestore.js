@@ -438,20 +438,26 @@ export const bookingService = {
   // 병원의 예약 목록 조회 (병원 모드용)
   async getBookingsByClinic(clinicId) {
     try {
+      // 인덱스 에러 방지: orderBy 제거
       const q = query(
         collection(db, COLLECTIONS.BOOKINGS),
-        where('clinicId', '==', clinicId),
-        orderBy('date', 'asc')
+        where('clinicId', '==', clinicId)
       );
       const querySnapshot = await getDocs(q);
-      const bookings = querySnapshot.docs.map(doc => ({
+      let bookings = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      return { success: true, data: bookings };
+
+      // 클라이언트에서 날짜순 정렬
+      bookings.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+      // 배열 직접 반환 (ClinicDashboard 호환성)
+      return bookings;
     } catch (error) {
       console.error('병원 예약 조회 오류:', error);
-      return { success: false, error, data: [] };
+      // 에러 시 빈 배열 반환
+      return [];
     }
   },
 

@@ -682,7 +682,8 @@ export async function getClinicResults(clinicId, options = {}) {
     return results;
   } catch (error) {
     console.error('❌ [getClinicResults] 진료 결과 조회 실패:', error);
-    throw error;
+    // 에러 발생 시 빈 배열 반환
+    return [];
   }
 }
 
