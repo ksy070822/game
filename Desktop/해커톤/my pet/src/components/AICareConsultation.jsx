@@ -157,45 +157,62 @@ export function AICareConsultation({ petData, onBack, onHome }) {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* 샘플 데이터 안내 */}
-        {usingSampleData && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-amber-800 mb-1">샘플 데이터로 분석 중</h3>
-                <p className="text-sm text-amber-700 mb-3">
-                  아직 충분한 케어 기록이 없어서 샘플 데이터로 기능을 보여드립니다.
-                  매일 케어 기록을 입력하면 실제 데이터로 분석해드려요!
-                </p>
-                <button
-                  onClick={saveSampleAsReal}
-                  className="text-sm bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600"
-                >
-                  샘플 데이터로 시작하기
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 7일 케어 기록 요약 */}
+        {/* 7일 케어 기록 요약 - 개선된 UI */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-          <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span className="text-xl">📊</span>
-            최근 7일 케어 기록
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-slate-800 flex items-center gap-2">
+              <span className="text-xl">📊</span>
+              최근 7일 케어 기록
+            </h2>
+            <span className="text-xs text-slate-400">
+              {careLogs[0]?.date} ~ {careLogs[careLogs.length - 1]?.date}
+            </span>
+          </div>
 
+          {/* 케어 아이콘 범례 */}
+          <div className="grid grid-cols-5 gap-2 mb-4 pb-4 border-b border-slate-100">
+            {[
+              { icon: '🍚', label: '식사' },
+              { icon: '💧', label: '물' },
+              { icon: '🩴', label: '산책' },
+              { icon: '💩', label: '배변' },
+              { icon: '⚖️', label: '체중' }
+            ].map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-lg">{item.icon}</span>
+                </div>
+                <span className="text-[10px] font-medium text-slate-500 mt-1">{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 일별 기록 */}
           <div className="space-y-2">
             {careLogs.map((log, idx) => (
-              <div key={idx} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                <span className="text-xs text-slate-400 w-20">{log.date}</span>
-                <div className="flex-1 flex gap-3 text-sm">
-                  <span>🍚 {log.mealCount || 0}</span>
-                  <span>💧 {log.waterCount || 0}</span>
-                  <span>🚶 {log.walkCount || 0}</span>
-                  <span>💩 {log.poopCount || 0}</span>
-                  {log.weight && <span className="text-slate-500">⚖️ {log.weight}kg</span>}
+              <div key={idx} className="flex items-center gap-2 py-2.5 px-3 bg-slate-50 rounded-xl">
+                <span className="text-xs font-medium text-slate-500 w-24">{log.date}</span>
+                <div className="flex-1 grid grid-cols-5 gap-2 text-sm">
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">🍚</span>
+                    <span className="font-medium text-slate-700">{log.mealCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">💧</span>
+                    <span className="font-medium text-blue-600">{log.waterCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">🩴</span>
+                    <span className="font-medium text-green-600">{log.walkCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">💩</span>
+                    <span className="font-medium text-amber-600">{log.poopCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">⚖️</span>
+                    <span className="font-medium text-slate-600">{log.weight || '-'}kg</span>
+                  </span>
                 </div>
               </div>
             ))}
