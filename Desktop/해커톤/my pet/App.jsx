@@ -256,28 +256,31 @@ const SPECIES_OPTIONS = [
   { id: 'other', label: '기타', emoji: '🐾', icon: PROFILE_IMAGES.etc },
 ];
 
+// Base URL for GitHub Pages deployment
+const BASE_URL = import.meta.env.BASE_URL || '/ai-factory/';
+
 // 동물 종류별 메인 캐릭터 이미지 (프로필 배너용)
 const MAIN_CHARACTER_IMAGES = {
-  dog: '/icon/main-image/dog_main-removebg-preview.png',
-  cat: '/icon/main-image/Cat_main-removebg-preview.png',
-  rabbit: '/icon/main-image/rabbit_main-removebg-preview.png',
-  hamster: '/icon/main-image/hamster_main-removebg-preview.png',
-  bird: '/icon/main-image/bird_main-removebg-preview.png',
-  hedgehog: '/icon/main-image/hedgehog_main-removebg-preview.png',
-  reptile: '/icon/main-image/reptile_main-removebg-preview.png',
-  other: '/icon/main-image/etc_main-removebg-preview.png'
+  dog: `${BASE_URL}icon/main-image/dog_main-removebg-preview.png`,
+  cat: `${BASE_URL}icon/main-image/Cat_main-removebg-preview.png`,
+  rabbit: `${BASE_URL}icon/main-image/rabbit_main-removebg-preview.png`,
+  hamster: `${BASE_URL}icon/main-image/hamster_main-removebg-preview.png`,
+  bird: `${BASE_URL}icon/main-image/bird_main-removebg-preview.png`,
+  hedgehog: `${BASE_URL}icon/main-image/hedgehog_main-removebg-preview.png`,
+  reptile: `${BASE_URL}icon/main-image/reptile_main-removebg-preview.png`,
+  other: `${BASE_URL}icon/main-image/etc_main-removebg-preview.png`
 };
 
 // 동물 종류별 프로필 아이콘 이미지 (원형 배경 포함)
 const PROFILE_ICON_IMAGES = {
-  dog: '/icon/dog.png',
-  cat: '/icon/cat.png',
-  rabbit: '/icon/rabbit.png',
-  hamster: '/icon/hamster.png',
-  bird: '/icon/bird.png',
-  hedgehog: '/icon/hedgehog.png',
-  reptile: '/icon/reptile.png',
-  other: '/icon/etc.png'
+  dog: `${BASE_URL}icon/dog.png`,
+  cat: `${BASE_URL}icon/cat.png`,
+  rabbit: `${BASE_URL}icon/rabbit.png`,
+  hamster: `${BASE_URL}icon/hamster.png`,
+  bird: `${BASE_URL}icon/bird.png`,
+  hedgehog: `${BASE_URL}icon/hedgehog.png`,
+  reptile: `${BASE_URL}icon/reptile.png`,
+  other: `${BASE_URL}icon/etc.png`
 };
 
 // 개/고양이 대표 품종 목록
