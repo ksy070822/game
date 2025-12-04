@@ -1192,17 +1192,21 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
     if (!petData) {
       return getMainCharacterImage('dog');
     }
-    
-    // 사용자가 등록한 프로필 이미지가 있으면 우선 사용
-    if (petData.profileImage) {
+
+    // 동물 종류에 따라 기본 이미지 반환 (기본값)
+    const species = petData.species || 'dog';
+    const defaultImage = getMainCharacterImage(species);
+
+    // 관리자가 별도로 입력한 프로필 이미지가 있을 경우에만 해당 이미지 사용
+    // 빈 문자열, null, undefined는 무시하고 기본 캐릭터 이미지 사용
+    if (petData.profileImage &&
+        typeof petData.profileImage === 'string' &&
+        petData.profileImage.trim() !== '' &&
+        (petData.profileImage.startsWith('http') || petData.profileImage.startsWith('data:'))) {
       return petData.profileImage;
     }
-    
-    // 동물 종류에 따라 기본 이미지 반환
-    const species = petData.species || 'dog';
-    const imagePath = getMainCharacterImage(species);
-    
-    return imagePath;
+
+    return defaultImage;
   };
 
   // 동물 분류 표시 (강아지/고양이는 품종, 나머지는 대분류)
@@ -5086,7 +5090,11 @@ function HomeTreatmentGuide({ petData, diagnosisResult, onBack, onGoToHospital }
             gap: '8px',
             marginBottom: '4px'
           }}>
-            <span style={{ color: '#06b6d4', fontSize: '16px' }}>❤️</span>
+            <img
+              src={`${import.meta.env.BASE_URL}icon/login/logo.png`}
+              alt="PetMedical.AI"
+              style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+            />
             <span style={{ fontSize: '15px', fontWeight: '600', color: '#475569' }}>PetMedical.AI</span>
           </div>
           <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>

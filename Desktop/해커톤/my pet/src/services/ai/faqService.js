@@ -32,27 +32,37 @@ async function fetchFAQsFromFirebase(species, keywords) {
 
     // 키워드로 관련성 높은 FAQ 필터링
     if (keywords) {
-      const keywordList = keywords.toLowerCase().split(/[\s,]+/).filter(Boolean);
+      // 2글자 이상의 키워드만 유효하게 처리
+      const keywordList = keywords.toLowerCase().split(/[\s,]+/).filter(k => k && k.length >= 2);
       const scoredFAQs = allFAQs.map(faq => {
         let score = 0;
         const faqText = `${faq.question_ko || ''} ${faq.answer_ko || ''} ${faq.symptom_label_ko || ''} ${(faq.keywords || []).join(' ')}`.toLowerCase();
 
         keywordList.forEach(keyword => {
-          if (keyword && keyword.length > 1 && faqText.includes(keyword)) {
-            score += 1;
+          if (faqText.includes(keyword)) {
+            // 핵심 키워드(증상명, 진단명)는 가중치 부여
+            if (faq.keywords?.some(k => k.toLowerCase().includes(keyword))) {
+              score += 3; // FAQ 키워드에 직접 매칭
+            } else if (faq.symptom_label_ko?.toLowerCase().includes(keyword)) {
+              score += 2; // 증상 라벨에 매칭
+            } else {
+              score += 1; // 일반 텍스트에 매칭
+            }
           }
         });
 
         return { ...faq, relevanceScore: score };
       });
 
+      // 최소 점수 2 이상만 반환 (더 엄격한 필터링)
       return scoredFAQs
-        .filter(faq => faq.relevanceScore > 0)
+        .filter(faq => faq.relevanceScore >= 2)
         .sort((a, b) => b.relevanceScore - a.relevanceScore)
         .slice(0, 5);
     }
 
-    return allFAQs.slice(0, 5);
+    // 키워드 없으면 빈 배열 반환 (무관한 FAQ 방지)
+    return [];
   } catch (error) {
     console.error('Firebase FAQ 조회 오류:', error);
     return [];
@@ -72,47 +82,89 @@ export async function getRecommendedFAQs(medicalDiagnosis, symptomData, species 
   const symptoms = symptomData?.selectedSymptoms || [];
   const symptomText = symptomData?.symptomText || '';
 
-  // 키워드 수집
+  // 키워드 수집 (3글자 이상만 유효한 키워드로 처리)
   const keywords = [
     diagnosis,
     ...symptoms.map(s => typeof s === 'string' ? s : s?.name_kor || ''),
     ...symptomText.split(/[\s,]+/).filter(Boolean)
-  ].filter(Boolean);
+  ].filter(k => k && k.length >= 2);
 
   const keywordString = keywords.join(' ');
+
+  // 중복 방지를 위한 Set (질문 텍스트 정규화하여 저장)
+  const addedQuestions = new Set();
+  const addedSymptomTags = new Set();
+
+  // 질문 텍스트 정규화 함수 (공백, 특수문자 제거 후 비교)
+  const normalizeQuestion = (q) => (q || '').replace(/[\s?.,!~]/g, '').toLowerCase();
 
   // Firebase에서 FAQ 조회 시도
   let relatedFAQs = [];
   try {
-    relatedFAQs = await fetchFAQsFromFirebase(species, keywordString);
+    const firebaseFAQs = await fetchFAQsFromFirebase(species, keywordString);
+
+    // 관련성 점수가 2 이상인 것만 사용 (더 엄격한 필터링)
+    firebaseFAQs.forEach(faq => {
+      const normalizedQ = normalizeQuestion(faq.question_ko);
+      if (faq.relevanceScore >= 2 && !addedQuestions.has(normalizedQ)) {
+        addedQuestions.add(normalizedQ);
+        if (faq.symptom_tag) addedSymptomTags.add(faq.symptom_tag);
+        relatedFAQs.push(faq);
+      }
+    });
+
     console.log('Firebase FAQ 조회 성공:', relatedFAQs.length, '개');
   } catch (error) {
     console.warn('Firebase FAQ 조회 실패, 로컬 데이터 사용:', error);
   }
 
-  // Firebase 결과가 부족하면 로컬 데이터로 보충
-  if (relatedFAQs.length < 3) {
-    const localFAQs = localSearchFAQ(keywordString, species);
-    const existingQuestions = new Set(relatedFAQs.map(f => f.question_ko));
-
-    const additionalFAQs = localFAQs.filter(faq => !existingQuestions.has(faq.question_ko));
-    relatedFAQs = [...relatedFAQs, ...additionalFAQs];
-  }
-
-  // 여전히 부족하면 일반 FAQ 추가
+  // Firebase 결과가 부족하면 로컬 데이터로 보충 (관련성 높은 것만)
   if (relatedFAQs.length < 3) {
     const deptCode = getDepartmentFromDiagnosis(diagnosis);
-    const existingQuestions = new Set(relatedFAQs.map(f => f.question_ko));
 
-    const generalFAQs = localFaqData.filter(faq =>
-      (faq.species_code === species || faq.species_code === 'all') &&
-      !existingQuestions.has(faq.question_ko)
-    );
+    // 로컬 FAQ에서 관련성 점수 계산
+    const scoredLocalFAQs = localFaqData
+      .filter(faq => faq.species_code === species || faq.species_code === 'all')
+      .map(faq => {
+        let score = 0;
+        const faqText = `${faq.question_ko} ${faq.answer_ko} ${faq.symptom_label_ko || ''} ${(faq.keywords || []).join(' ')}`.toLowerCase();
 
-    const deptFAQs = generalFAQs.filter(faq => faq.department_code === deptCode);
-    const otherFAQs = generalFAQs.filter(faq => faq.department_code !== deptCode);
+        // 키워드 매칭 점수
+        keywords.forEach(keyword => {
+          if (keyword.length >= 2 && faqText.includes(keyword.toLowerCase())) {
+            score += 2;
+          }
+        });
 
-    relatedFAQs = [...relatedFAQs, ...deptFAQs, ...otherFAQs];
+        // 같은 진료과면 보너스
+        if (faq.department_code === deptCode) {
+          score += 1;
+        }
+
+        return { ...faq, relevanceScore: score };
+      })
+      .filter(faq => faq.relevanceScore >= 2) // 최소 관련성 점수 기준
+      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+    // 중복 없이 추가
+    scoredLocalFAQs.forEach(faq => {
+      if (relatedFAQs.length >= 3) return;
+
+      const normalizedQ = normalizeQuestion(faq.question_ko);
+      // 질문 텍스트와 symptom_tag 모두 중복 체크
+      if (!addedQuestions.has(normalizedQ) && !addedSymptomTags.has(faq.symptom_tag)) {
+        addedQuestions.add(normalizedQ);
+        if (faq.symptom_tag) addedSymptomTags.add(faq.symptom_tag);
+        relatedFAQs.push(faq);
+      }
+    });
+  }
+
+  // 3개 미만이어도 관련 없는 FAQ는 추가하지 않음 (품질 우선)
+  // 최소 1개 이상의 관련 FAQ가 있을 때만 반환
+  if (relatedFAQs.length === 0) {
+    console.log('관련 FAQ 없음 - 빈 배열 반환');
+    return [];
   }
 
   // FAQ 형식 정리
