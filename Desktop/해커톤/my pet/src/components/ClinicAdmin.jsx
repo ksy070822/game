@@ -851,7 +851,7 @@ function PatientRecordCard({ pet }) {
             <div className="text-sm text-green-700 mb-3 space-y-1">
               {ourRecords.slice(0, 2).map((record, i) => (
                 <div key={i}>
-                  • {new Date(record.createdAt).toLocaleDateString('ko-KR')} {record.diagnosis}
+                  • {new Date(record.createdAt).toLocaleDateString('ko-KR')} {typeof record.diagnosis === 'string' ? record.diagnosis : (record.diagnosis?.name || '진단 정보')}
                 </div>
               ))}
             </div>

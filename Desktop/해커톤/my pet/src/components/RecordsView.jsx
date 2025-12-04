@@ -806,7 +806,7 @@ export function RecordsView({ petData, pets = [], onBack, onViewDiagnosis, onOCR
 
                     {record.diagnosis && (
                       <p className="text-slate-700 text-sm mb-2">
-                        {record.diagnosis}
+                        {typeof record.diagnosis === 'string' ? record.diagnosis : (record.diagnosis?.name || '진단 정보')}
                       </p>
                     )}
 
