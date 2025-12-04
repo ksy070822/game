@@ -867,7 +867,7 @@ function ProfileList({ pets, onSelectPet, onAddNew, onNavigate }) {
 }
 
 // Dashboard Screen
-function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
+function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
   const [healthFlags, setHealthFlags] = useState(null);
   const [dailyLogs, setDailyLogs] = useState([]);
   const [patternAnalysis, setPatternAnalysis] = useState(null);
@@ -1221,18 +1221,32 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
             <div className="h-full overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
               {/* Header - 회사 로고 가운데 배치 */}
               <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
-                <div className="flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                    <img
-                      src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
-                      alt="PetMedical.AI"
-                      className="w-12 h-12 object-contain"
-                    />
+                <div className="flex items-center justify-between">
+                  <div className="w-10"></div>
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                      <img
+                        src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
+                        alt="PetMedical.AI"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <div className="text-center ml-4">
+                      <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
+                      <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
+                    </div>
                   </div>
-                  <div className="text-center ml-4">
-                    <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
-                    <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
-                  </div>
+                  <button
+                    onClick={() => {
+                      if (confirm('로그아웃 하시겠습니까?')) {
+                        onLogout && onLogout();
+                      }
+                    }}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                    title="로그아웃"
+                  >
+                    <span className="text-xl">🚪</span>
+                  </button>
                 </div>
               </header>
 
@@ -1627,18 +1641,32 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet }) {
           <div className="min-h-screen overflow-y-auto overflow-x-hidden bg-slate-50 pb-20">
       {/* Header - 회사 로고 가운데 배치 */}
       <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
-        <div className="flex items-center justify-center">
-          <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-            <img
-              src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
-              alt="PetMedical.AI"
-              className="w-12 h-12 object-contain"
-            />
+        <div className="flex items-center justify-between">
+          <div className="w-10"></div>
+          <div className="flex items-center">
+            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <img
+                src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
+                alt="PetMedical.AI"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            <div className="text-center ml-4">
+              <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
+              <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
+            </div>
           </div>
-          <div className="text-center ml-4">
-            <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
-            <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
-          </div>
+          <button
+            onClick={() => {
+              if (confirm('로그아웃 하시겠습니까?')) {
+                onLogout && onLogout();
+              }
+            }}
+            className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            title="로그아웃"
+          >
+            <span className="text-xl">🚪</span>
+          </button>
         </div>
       </header>
 
@@ -6050,8 +6078,8 @@ function App() {
         <div className="main-content" style={{ paddingBottom: '80px' }}>
           {/* 내 동물 돌보기 탭 */}
           {currentTab === 'care' && petData && (
-            <Dashboard 
-              petData={petData} 
+            <Dashboard
+              petData={petData}
               pets={pets}
               onNavigate={(view) => {
                 // 'hospital', 'records'는 탭으로 이동
@@ -6062,6 +6090,7 @@ function App() {
                 }
               }}
               onSelectPet={handleSelectPet}
+              onLogout={handleLogout}
             />
           )}
 
