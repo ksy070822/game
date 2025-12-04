@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPetImage, getProfileImage } from '../utils/imagePaths';
-import { clinicResultService } from '../services/firestore';
+import { clinicResultService, bookingService } from '../services/firestore';
 
 // 동물 종류 한글 매핑
 const SPECIES_LABELS = {
@@ -168,7 +168,25 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
     if (userId) {
       setPets(getPetsForUser(userId));
       setDiagnoses(getDiagnosesForUser(userId));
-      setBookings(getBookingsForUser(userId));
+
+      // Firestore에서 예약 조회 (상태 변경 반영)
+      const loadBookings = async () => {
+        try {
+          const result = await bookingService.getBookingsByUser(userId);
+          if (result.success && result.data.length > 0) {
+            setBookings(result.data);
+            // localStorage도 동기화
+            saveBookingsForUser(userId, result.data);
+          } else {
+            // Firestore에 없으면 localStorage 사용
+            setBookings(getBookingsForUser(userId));
+          }
+        } catch (error) {
+          console.warn('Firestore 예약 로드 오류, localStorage 사용:', error);
+          setBookings(getBookingsForUser(userId));
+        }
+      };
+      loadBookings();
     } else {
       setPets(getPetsFromStorage());
       setDiagnoses(getDiagnosesFromStorage());
