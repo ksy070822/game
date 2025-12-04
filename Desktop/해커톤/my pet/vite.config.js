@@ -15,6 +15,15 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html'
+      },
+      output: {
+        // AI 서비스 모듈들을 메인 번들에 포함시켜 별도 chunk 분리 방지
+        manualChunks: (id) => {
+          // AI 서비스 관련 모듈들을 모두 main에 포함
+          if (id.includes('services/ai/')) {
+            return 'main'
+          }
+        }
       }
     }
   }
