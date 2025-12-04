@@ -336,16 +336,40 @@ export function ClinicDashboard({ currentUser, onBack }) {
     }
   };
 
-  // 환자 목록 로드 (예약 기록에서 고유 환자 추출)
+  // 환자 목록 로드 (clinicPatients 컬렉션에서 직접 조회 + 예약 기록에서 고유 환자 추출)
   const loadPatientList = async () => {
     try {
-      // 모든 예약에서 고유 환자(pet) 추출
+      // 1) clinicPatients 컬렉션에서 직접 환자 목록 조회
+      const clinicPatients = await getClinicPatients(currentClinic.id, { limit: 100 });
+      
+      // clinicPatients를 patientList 형식으로 변환
+      const patientsFromCollection = clinicPatients.map(patient => ({
+        id: patient.petId || patient.id,
+        name: patient.petName || '이름 없음',
+        species: patient.species || 'dog',
+        breed: patient.breed || '',
+        profileImage: null,
+        guardianName: patient.ownerName || '',
+        guardianId: patient.ownerUserId,
+        lastVisit: patient.lastVisitDate || patient.updatedAt?.toDate?.()?.toISOString()?.split('T')[0] || '',
+        visitCount: patient.visitCount || 0,
+        bookings: []
+      }));
+
+      // 2) 예약 기록에서도 고유 환자 추출 (기존 로직 유지)
       const allBookings = await bookingService.getBookingsByClinic(currentClinic.id);
       const allResults = await getClinicResults(currentClinic.id, { limit: 200 });
 
       const petsMap = new Map();
 
-      // 예약에서 환자 정보 수집
+      // clinicPatients에서 온 환자들을 먼저 맵에 추가
+      patientsFromCollection.forEach(patient => {
+        if (patient.id) {
+          petsMap.set(patient.id, patient);
+        }
+      });
+
+      // 예약에서 환자 정보 수집 (기존 환자 정보 보강)
       allBookings.forEach(booking => {
         if (booking.pet?.id || booking.petId) {
           const petId = booking.pet?.id || booking.petId;
@@ -366,7 +390,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
           const pet = petsMap.get(petId);
           pet.visitCount++;
           pet.bookings.push(booking);
-          if (booking.date > pet.lastVisit) {
+          if (booking.date && (!pet.lastVisit || booking.date > pet.lastVisit)) {
             pet.lastVisit = booking.date;
           }
         }
@@ -379,6 +403,10 @@ export function ClinicDashboard({ currentUser, onBack }) {
           const pet = petsMap.get(petId);
           if (!pet.results) pet.results = [];
           pet.results.push(result);
+          // visitCount 업데이트
+          if (result.visitDate && (!pet.lastVisit || result.visitDate > pet.lastVisit)) {
+            pet.lastVisit = result.visitDate;
+          }
         }
       });
 
@@ -397,7 +425,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
   const loadPatientRecords = async (petId) => {
     setPatientRecordsLoading(true);
     try {
-      // 해당 환자의 모든 예약 조회
+      // 1) 해당 환자의 모든 예약 조회
       const allBookings = await bookingService.getBookingsByClinic(currentClinic.id);
       const petBookings = allBookings.filter(b =>
         (b.pet?.id || b.petId) === petId
@@ -411,7 +439,40 @@ export function ClinicDashboard({ currentUser, onBack }) {
         })
       );
 
-      setPatientRecords(enrichedBookings);
+      // 2) 해당 환자의 진료 결과(clinicResults) 조회 (예약과 별개로 저장된 진료 기록)
+      const resultRes = await clinicResultService.getResultsByPet(petId);
+      const clinicResults = resultRes.success && resultRes.data ? resultRes.data : [];
+      
+      // clinicResults를 booking 형식으로 변환
+      const resultRecords = clinicResults.map(result => ({
+        id: result.id,
+        date: result.visitDate || result.createdAt?.toDate?.()?.toISOString()?.split('T')[0] || new Date().toISOString().split('T')[0],
+        time: result.visitTime || '시간 미정',
+        status: result.sharedToGuardian ? 'completed' : 'confirmed',
+        pet: {
+          id: result.petId,
+          name: result.petName
+        },
+        petId: result.petId,
+        petName: result.petName,
+        aiDiagnosis: null,
+        symptom: result.soap?.subjective || '',
+        result: {
+          mainDiagnosis: result.mainDiagnosis,
+          soap: result.soap,
+          triageScore: result.triageScore
+        },
+        hasResult: true,
+        sharedToGuardian: result.sharedToGuardian || false,
+        isFromClinicResult: true // clinicResults에서 온 데이터임을 표시
+      }));
+
+      // 예약과 진료 결과를 합치고 날짜순 정렬
+      const allRecords = [...enrichedBookings, ...resultRecords].sort((a, b) => 
+        (b.date || '').localeCompare(a.date || '')
+      );
+
+      setPatientRecords(allRecords);
     } catch (error) {
       console.error('환자 기록 로드 실패:', error);
       setPatientRecords([]);
@@ -1308,7 +1369,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
               <div>
                 <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
-                  환자 목록 ({patientList.length}마리)
+                  환자 목록
                 </h2>
 
                 {patientList.length === 0 ? (
