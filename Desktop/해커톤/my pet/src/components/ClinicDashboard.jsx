@@ -587,15 +587,24 @@ export function ClinicDashboard({ currentUser, onBack }) {
     const demoTotal = 51; // 가상 총 진료수
     const demoRevenue = 3850000; // 가상 매출 (385만원)
 
+    // 실제 예약 수
+    const realPendingCount = monthlyBookings.filter(b => b.status === 'pending').length;
+    const realConfirmedCount = monthlyBookings.filter(b => b.status === 'confirmed').length;
+
+    // 가상 예약 수 (발표용)
+    const demoPendingCount = 8;
+    const demoConfirmedCount = 24;
+
     // 실제 데이터가 있으면 사용, 없으면 가상 데이터 사용
     const useDemo = realTotal === 0;
+    const useBookingDemo = (realPendingCount + realConfirmedCount) === 0;
 
     return {
       total: useDemo ? demoTotal : realTotal,
       speciesCount: useDemo ? demoSpeciesCount : (Object.keys(speciesCount).length > 0 ? speciesCount : demoSpeciesCount),
       estimatedRevenue: useDemo ? demoRevenue : (realTotal * 75000), // 진료당 평균 7.5만원
-      pendingCount: monthlyBookings.filter(b => b.status === 'pending').length,
-      confirmedCount: monthlyBookings.filter(b => b.status === 'confirmed').length,
+      pendingCount: useBookingDemo ? demoPendingCount : realPendingCount,
+      confirmedCount: useBookingDemo ? demoConfirmedCount : realConfirmedCount,
       isDemo: useDemo
     };
   };
