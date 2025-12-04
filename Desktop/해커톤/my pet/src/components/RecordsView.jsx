@@ -689,93 +689,176 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                 <p className="text-slate-400 text-sm mt-1">AI 진단 후 병원을 방문하면 기록이 남아요</p>
               </div>
             ) : (
-              visitRecords.map(record => (
-                <div
-                  key={record.id}
-                  className={`bg-slate-50 rounded-xl p-4 transition-all ${
-                    record.source === 'clinic' && !record.sharedToGuardian ? '' : 'cursor-pointer hover:bg-slate-100'
-                  }`}
-                  onClick={() => {
-                    // AI 진단이거나 공유 완료된 clinic 기록만 클릭 가능
-                    if (record.source === 'ai' || (record.source === 'clinic' && record.sharedToGuardian)) {
-                      onViewDiagnosis && onViewDiagnosis(record);
-                    }
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          record.source === 'clinic' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {record.source === 'clinic' ? '병원' : 'AI'}
-                        </span>
-                        <p className="text-slate-500 text-xs">{formatDateShort(record.date || record.created_at)}</p>
+              visitRecords.map(record => {
+                // AI 진단인 경우 진단서 카드 UI 표시
+                if (record.source === 'ai') {
+                  const diagnosis = record.diagnosis || record.suspectedConditions?.[0]?.name || '일반 건강 이상';
+                  const description = record.description || record.detailDescription || '';
+                  const actions = record.actions || record.recommendedActions || [];
+                  
+                  return (
+                    <div key={record.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+                      {/* 상단: 하늘색 그라데이션 배경 */}
+                      <div className="bg-gradient-to-br from-sky-300 via-sky-400 to-sky-500 p-5 text-white">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white">info</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm opacity-90">상세 진단</p>
+                            <h3 className="text-xl font-bold mt-1">{diagnosis}</h3>
+                            <p className="text-xs opacity-80 mt-1">AI 기반 멀티 에이전트 분석 결과</p>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="text-slate-900 font-bold text-base mb-1">
-                        {record.hospitalName || 'AI 진단'}
-                      </h3>
+
+                      <div className="p-4 space-y-4">
+                        {/* 상세 설명 */}
+                        {description && (
+                          <div className="bg-white rounded-xl p-4 border border-slate-200">
+                            <div className="flex items-center gap-2 mb-3">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                              </svg>
+                              <h4 className="font-bold text-slate-800">상세 설명</h4>
+                            </div>
+                            <div className="bg-slate-50 rounded-lg p-4 border-l-4 border-sky-400">
+                              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{description}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 권장 조치사항 */}
+                        {actions.length > 0 && (
+                          <div className="bg-white rounded-xl p-4 border border-slate-200">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                  <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                              </div>
+                              <h4 className="font-bold text-slate-800">권장 조치사항</h4>
+                            </div>
+                            <div className="space-y-2">
+                              {actions.map((action, idx) => (
+                                <div key={idx} className="flex items-start gap-3 bg-sky-50 rounded-lg p-3">
+                                  <div className="w-6 h-6 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                    {idx + 1}
+                                  </div>
+                                  <p className="text-sm text-slate-700 flex-1">{action}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 하단 안내 */}
+                        <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                              <span className="material-symbols-outlined text-white text-sm">info</span>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-bold text-slate-800 mb-1">중요 안내사항</h5>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                본 진단서는 AI가 분석한 참고자료입니다. 증상이 지속되거나 악화될 경우 반드시 전문 수의사의 진료를 받으시기 바랍니다.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    {(record.source === 'ai' || (record.source === 'clinic' && record.sharedToGuardian)) && (
-                      <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                  );
+                }
+
+                // 병원 진료인 경우 기존 UI 유지
+                return (
+                  <div
+                    key={record.id}
+                    className={`bg-slate-50 rounded-xl p-4 transition-all ${
+                      record.source === 'clinic' && !record.sharedToGuardian ? '' : 'cursor-pointer hover:bg-slate-100'
+                    }`}
+                    onClick={() => {
+                      if (record.source === 'clinic' && record.sharedToGuardian) {
+                        onViewDiagnosis && onViewDiagnosis(record);
+                      }
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            병원
+                          </span>
+                          <p className="text-slate-500 text-xs">{formatDateShort(record.date || record.created_at)}</p>
+                        </div>
+                        <h3 className="text-slate-900 font-bold text-base mb-1">
+                          {record.hospitalName || '병원'}
+                        </h3>
+                      </div>
+                      {record.sharedToGuardian && (
+                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                      )}
+                    </div>
+
+                    {record.diagnosis && (
+                      <p className="text-slate-700 text-sm mb-2">
+                        {record.diagnosis}
+                      </p>
+                    )}
+
+                    {/* 병원 진료 결과 추가 정보 */}
+                    {record.source === 'clinic' && (
+                      <>
+                        <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                          {record.treatment && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
+                              <span className="material-symbols-outlined text-xs">healing</span>
+                              {record.treatment}
+                            </span>
+                          )}
+                          {record.medications?.length > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs">
+                              <span className="material-symbols-outlined text-xs">medication</span>
+                              처방약 {record.medications.length}개
+                            </span>
+                          )}
+                          {record.totalCost > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">
+                              💰 {record.totalCost.toLocaleString()}원
+                            </span>
+                          )}
+                          {record.nextVisitDate && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
+                              <span className="material-symbols-outlined text-xs">event</span>
+                              다음방문: {formatDateShort(record.nextVisitDate)}
+                            </span>
+                          )}
+                        </div>
+                        {/* ✅ 공유받은 진단서 버튼 (상태만으로 표현) */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (record.sharedToGuardian) {
+                              onViewDiagnosis && onViewDiagnosis(record);
+                            }
+                          }}
+                          disabled={!record.sharedToGuardian}
+                          className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
+                            ${record.sharedToGuardian
+                              ? 'bg-sky-600 text-white hover:bg-sky-700'
+                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                        >
+                          <span className="material-symbols-outlined text-lg">description</span>
+                          {record.sharedToGuardian ? '공유받은 진단서 보기' : '진단서 준비 중'}
+                        </button>
+                      </>
                     )}
                   </div>
-
-                  {record.diagnosis && (
-                    <p className="text-slate-700 text-sm mb-2">
-                      {record.diagnosis}
-                    </p>
-                  )}
-
-                  {/* 병원 진료 결과 추가 정보 */}
-                  {record.source === 'clinic' && (
-                    <>
-                      <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                        {record.treatment && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
-                            <span className="material-symbols-outlined text-xs">healing</span>
-                            {record.treatment}
-                          </span>
-                        )}
-                        {record.medications?.length > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs">
-                            <span className="material-symbols-outlined text-xs">medication</span>
-                            처방약 {record.medications.length}개
-                          </span>
-                        )}
-                        {record.totalCost > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">
-                            💰 {record.totalCost.toLocaleString()}원
-                          </span>
-                        )}
-                        {record.nextVisitDate && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
-                            <span className="material-symbols-outlined text-xs">event</span>
-                            다음방문: {formatDateShort(record.nextVisitDate)}
-                          </span>
-                        )}
-                      </div>
-                      {/* ✅ 공유받은 진단서 버튼 (상태만으로 표현) */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (record.sharedToGuardian) {
-                            onViewDiagnosis && onViewDiagnosis(record);
-                          }
-                        }}
-                        disabled={!record.sharedToGuardian}
-                        className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5
-                          ${record.sharedToGuardian
-                            ? 'bg-sky-600 text-white hover:bg-sky-700'
-                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-                      >
-                        <span className="material-symbols-outlined text-lg">description</span>
-                        {record.sharedToGuardian ? '공유받은 진단서 보기' : '진단서 준비 중'}
-                      </button>
-                    </>
-                  )}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
