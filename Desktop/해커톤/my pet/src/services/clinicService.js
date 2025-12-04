@@ -387,6 +387,7 @@ export async function getClinicPatients(clinicId, options = {}) {
     if (options.orderBy) {
       patientsQuery = query(patientsQuery, orderBy(options.orderBy, 'desc'));
     } else {
+      // 기본 정렬: lastVisitDate 내림차순
       patientsQuery = query(patientsQuery, orderBy('lastVisitDate', 'desc'));
     }
 
@@ -401,6 +402,47 @@ export async function getClinicPatients(clinicId, options = {}) {
       ...doc.data()
     }));
   } catch (error) {
+    // 인덱스 오류인 경우 클라이언트 정렬로 fallback
+    if (error.code === 'failed-precondition' && error.message?.includes('index')) {
+      console.warn('⚠️ Firestore 인덱스가 필요합니다. 클라이언트 정렬로 대체합니다.');
+      const indexUrl = error.message.match(/https:\/\/[^\s]+/)?.[0];
+      if (indexUrl) {
+        console.warn('인덱스 생성 링크:', indexUrl);
+      }
+      
+      try {
+        // orderBy 없이 조회 (더 많이 가져와서 정렬 후 제한)
+        const fallbackLimit = options.limit ? options.limit * 2 : 200;
+        const patientsQuery = query(
+          collection(db, 'clinicPatients'),
+          where('clinicId', '==', clinicId),
+          limit(fallbackLimit)
+        );
+        const snapshot = await getDocs(patientsQuery);
+        let patients = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // 클라이언트에서 정렬
+        patients.sort((a, b) => {
+          const dateA = a.lastVisitDate || (a.updatedAt?.toDate ? a.updatedAt.toDate().toISOString() : '') || '';
+          const dateB = b.lastVisitDate || (b.updatedAt?.toDate ? b.updatedAt.toDate().toISOString() : '') || '';
+          return dateB.localeCompare(dateA);
+        });
+
+        // 제한 적용
+        if (options.limit) {
+          patients = patients.slice(0, options.limit);
+        }
+
+        return patients;
+      } catch (fallbackError) {
+        console.error('환자 목록 조회 실패 (fallback도 실패):', fallbackError);
+        throw error; // 원래 오류 throw
+      }
+    }
+    
     console.error('환자 목록 조회 실패:', error);
     throw error;
   }
