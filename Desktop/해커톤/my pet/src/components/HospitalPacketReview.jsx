@@ -84,7 +84,7 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
         </div>
       </div>
 
-      <div className="px-4 pt-6 pb-40">
+      <div className="px-4 pt-6 pb-6">
         {/* Welcome Message */}
         <div className="flex items-center gap-3 px-1 pt-2 pb-6">
           <div className="w-14 h-14 rounded-full bg-sky-100 overflow-hidden border-2 border-sky-200">
@@ -310,27 +310,19 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
         </div>
       </div>
 
-      {/* Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm px-4 py-3 border-t border-slate-200 z-50">
-        <div className="flex gap-3 mb-2">
-          <button
-            onClick={onEdit}
-            className="flex-1 bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-lg text-sm hover:bg-slate-300 transition-colors"
-          >
-            내용 수정
-          </button>
-          <button
-            onClick={() => onSend && onSend(createFinalPacket())}
-            className="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-lg text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
-          >
-            병원 전송
-          </button>
-        </div>
+      {/* Bottom Buttons - 본문 안에 배치 */}
+      <div className="px-4 pb-8">
         <button
-          onClick={() => onSave && onSave(createFinalPacket())}
-          className="w-full text-slate-500 font-medium py-1.5 text-xs hover:text-slate-700 transition-colors"
+          onClick={onEdit}
+          className="w-full bg-slate-100 text-slate-700 font-bold py-4 px-4 rounded-xl text-base hover:bg-slate-200 transition-colors mb-3"
         >
-          진단서만 저장하기
+          내용 수정하기
+        </button>
+        <button
+          onClick={() => onSend && onSend(createFinalPacket())}
+          className="w-full bg-sky-400 text-white font-bold py-4 px-4 rounded-xl text-base hover:bg-sky-500 transition-colors shadow-lg"
+        >
+          병원에 전송하기
         </button>
       </div>
     </div>
