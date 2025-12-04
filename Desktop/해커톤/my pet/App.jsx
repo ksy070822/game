@@ -1233,18 +1233,17 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
               {/* Header - 회사 로고 가운데 배치 */}
               <header className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 pt-8 pb-8 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <div className="w-10"></div>
                   <div className="flex items-center">
-                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                    <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
                       <img
                         src={`${import.meta.env.BASE_URL}icon/login/logo_red.png`}
                         alt="PetMedical.AI"
-                        className="w-12 h-12 object-contain"
+                        className="w-10 h-10 object-contain"
                       />
                     </div>
-                    <div className="text-center ml-4">
-                      <h1 className="text-3xl font-bold tracking-tight">PetMedical.AI</h1>
-                      <p className="text-sky-100 text-base font-medium">AI기반 반려동물 건강관리 플랫폼</p>
+                    <div className="text-left ml-3">
+                      <h1 className="text-2xl font-bold tracking-tight">PetMedical.AI</h1>
+                      <p className="text-sky-100 text-sm font-medium">AI기반 반려동물 건강관리 플랫폼</p>
                     </div>
                   </div>
                   <button
@@ -1253,10 +1252,12 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
                         onLogout && onLogout();
                       }
                     }}
-                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                     title="로그아웃"
                   >
-                    <span className="text-xl">🚪</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                   </button>
                 </div>
               </header>
@@ -1315,7 +1316,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
 
                         <div className="flex-1 flex flex-col justify-between py-2">
                           <div className="flex flex-col items-center justify-center text-center w-full">
-                            <span className="inline-block bg-gradient-to-r from-sky-500 to-sky-600 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-md mb-2">
+                            <span className="inline-block bg-sky-500 text-white text-sm font-bold px-4 py-1.5 rounded-lg shadow-md mb-2">
                               AI 전문 의료진 24시간 대기
                             </span>
                             <p className="text-xl font-display font-bold text-gray-900 mt-1.5 w-full">{petData?.petName || petData?.name || '반려동물'} 지켜줄게요 ❤️</p>
@@ -6184,6 +6185,7 @@ function App() {
           {currentTab === 'records' && petData && (
             <RecordsView
               petData={petData}
+              pets={pets}
               onBack={() => setCurrentTab('care')}
               onHome={handleGoHome}
               onViewDiagnosis={(diagnosis) => {
@@ -6192,6 +6194,7 @@ function App() {
               }}
               onOCR={() => setCurrentView('ocr')}
               onHospitalBooking={() => setCurrentTab('hospital')}
+              onSelectPet={handleSelectPet}
             />
           )}
 
@@ -6207,11 +6210,9 @@ function App() {
               }}
               onViewDiagnosis={(diagnosis) => {
                 setLastDiagnosis(diagnosis);
-                const pet = pets.find(p => p.id === diagnosis.petId);
-                if (pet) {
-                  setPetData(pet);
-                }
-                setCurrentView('diagnosis-view');
+                // 메인에서 선택된 동물 유지 (데이터 일치를 위해 pet 변경하지 않음)
+                localStorage.setItem('mypage_initialTab', 'records');
+                setCurrentView('diagnosis-view-from-tab');
               }}
               onClinicMode={() => setCurrentView('clinic-admin')}
               userId={currentUser?.uid}
