@@ -607,13 +607,12 @@ export function ClinicDashboard({ currentUser, onBack }) {
         <div
           key={day}
           onClick={() => count > 0 && handleDateClick(day)}
-          className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer
+          className={`aspect-square flex flex-col items-center justify-start pt-2 rounded-xl transition-all cursor-pointer
             ${isSelected ? 'bg-gradient-to-br from-red-300 to-rose-400 text-white shadow-lg scale-105' :
               isToday ? 'bg-white border-2 border-rose-300 shadow-md' :
               count > 0 ? 'bg-white/90 shadow-sm hover:shadow-md hover:scale-105' :
               'bg-white/30'}
           `}
-          style={{ position: 'relative' }}
         >
           <div className={`text-sm font-bold
             ${isSelected ? 'text-white' :
@@ -626,7 +625,7 @@ export function ClinicDashboard({ currentUser, onBack }) {
             {day}
           </div>
           {count > 0 && (
-            <div className={`absolute bottom-1 text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm
+            <div className={`mt-1 w-5 h-5 flex items-center justify-center text-[10px] rounded-full font-bold
               ${isSelected ? 'bg-white text-rose-500' : 'bg-gradient-to-r from-red-300 to-rose-400 text-white'}`}
             >
               {count}
