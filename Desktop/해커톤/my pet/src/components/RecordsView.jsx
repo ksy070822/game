@@ -470,7 +470,7 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
     { id: 'care', label: '케어기록', icon: 'favorite' }
   ];
 
-  // 방문이력 데이터 (진료 결과 + 진단 기록)
+  // 방문이력 데이터 (병원 예약/진료 기록만 - AI 진단 제외)
   const visitRecords = (() => {
     // 병원 진료 결과를 방문 기록으로 변환
     const clinicVisits = clinicResults.map(result => ({
@@ -489,13 +489,9 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
       source: 'clinic' // 병원에서 입력한 기록
     }));
 
-    // 진단 기록 (AI 진단)
-    const diagnosisVisits = diagnoses.filter(d => d.type === 'visit' || !d.type).map(d => ({
-      ...d,
-      source: 'ai' // AI 진단 기록
-    }));
+    // AI 진단은 방문이력에서 제외 (마이페이지>진료기록에서만 표시)
 
-    const realData = [...clinicVisits, ...diagnosisVisits].sort((a, b) =>
+    const realData = clinicVisits.sort((a, b) =>
       new Date(b.date || b.created_at) - new Date(a.date || a.created_at)
     );
 
@@ -642,12 +638,10 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
               <span className="text-xs text-slate-400">{formatDateShort(visitRecords[0]?.date || visitRecords[0]?.created_at)}</span>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                visitRecords[0]?.source === 'clinic' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-              }`}>
-                {visitRecords[0]?.source === 'clinic' ? '병원 진료' : 'AI 진단'}
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                병원 진료
               </span>
-              <span className="text-sm text-slate-700">{visitRecords[0]?.hospitalName || 'AI 진단'}</span>
+              <span className="text-sm text-slate-700">{visitRecords[0]?.hospitalName || '병원'}</span>
             </div>
             <p className="text-sm text-slate-600">{visitRecords[0]?.diagnosis || '진단 정보 없음'}</p>
             {visitRecords[0]?.medications?.length > 0 && (
@@ -684,8 +678,8 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
             {visitRecords.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-5xl mb-4">🏥</div>
-                <p className="text-slate-500">방문 기록이 없습니다.</p>
-                <p className="text-slate-400 text-sm mt-1">AI 진단 후 병원을 방문하면 기록이 남아요</p>
+                <p className="text-slate-500">병원 방문 기록이 없습니다.</p>
+                <p className="text-slate-400 text-sm mt-1">병원 진료를 받으면 기록이 남아요</p>
               </div>
             ) : (
               visitRecords.map(record => (
@@ -697,15 +691,13 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          record.source === 'clinic' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {record.source === 'clinic' ? '병원' : 'AI'}
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          병원 진료
                         </span>
                         <p className="text-slate-500 text-xs">{formatDateShort(record.date || record.created_at)}</p>
                       </div>
                       <h3 className="text-slate-900 font-bold text-base mb-1">
-                        {record.hospitalName || 'AI 진단'}
+                        {record.hospitalName || '병원'}
                       </h3>
                     </div>
                     <span className="material-symbols-outlined text-slate-400">chevron_right</span>
@@ -718,33 +710,31 @@ export function RecordsView({ petData, onBack, onViewDiagnosis, onOCR, onHome, o
                   )}
 
                   {/* 병원 진료 결과 추가 정보 */}
-                  {record.source === 'clinic' && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {record.treatment && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
-                          <span className="material-symbols-outlined text-xs">healing</span>
-                          {record.treatment}
-                        </span>
-                      )}
-                      {record.medications?.length > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs">
-                          <span className="material-symbols-outlined text-xs">medication</span>
-                          처방약 {record.medications.length}개
-                        </span>
-                      )}
-                      {record.totalCost > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">
-                          💰 {record.totalCost.toLocaleString()}원
-                        </span>
-                      )}
-                      {record.nextVisitDate && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
-                          <span className="material-symbols-outlined text-xs">event</span>
-                          다음방문: {formatDateShort(record.nextVisitDate)}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {record.treatment && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
+                        <span className="material-symbols-outlined text-xs">healing</span>
+                        {record.treatment}
+                      </span>
+                    )}
+                    {record.medications?.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs">
+                        <span className="material-symbols-outlined text-xs">medication</span>
+                        처방약 {record.medications.length}개
+                      </span>
+                    )}
+                    {record.totalCost > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">
+                        💰 {record.totalCost.toLocaleString()}원
+                      </span>
+                    )}
+                    {record.nextVisitDate && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded text-xs">
+                        <span className="material-symbols-outlined text-xs">event</span>
+                        다음방문: {formatDateShort(record.nextVisitDate)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))
             )}
