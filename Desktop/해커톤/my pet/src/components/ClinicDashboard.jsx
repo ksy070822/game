@@ -336,25 +336,48 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
     }
   };
 
+  // 날짜를 문자열로 변환하는 헬퍼 함수
+  const formatDateToString = (date) => {
+    if (!date) return '';
+    if (typeof date === 'string') return date;
+    if (date instanceof Date) return date.toISOString().split('T')[0];
+    if (date?.toDate && typeof date.toDate === 'function') {
+      // Firestore Timestamp
+      return date.toDate().toISOString().split('T')[0];
+    }
+    if (date?.seconds) {
+      // Firestore Timestamp (seconds 필드가 있는 경우)
+      return new Date(date.seconds * 1000).toISOString().split('T')[0];
+    }
+    return '';
+  };
+
   // 환자 목록 로드 (clinicPatients 컬렉션에서 직접 조회 + 예약 기록에서 고유 환자 추출)
   const loadPatientList = async () => {
     try {
       // 1) clinicPatients 컬렉션에서 직접 환자 목록 조회
       const clinicPatients = await getClinicPatients(currentClinic.id, { limit: 100 });
       
+      console.log('📋 [loadPatientList] clinicPatients 조회 결과:', clinicPatients.length, '명');
+      
       // clinicPatients를 patientList 형식으로 변환
-      const patientsFromCollection = clinicPatients.map(patient => ({
-        id: patient.petId || patient.id,
-        name: patient.petName || '이름 없음',
-        species: patient.species || 'dog',
-        breed: patient.breed || '',
-        profileImage: null,
-        guardianName: patient.ownerName || '',
-        guardianId: patient.ownerUserId,
-        lastVisit: patient.lastVisitDate || patient.updatedAt?.toDate?.()?.toISOString()?.split('T')[0] || '',
-        visitCount: patient.visitCount || 0,
-        bookings: []
-      }));
+      const patientsFromCollection = clinicPatients.map(patient => {
+        const lastVisitDate = formatDateToString(patient.lastVisitDate || patient.updatedAt);
+        return {
+          id: patient.petId || patient.id,
+          name: patient.petName || '이름 없음',
+          species: patient.species || 'dog',
+          breed: patient.breed || '',
+          profileImage: null,
+          guardianName: patient.ownerName || '',
+          guardianId: patient.ownerUserId,
+          lastVisit: lastVisitDate,
+          visitCount: patient.visitCount || 0,
+          bookings: []
+        };
+      });
+      
+      console.log('📋 [loadPatientList] 변환된 환자:', patientsFromCollection.length, '명');
 
       // 2) 예약 기록에서도 고유 환자 추출 (기존 로직 유지)
       const allBookings = await bookingService.getBookingsByClinic(currentClinic.id);
@@ -373,6 +396,7 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
       allBookings.forEach(booking => {
         if (booking.pet?.id || booking.petId) {
           const petId = booking.pet?.id || booking.petId;
+          const bookingDate = formatDateToString(booking.date);
           if (!petsMap.has(petId)) {
             petsMap.set(petId, {
               id: petId,
@@ -382,7 +406,7 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
               profileImage: booking.pet?.profileImage,
               guardianName: booking.guardianName || booking.guardian?.displayName || '',
               guardianId: booking.userId || booking.guardianId,
-              lastVisit: booking.date,
+              lastVisit: bookingDate,
               visitCount: 0,
               bookings: []
             });
@@ -390,8 +414,8 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
           const pet = petsMap.get(petId);
           pet.visitCount++;
           pet.bookings.push(booking);
-          if (booking.date && (!pet.lastVisit || booking.date > pet.lastVisit)) {
-            pet.lastVisit = booking.date;
+          if (bookingDate && (!pet.lastVisit || bookingDate > pet.lastVisit)) {
+            pet.lastVisit = bookingDate;
           }
         }
       });
@@ -404,16 +428,21 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
           if (!pet.results) pet.results = [];
           pet.results.push(result);
           // visitCount 업데이트
-          if (result.visitDate && (!pet.lastVisit || result.visitDate > pet.lastVisit)) {
-            pet.lastVisit = result.visitDate;
+          const resultVisitDate = formatDateToString(result.visitDate);
+          if (resultVisitDate && (!pet.lastVisit || resultVisitDate > pet.lastVisit)) {
+            pet.lastVisit = resultVisitDate;
           }
         }
       });
 
-      // 최근 방문순으로 정렬
-      const sortedPatients = Array.from(petsMap.values()).sort((a, b) =>
-        (b.lastVisit || '').localeCompare(a.lastVisit || '')
-      );
+      // 최근 방문순으로 정렬 (lastVisit를 문자열로 보장)
+      const sortedPatients = Array.from(petsMap.values()).sort((a, b) => {
+        const dateA = formatDateToString(a.lastVisit) || '';
+        const dateB = formatDateToString(b.lastVisit) || '';
+        return dateB.localeCompare(dateA);
+      });
+      
+      console.log('📋 [loadPatientList] 최종 환자 목록:', sortedPatients.length, '명');
 
       setPatientList(sortedPatients);
     } catch (error) {
@@ -836,6 +865,7 @@ export function ClinicDashboard({ currentUser, onBack, onModeSwitch }) {
   // 환자정보 탭 선택 시 환자 목록 로드
   useEffect(() => {
     if (currentClinic?.id && activeTab === 'patients') {
+      console.log('📋 [useEffect] 환자정보 탭 선택, currentClinic.id:', currentClinic.id);
       loadPatientList();
     }
   }, [currentClinic?.id, activeTab]);
