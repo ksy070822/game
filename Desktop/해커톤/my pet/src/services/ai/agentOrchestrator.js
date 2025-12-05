@@ -8,8 +8,9 @@ import { calculateTriageScore } from './triageEngine';
 import { convertHealthFlagsFormat } from '../../utils/healthFlagsMapper';
 import { buildAIContext } from './dataContextService';
 import { runCollaborativeDiagnosis } from './collaborativeDiagnosis';
-// import { getMedicationGuidance, formatMedicationMessage, getShortMedicationSummary } from './medicationService';
-// import { getRecommendedFAQs, generateMultipleFAQAnswers, formatFAQsForUI, formatFAQAnswersMessage } from './faqService';
+import { getMedicationGuidance, formatMedicationMessage, getShortMedicationSummary } from './medicationService';
+// FAQ 서비스 - 진단서 작성 전 보호자 예상 질문 3개 표시
+import { getRecommendedFAQs, generateMultipleFAQAnswers, formatFAQsForUI, formatFAQAnswersMessage } from './faqService';
 
 export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived, onWaitForGuardianResponse = null) => {
   const logs = [];
@@ -420,17 +421,15 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       triageResult
     );
 
-    // 약물 안내 생성 (임시로 비활성화 - medicationService 파일 없음)
-    // const medicationGuidance = getMedicationGuidance(medicalResult.json, enrichedSymptomData);
-    // const medicationSummary = getShortMedicationSummary(medicationGuidance);
-    const medicationGuidance = null;
+    // 약물 안내 생성
+    const medicationGuidance = getMedicationGuidance(medicalResult.json, enrichedSymptomData);
 
     // 약물 안내가 있으면 포함
     let careMessage = careResult.message;
-    // if (medicationGuidance && medicationGuidance.hasMedicationGuidance) {
-    //   const primaryMed = medicationGuidance.medications[0]?.medications[0];
-    //   careMessage = `${normalizedPetData.petName}를 위한 케어 플랜!\n\n💊 ${medicationGuidance.message}\n\n${primaryMed ? `• 복용: ${primaryMed.usage}\n• 기간: ${primaryMed.duration}` : ''}\n\n${medicationGuidance.disclaimer}`;
-    // }
+    if (medicationGuidance && medicationGuidance.hasMedicationGuidance) {
+      const primaryMed = medicationGuidance.medications[0]?.medications[0];
+      careMessage = `${normalizedPetData.petName}를 위한 케어 플랜!\n\n💊 ${medicationGuidance.message}\n\n${primaryMed ? `• 복용: ${primaryMed.usage}\n• 기간: ${primaryMed.duration}` : ''}\n\n${medicationGuidance.disclaimer}`;
+    }
 
     logs.push({
       agent: 'Care Agent',
@@ -457,56 +456,64 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // 7. FAQ 선택 단계 - 추천 FAQ 3개 노출
-    const recommendedFAQs = getRecommendedFAQs(medicalResult.json, enrichedSymptomData, normalizedPetData.species);
-    const faqUIData = formatFAQsForUI(recommendedFAQs);
-
+    // FAQ 조회 및 보호자 선택 단계 (진단서 작성 전)
+    let recommendedFAQs = [];
     let faqAnswers = [];
 
-    if (onWaitForGuardianResponse && recommendedFAQs.length > 0) {
-      // FAQ 선택 UI 표시
-      onLogReceived({
-        agent: 'FAQ Assistant',
-        role: '진료 요약 · 관리실',
-        icon: '📄',
-        type: 'faq',
-        content: '',
-        isFAQPhase: true,
-        faqData: faqUIData,
-        timestamp: Date.now()
-      });
+    try {
+      // 증상 기반 FAQ 3개 조회
+      recommendedFAQs = await getRecommendedFAQs(
+        medicalResult.json,
+        normalizedSymptomData,
+        normalizedPetData.species
+      );
+      console.log('FAQ 조회 성공:', recommendedFAQs.length, '개');
 
-      // 보호자 FAQ 선택 대기
-      const faqSelections = await onWaitForGuardianResponse(faqUIData, 'faq');
+      // FAQ가 있고 보호자 응답 콜백이 있을 때만 FAQ 선택 UI 표시
+      if (recommendedFAQs.length > 0 && onWaitForGuardianResponse) {
+        // FAQ 선택 UI 표시 안내
+        onLogReceived({
+          agent: 'FAQ Agent',
+          role: '보호자 문의 안내',
+          icon: '❓',
+          type: 'faq',
+          content: `${normalizedPetData.petName}의 증상과 관련해 보호자분들이 자주 궁금해하시는 질문들이에요. 궁금한 내용이 있으시면 선택해 주세요!`,
+          timestamp: Date.now()
+        });
 
-      // 선택된 FAQ에 대한 답변 생성
-      if (faqSelections && faqSelections.length > 0 && !faqSelections.includes('skip')) {
-        faqAnswers = generateMultipleFAQAnswers(
-          faqSelections,
-          recommendedFAQs,
-          medicalResult.json,
-          normalizedPetData
-        );
+        // FAQ UI 데이터 생성 및 보호자 응답 대기
+        const faqUIData = formatFAQsForUI(recommendedFAQs);
+        const selectedFAQIds = await onWaitForGuardianResponse(faqUIData, 'faq');
 
-        // FAQ 답변 표시
-        if (faqAnswers.length > 0) {
-          const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
-          onLogReceived({
-            agent: 'FAQ Assistant',
-            role: '진료 요약 · 관리실',
-            icon: '📄',
-            type: 'faq_answer',
-            content: faqAnswerMessage,
-            faqAnswers: faqAnswers,
-            timestamp: Date.now()
-          });
+        // 선택된 FAQ가 있으면 답변 생성
+        if (selectedFAQIds && selectedFAQIds.length > 0 && !selectedFAQIds.includes('skip')) {
+          faqAnswers = generateMultipleFAQAnswers(
+            selectedFAQIds,
+            recommendedFAQs,
+            medicalResult.json,
+            normalizedPetData
+          );
 
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // FAQ 답변 메시지 표시
+          if (faqAnswers.length > 0) {
+            const faqAnswerMessage = formatFAQAnswersMessage(faqAnswers);
+            onLogReceived({
+              agent: 'FAQ Agent',
+              role: '보호자 문의 안내',
+              icon: '📚',
+              type: 'faq_answer',
+              content: faqAnswerMessage,
+              timestamp: Date.now()
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+          }
         }
       }
+    } catch (error) {
+      console.warn('FAQ 조회/처리 오류:', error);
+      // FAQ 오류가 발생해도 진단 과정은 계속 진행
     }
-
-    await new Promise(resolve => setTimeout(resolve, 800));
 
     // 8. Summary - 진료 요약 관리실
     onLogReceived({
@@ -549,22 +556,22 @@ export const runMultiAgentDiagnosis = async (petData, symptomData, onLogReceived
       carePlan: careResult.json,
       // 약물 안내 정보
       medicationGuidance: medicationGuidance,
-      // FAQ 정보
-      faqAnswers: faqAnswers,
-      recommendedFAQs: recommendedFAQs,
-      // 협진 정보
+      // FAQ 정보 (진단서 작성 전 조회된 보호자 예상 질문과 답변)
+      faqAnswers: faqAnswers.length > 0 ? faqAnswers : null,
+      recommendedFAQs: recommendedFAQs.length > 0 ? recommendedFAQs : null,
+      // 협진 정보 (undefined 값 방지를 위한 null 체크)
       collaboration: collaborationResult ? {
-        consensus_reached: collaborationResult.consensus.consensus_reached,
-        confidence_score: collaborationResult.consensus.confidence_score,
-        discrepancies_found: collaborationResult.discrepancy_analysis.discrepancy_count,
+        consensus_reached: collaborationResult.consensus?.consensus_reached ?? false,
+        confidence_score: collaborationResult.consensus?.confidence_score ?? 0,
+        discrepancies_found: collaborationResult.discrepancy_analysis?.discrepancy_count ?? 0,
         models_consulted: [
           'Claude Sonnet (Medical Agent)',
           'Claude Sonnet (Triage Engine)',
           'Claude Sonnet (Senior Reviewer)',
           collaborationResult.second_opinion ? 'GPT-4o (Second Opinion)' : null
         ].filter(Boolean),
-        final_recommendation: collaborationResult.consensus.collaborative_notes.reviewer_opinion,
-        resolution_notes: collaborationResult.consensus.discrepancy_resolution
+        final_recommendation: collaborationResult.consensus?.collaborative_notes?.reviewer_opinion || '협진 검토 결과를 가져올 수 없습니다.',
+        resolution_notes: collaborationResult.consensus?.discrepancy_resolution || null
       } : null
     };
 

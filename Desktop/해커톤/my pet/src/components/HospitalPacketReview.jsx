@@ -84,7 +84,7 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
         </div>
       </div>
 
-      <div className="px-4 pt-6 pb-40">
+      <div className="px-4 pt-6 pb-6">
         {/* Welcome Message */}
         <div className="flex items-center gap-3 px-1 pt-2 pb-6">
           <div className="w-14 h-14 rounded-full bg-sky-100 overflow-hidden border-2 border-sky-200">
@@ -178,7 +178,9 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
               <span className="font-bold">AI 진단명</span>
             </div>
             <p className="text-2xl font-bold">
-              {diagnosis.possible_diseases[0]?.name || diagnosis.possible_diseases[0]}
+              {typeof diagnosis.possible_diseases[0] === 'string'
+                ? diagnosis.possible_diseases[0]
+                : (diagnosis.possible_diseases[0]?.name || '진단 정보')}
             </p>
             {diagnosis.possible_diseases[0]?.probability && (
               <p className="text-white/80 text-sm mt-1">
@@ -201,7 +203,7 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
                 {diagnosis.symptomTimeline.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-slate-600">
                     <span className="material-symbols-outlined text-base mt-1 text-primary">check_circle</span>
-                    <p>{item}</p>
+                    <p>{typeof item === 'string' ? item : (item?.text || item?.description || JSON.stringify(item))}</p>
                   </li>
                 ))}
               </ul>
@@ -310,28 +312,20 @@ export function HospitalPacketReview({ petData, diagnosis, hospital, hospitalPac
         </div>
       </div>
 
-      {/* Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-slate-200">
-        <div className="flex flex-col space-y-3">
-          <button
-            onClick={onEdit}
-            className="w-full bg-slate-200 text-slate-700 font-bold py-4 px-6 rounded-lg text-base hover:bg-slate-300 transition-colors"
-          >
-            내용 수정하기
-          </button>
-          <button
-            onClick={() => onSend && onSend(createFinalPacket())}
-            className="w-full bg-primary text-white font-bold py-4 px-6 rounded-lg text-base hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
-          >
-            병원에 전송하기
-          </button>
-          <button
-            onClick={() => onSave && onSave(createFinalPacket())}
-            className="w-full text-slate-500 font-medium py-2 px-6 rounded-lg text-sm hover:text-slate-700 transition-colors"
-          >
-            진단서만 저장하기
-          </button>
-        </div>
+      {/* Bottom Buttons - 본문 안에 배치 */}
+      <div className="px-4 pb-8">
+        <button
+          onClick={onEdit}
+          className="w-full bg-slate-100 text-slate-700 font-bold py-4 px-4 rounded-xl text-base hover:bg-slate-200 transition-colors mb-3"
+        >
+          내용 수정하기
+        </button>
+        <button
+          onClick={() => onSend && onSend(createFinalPacket())}
+          className="w-full bg-sky-400 text-white font-bold py-4 px-4 rounded-xl text-base hover:bg-sky-500 transition-colors shadow-lg"
+        >
+          병원에 전송하기
+        </button>
       </div>
     </div>
   );

@@ -52,7 +52,13 @@ ${symptomData.symptomText || '증상 정보 없음'}
       }
     );
 
-    if (!response.ok) throw new Error('API 오류');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      if (response.status === 400 && errorData.error?.message?.includes('API key not valid')) {
+        console.error('[Information Agent] Gemini API 키가 유효하지 않습니다:', errorData.error?.message);
+      }
+      throw new Error(`Gemini API 오류: ${response.status}`);
+    }
 
     const data = await response.json();
     const text = data.candidates[0].content.parts[0].text;

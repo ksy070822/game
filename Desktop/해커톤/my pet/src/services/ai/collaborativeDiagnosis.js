@@ -128,6 +128,7 @@ ${JSON.stringify(triageResult, null, 2)}
 
 {
   "agreement_level": "full_agreement | partial_agreement | significant_disagreement",
+  "confidence_level": "높음 | 중간 | 낮음",
   "primary_concern": "가장 우려되는 점 (한국어)",
   "medical_agent_assessment": "Medical Agent 진단에 대한 평가 (적절함/과소평가/과대평가)",
   "triage_agent_assessment": "Triage Agent 평가에 대한 평가 (적절함/과소평가/과대평가)",
@@ -323,17 +324,45 @@ export const generateConsensus = (medicalResult, triageResult, reviewResult, sec
 
   const finalHospitalVisit = hospitalVotes.filter(v => v === true).length >= hospitalVotes.length / 2;
 
-  // 신뢰도 계산
-  const agreementScore = discrepancyAnalysis.has_discrepancies ? 0.7 : 0.95;
-  const confidence = reviewResult?.confidence_level === '높음' ? 0.9 :
-                    reviewResult?.confidence_level === '중간' ? 0.75 : 0.6;
+  // 신뢰도 계산 - 다양한 요소를 종합
+  // 1. 불일치 분석 기반 기본 점수
+  const baseScore = discrepancyAnalysis.has_discrepancies
+    ? (1 - (discrepancyAnalysis.discrepancy_count * 0.1))  // 불일치 1개당 10% 감소
+    : 0.95;
+
+  // 2. 검토자 신뢰도
+  const reviewerConfidence = reviewResult?.confidence_level === '높음' ? 0.95 :
+                             reviewResult?.confidence_level === '중간' ? 0.80 :
+                             reviewResult?.confidence_level === '낮음' ? 0.65 : 0.75;
+
+  // 3. 검토자 동의 수준 기반 점수
+  const agreementBonus = reviewResult?.agreement_level === 'full_agreement' ? 0.10 :
+                         reviewResult?.agreement_level === 'partial_agreement' ? 0.0 : -0.15;
+
+  // 4. 2차 의견 반영 (있는 경우)
+  const secondOpinionConfidence = secondOpinion?.confidence_level === '높음' ? 0.90 :
+                                  secondOpinion?.confidence_level === '중간' ? 0.75 :
+                                  secondOpinion?.confidence_level === '낮음' ? 0.60 : null;
+
+  // 5. 최종 신뢰도 계산
+  let finalConfidence;
+  if (secondOpinionConfidence !== null) {
+    // 2차 의견이 있으면 가중 평균
+    finalConfidence = (reviewerConfidence * 0.6 + secondOpinionConfidence * 0.4 + agreementBonus);
+  } else {
+    // 2차 의견이 없으면 기본 + 검토자 신뢰도
+    finalConfidence = Math.min(baseScore, reviewerConfidence) + agreementBonus;
+  }
+
+  // 범위 제한 (0.5 ~ 0.98)
+  finalConfidence = Math.max(0.5, Math.min(0.98, finalConfidence));
 
   return {
-    consensus_reached: !discrepancyAnalysis.needs_review,
+    consensus_reached: !discrepancyAnalysis.needs_review || (reviewResult?.agreement_level === 'full_agreement'),
     final_risk_level: finalRisk,
     final_triage_score: finalTriageScore,
     final_hospital_visit: finalHospitalVisit,
-    confidence_score: Math.min(agreementScore, confidence),
+    confidence_score: finalConfidence,
     voting_summary: {
       risk_votes: normalizedRisks,
       triage_scores: triageScores,

@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'Desktop/해커톤/my pet/**'
+      - '**'
   pull_request:
     branches:
       - main
     paths:
-      - 'Desktop/해커톤/my pet/**'
+      - '**'
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: Desktop/해커톤/my pet
+        working-directory: .
 
     steps:
       - name: Checkout repository
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'Desktop/해커톤/my pet/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -45,7 +45,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ai-factory-c6d58
-          entryPoint: Desktop/해커톤/my pet
+          entryPoint: .
 
       - name: Deploy to Firebase Hosting (Production)
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -55,4 +55,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ai-factory-c6d58
           channelId: live
-          entryPoint: Desktop/해커톤/my pet
+          entryPoint: .

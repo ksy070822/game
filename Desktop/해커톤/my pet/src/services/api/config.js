@@ -10,6 +10,7 @@ export const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://l
 export const API_ENDPOINTS = {
   TRIAGE: `${BACKEND_API_URL}/api/triage`,
   TRIAGE_STREAM: (diagnosisId) => `${BACKEND_API_URL}/api/triage/stream/${diagnosisId}`,
+  QUESTION_ANSWER: `${BACKEND_API_URL}/api/question-answer`,
   HEALTH: `${BACKEND_API_URL}/health`,
 };
 

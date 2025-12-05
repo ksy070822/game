@@ -69,7 +69,13 @@ ${symptomData.images?.length > 0 ? `사진 ${symptomData.images.length}장이 �
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API 오류: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      // API 키 관련 오류 처리
+      if (response.status === 400 && errorData.error?.message?.includes('API key not valid')) {
+        console.error('[CS Agent] Gemini API 키가 유효하지 않습니다:', errorData.error?.message);
+        throw new Error('Gemini API 키가 유효하지 않습니다. 관리자에게 문의하세요.');
+      }
+      throw new Error(`Gemini API 오류: ${response.status} - ${errorData.error?.message || '알 수 없는 오류'}`);
     }
 
     const data = await response.json();

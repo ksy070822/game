@@ -62,14 +62,16 @@ export async function fetchRelatedFAQs(species = 'dog', symptomKeywords = '') {
  * @returns {Array} 과거 진단 기록 목록
  */
 export async function fetchPastDiagnoses(petId) {
-  if (!petId) return [];
+  // petId가 문자열인지 확인 (객체나 undefined일 수 있음)
+  const petIdStr = typeof petId === 'string' ? petId : petId?.toString?.() || null;
+  if (!petIdStr) return [];
 
   try {
     const diagnosesRef = collection(db, 'diagnoses');
     // 복합 인덱스 필요 없이 단순 쿼리 후 클라이언트 정렬
     const q = query(
       diagnosesRef,
-      where('petId', '==', petId),
+      where('petId', '==', petIdStr),
       limit(10)
     );
 
@@ -146,11 +148,13 @@ export async function fetchSimilarCases(species, symptomKeywords) {
  * @returns {Array} 케어 로그 목록
  */
 export async function fetchRecentCareLogs(petId, days = 7) {
-  if (!petId) return [];
+  // petId가 문자열인지 확인 (객체나 undefined일 수 있음)
+  const petIdStr = typeof petId === 'string' ? petId : petId?.toString?.() || null;
+  if (!petIdStr) return [];
 
   try {
     // 서브컬렉션 경로: pets/{petId}/careLogs
-    const careLogsRef = collection(db, 'pets', petId, 'careLogs');
+    const careLogsRef = collection(db, 'pets', petIdStr, 'careLogs');
     const q = query(
       careLogsRef,
       orderBy('date', 'desc'),
@@ -224,12 +228,21 @@ export async function buildAIContext(petData, symptomData) {
   const keywords = `${symptomText} ${selectedSymptoms}`;
 
   // 병렬로 데이터 조회 (케어 로그 포함)
-  const [faqs, pastDiagnoses, similarCases, careLogs] = await Promise.all([
-    fetchRelatedFAQs(species, keywords),
-    fetchPastDiagnoses(petData?.id),
-    fetchSimilarCases(species, keywords),
-    fetchRecentCareLogs(petData?.id, 7)
+  // 케어 로그는 권한 오류가 발생할 수 있으므로 개별적으로 처리
+  const [faqs, pastDiagnoses, similarCases] = await Promise.all([
+    fetchRelatedFAQs(species, keywords).catch(() => []),
+    fetchPastDiagnoses(petData?.id).catch(() => []),
+    fetchSimilarCases(species, keywords).catch(() => [])
   ]);
+
+  // 케어 로그는 별도로 처리 (오류 발생 시 빈 배열 반환)
+  let careLogs = [];
+  try {
+    careLogs = await fetchRecentCareLogs(petData?.id, 7);
+  } catch (error) {
+    console.warn('케어 로그 조회 실패 (진단은 계속 진행):', error);
+    careLogs = [];
+  }
 
   let context = '';
 

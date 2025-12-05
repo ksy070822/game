@@ -130,6 +130,9 @@ const createTestHospital = (clinicId) => ({
 // 기본 테스트 병원 (초기값, 나중에 실제 clinicId로 업데이트됨)
 let TEST_HOSPITAL_HAPPYVET = createTestHospital('happyvet_test_clinic');
 
+// 🧪 테스트 모드: true이면 모든 예약이 테스트 병원으로 전송됨
+const TEST_MODE_ALL_BOOKINGS_TO_TEST_HOSPITAL = true;
+
 // 나이 계산 함수
 const calculateAge = (birthDate) => {
   if (!birthDate) return '';
@@ -183,7 +186,7 @@ const sanitizeForFirestore = (data) => {
   return data;
 };
 
-export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser }) {
+export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSelectHospital, onHome, currentUser, onGoToMyBookings }) {
   const [hospitalPacket, setHospitalPacket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedHospital, setSelectedHospital] = useState(null);
@@ -631,23 +634,35 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       // clinics 컬렉션에서 병원명으로 clinics ID 찾기
       let actualClinicId = bookingHospital.id; // 기본값은 animal_hospitals ID
       let animalHospitalId = bookingHospital.id; // 원본 ID 보관
-      
-      try {
-        const clinicsQuery = query(
-          collection(db, 'clinics'),
-          where('name', '==', bookingHospital.name),
-          limit(1)
-        );
-        const clinicsSnapshot = await getDocs(clinicsQuery);
-        
-        if (!clinicsSnapshot.empty) {
-          actualClinicId = clinicsSnapshot.docs[0].id;
-          console.log('[예약] clinics ID 찾음:', actualClinicId, '병원명:', bookingHospital.name);
-        } else {
-          console.warn('[예약] clinics에서 병원을 찾을 수 없음, animal_hospitals ID 사용:', bookingHospital.id);
+
+      // 🧪 테스트 모드: 모든 예약을 테스트 병원 계정으로 전송
+      if (TEST_MODE_ALL_BOOKINGS_TO_TEST_HOSPITAL) {
+        actualClinicId = testHospital?.id || TEST_HOSPITAL_HAPPYVET.id;
+        console.log('[예약] 🧪 테스트 모드 - 모든 예약을 테스트 병원으로 전송:', actualClinicId);
+        console.log('[예약] 선택한 병원:', bookingHospital.name, '→ 테스트 병원으로 라우팅');
+      } else if (bookingHospital.isTestHospital) {
+        // 테스트 병원인 경우 ID를 직접 사용 (이미 clinicId가 설정되어 있음)
+        actualClinicId = bookingHospital.id;
+        console.log('[예약] 테스트 병원 - clinicId 직접 사용:', actualClinicId);
+      } else {
+        // 일반 병원: clinics 컬렉션에서 검색
+        try {
+          const clinicsQuery = query(
+            collection(db, 'clinics'),
+            where('name', '==', bookingHospital.name),
+            limit(1)
+          );
+          const clinicsSnapshot = await getDocs(clinicsQuery);
+
+          if (!clinicsSnapshot.empty) {
+            actualClinicId = clinicsSnapshot.docs[0].id;
+            console.log('[예약] clinics ID 찾음:', actualClinicId, '병원명:', bookingHospital.name);
+          } else {
+            console.warn('[예약] clinics에서 병원을 찾을 수 없음, animal_hospitals ID 사용:', bookingHospital.id);
+          }
+        } catch (clinicSearchError) {
+          console.warn('[예약] clinics 검색 오류:', clinicSearchError);
         }
-      } catch (clinicSearchError) {
-        console.warn('[예약] clinics 검색 오류:', clinicSearchError);
       }
       
       const firestoreBookingData = {
@@ -703,14 +718,16 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
       alert('예약 저장 중 오류가 발생했습니다: ' + firestoreError.message);
     }
 
-    setSelectedHospital(bookingHospital);
+    // 예약 완료 후 selectedHospital 업데이트 (bookingDate, bookingTime 포함)
+    const hospitalWithBooking = {
+      ...bookingHospital,
+      bookingDate,
+      bookingTime,
+      bookingMessage
+    };
+    setSelectedHospital(hospitalWithBooking);
     if (onSelectHospital) {
-      onSelectHospital({
-        ...bookingHospital,
-        bookingDate,
-        bookingTime,
-        bookingMessage
-      });
+      onSelectHospital(hospitalWithBooking);
     }
 
     // 성공 화면 표시
@@ -949,14 +966,14 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
   // 검색 필터링 - 테스트 병원은 항상 최상단에 고정, 그 아래로 위치 기반 병원들
   const testHospitalFromList = hospitals.find(h => h.isTestHospital === true);
   const otherHospitals = hospitals.filter(h => h.isTestHospital !== true);
-  
+
   const filteredOtherHospitals = otherHospitals.filter(hospital =>
     !searchQuery || hospital.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (hospital.address && hospital.address.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-  
+
   // 테스트 병원이 있으면 항상 최상단에 배치, 그 아래로 필터링된 위치 기반 병원들
-  const filteredHospitals = testHospitalFromList 
+  const filteredHospitals = testHospitalFromList
     ? [testHospitalFromList, ...filteredOtherHospitals]
     : filteredOtherHospitals;
 
@@ -1003,12 +1020,6 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
               <p className="text-sm font-medium text-green-800">
                 내 위치 기반으로 주변 병원을 검색합니다
               </p>
-              <button
-                onClick={handleRefreshLocation}
-                className="ml-auto px-2 py-1 text-xs text-green-600 hover:bg-green-100 rounded"
-              >
-                🔄 새로고침
-              </button>
             </div>
           </div>
         )}
@@ -1045,6 +1056,21 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     <p className="text-sm text-slate-500">{petData?.breed} • {petData?.birthDate ? calculateAge(petData.birthDate) : ''}</p>
                   </div>
                 </div>
+
+                {/* 진단명 */}
+                {(diagnosis.diagnosis || diagnosis.suspectedConditions?.[0]?.name) && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-700 mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">diagnosis</span>
+                      AI 진단명
+                    </p>
+                    <p className="text-amber-900 font-bold">
+                      {typeof diagnosis.diagnosis === 'string'
+                        ? diagnosis.diagnosis
+                        : (diagnosis.diagnosis?.name || diagnosis.suspectedConditions?.[0]?.name || '진단 정보 없음')}
+                    </p>
+                  </div>
+                )}
 
                 {/* 주요 증상 */}
                 {diagnosis.symptom && (
@@ -1159,24 +1185,24 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
         </div>
 
         {/* 검색창 */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
+        <div className="flex gap-1.5 sm:gap-2">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
-              placeholder="지역명 검색 (예: 부산, 해운대, 강남)"
+              placeholder="지역명 검색 (예: 부산, 강남)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full px-4 py-3 pl-10 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-8 sm:pl-10 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <span className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
           </div>
           <button
             onClick={handleSearch}
             disabled={isSearching}
-            className="px-4 py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 whitespace-nowrap"
+            className="px-3 sm:px-4 py-2.5 sm:py-3 bg-sky-500 text-white text-xs sm:text-sm font-bold rounded-xl hover:bg-sky-600 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
           >
-            {isSearching ? '검색중...' : '검색'}
+            {isSearching ? '검색중' : '검색'}
           </button>
         </div>
 
@@ -1196,27 +1222,27 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
             </div>
           ) : !isSearching && (
             filteredHospitals.map(hospital => (
-              <div key={hospital.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div key={hospital.id} className="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-100">
                 {/* 병원명과 거리 */}
                 <div className="mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-bold text-sky-600 text-base">{hospital.name}</h4>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <h4 className="font-bold text-sky-600 text-sm sm:text-base leading-tight">{hospital.name}</h4>
                     <a
                       href={hospital.url || `https://map.kakao.com/link/search/${encodeURIComponent(hospital.name)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-xs font-bold rounded hover:bg-[#F5E100] transition-colors"
+                      className="px-1 py-0.5 bg-[#FFEB00] text-[#3C1E1E] text-[9px] sm:text-[10px] font-medium rounded hover:bg-[#F5E100] transition-colors flex-shrink-0"
                     >
                       상세정보
                     </a>
                     {hospital.is24Hours && (
-                      <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">24시</span>
+                      <span className="px-1 py-0.5 bg-red-500 text-white text-[9px] sm:text-[10px] font-medium rounded flex-shrink-0">24시</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-slate-500">{hospital.roadAddress || hospital.address}</p>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                    <p className="text-[10px] sm:text-xs text-slate-500 leading-tight">{hospital.roadAddress || hospital.address}</p>
                     {hospital.distance && (
-                      <span className="text-sm font-bold text-red-500">{formatDistance(hospital.distance)}</span>
+                      <span className="text-xs sm:text-sm font-bold text-red-500 flex-shrink-0">{formatDistance(hospital.distance)}</span>
                     )}
                   </div>
                 </div>
@@ -1239,19 +1265,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   ) : (
                     <button
                       onClick={() => generateReviewSummary(hospital)}
-                      className="text-sm text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1.5 bg-sky-50 px-3 py-2 rounded-lg hover:bg-sky-100 transition-colors"
+                      className="text-[10px] sm:text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-0.5 bg-sky-50 px-1.5 py-1 rounded hover:bg-sky-100 transition-colors"
                     >
-                      <span className="text-base">🤖</span>
-                      AI 병원 분석 보기
+                      <span className="text-[10px]">🤖</span>
+                      <span>AI 병원 분석</span>
                     </button>
                   )}
                 </div>
 
                 {/* 버튼 - 순서: 예약하기, 길찾기, Kakao T 펫택시 */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <button
                     onClick={() => handleBookAppointment(hospital)}
-                    className="flex-1 py-2.5 text-center bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 transition-colors flex items-center justify-center"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-sky-600 transition-colors flex items-center justify-center min-w-0"
                   >
                     예약하기
                   </button>
@@ -1262,19 +1288,19 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#FEE500] rounded-xl text-xs font-bold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-[#FEE500] rounded-xl text-[10px] sm:text-xs font-bold text-[#3C1E1E] hover:bg-[#F5DC00] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 min-w-0"
                   >
                     <span>📍</span>
-                    길찾기
+                    <span className="truncate">길찾기</span>
                   </a>
                   <a
                     href="https://service.kakaomobility.com/launch/kakaot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 text-center bg-[#1E1B4B] rounded-xl text-xs font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5"
+                    className="flex-1 py-2 sm:py-2.5 text-center bg-[#1E1B4B] rounded-xl text-[10px] sm:text-xs font-bold hover:bg-[#2d2a5a] transition-colors flex items-center justify-center gap-0.5 min-w-0"
                   >
-                    <span className="text-[#FACC15]">Kakao T</span>
-                    <span className="text-white">펫택시</span>
+                    <span className="text-[#FACC15] truncate">Kakao T</span>
+                    <span className="text-white truncate hidden xs:inline">펫택시</span>
                   </a>
                 </div>
               </div>
@@ -1285,8 +1311,12 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
 
       {/* 예약 모달 */}
       {showBookingModal && bookingHospital && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-t-3xl w-full max-w-md p-4 pb-6 animate-slide-up max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] animate-fade-in" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowBookingModal(false);
+          }
+        }}>
+          <div className="bg-white rounded-3xl w-full max-w-md mx-4 p-4 pb-6 max-h-[90vh] overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
             {bookingSuccess ? (
               /* 예약 성공 화면 */
               <div className="text-center py-8">
@@ -1326,10 +1356,14 @@ export function HospitalBooking({ petData, diagnosis, symptomData, onBack, onSel
                   onClick={() => {
                     setShowBookingModal(false);
                     setBookingSuccess(false);
+                    // 마이페이지 > 내예약으로 이동
+                    if (onGoToMyBookings) {
+                      onGoToMyBookings();
+                    }
                   }}
                   className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors"
                 >
-                  확인
+                  내 예약 확인하기
                 </button>
               </div>
             ) : (

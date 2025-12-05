@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 공통 헬퍼
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 병원 직원 여부 (나중을 위해 남겨둠)
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isClinicStaff(clinicId) {
+      return isSignedIn()
+        && clinicId != null
+        && userDoc().data.defaultClinicId == clinicId;
+    }
+
+    // ============ users ============
+    // 지금은 병원에서 보호자 정보/토큰을 읽어야 해서
+    // 로그인한 누구나 read 허용
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ============ clinics ============
+    match /clinics/{clinicId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isClinicStaff(clinicId);
+    }
+
+    // ============ clinicStaff ============
+    // 병원 스태프 목록도 일단 로그인 시 read 허용
+    match /clinicStaff/{staffId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ============ bookings (예약) ============
+    // 병원 직원 + 예약자 본인 모두 read/update 가능
+    match /bookings/{bookingId} {
+      allow read, update: if isSignedIn() && (
+        (resource.data.clinicId != null && isClinicStaff(resource.data.clinicId)) ||
+        (resource.data.userId != null && resource.data.userId == request.auth.uid)
+      );
+      allow create: if isSignedIn();
+    }
+
+    // ============ diagnoses (AI 진단) ============
+    // 당장은 권한 이슈 없게 전체 read/write 허용
+    match /diagnoses/{diagId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ preQuestionnaires (사전 문진) ============
+    match /preQuestionnaires/{qId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ medicalRecords (환자 기록) ============
+    match /medicalRecords/{mrId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ clinicResults (진료 결과) ============
+    // 병원/보호자 양쪽에서 다 써야 하니 일단 로그인만 되면 허용
+    match /clinicResults/{resultId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ clinicPatients (환자 집계) ============
+    match /clinicPatients/{patientId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ vaccinations (예방접종) ============
+    match /vaccinations/{vaccinationId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ dailyLogs ============
+    match /dailyLogs/{logId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ records (OCR 기록) ============
+    match /records/{recordId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ notificationQueue (푸시 큐) ============
+    // Functions에서 꺼내 쓰는 큐. 프론트에서 addDoc 할 수 있어야 함.
+    match /notificationQueue/{docId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ clinicStats ============
+    // 지금은 실제로는 안 쓰이지만, 혹시라도 쿼리하면 에러 안 나게 열어둠
+    match /clinicStats/{clinicId} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // ============ pets (반려동물) ============
+    match /pets/{petId} {
+      allow read, create, update, delete: if isSignedIn();
+
+      // 서브컬렉션: careLogs (케어 로그)
+      match /careLogs/{logId} {
+        allow read, create, update, delete: if isSignedIn();
+      }
+    }
+
+    // ============ faqs (자주 묻는 질문) ============
+    // FAQ는 로그인 없이도 읽기 가능
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ============ commentTemplates (코멘트 템플릿) ============
+    // 모든 사용자가 읽기 가능 (앱에서 랜덤 유의사항 문구 표시용)
+    match /commentTemplates/{templateId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ============ owner_faq (보호자 FAQ) ============
+    match /owner_faq/{faqId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // ============ dailyCareLogs (일일 케어 로그) ============
+    match /dailyCareLogs/{logId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+  }
+}

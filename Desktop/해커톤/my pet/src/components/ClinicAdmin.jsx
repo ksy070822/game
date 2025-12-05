@@ -1,6 +1,41 @@
 import { useState, useEffect } from 'react';
 import { getPetImage } from '../utils/imagePaths';
 
+// 동물 종류 한글 매핑
+const SPECIES_LABELS = {
+  dog: '강아지',
+  cat: '고양이',
+  rabbit: '토끼',
+  hamster: '햄스터',
+  bird: '조류',
+  hedgehog: '고슴도치',
+  reptile: '파충류',
+  etc: '기타',
+  other: '기타'
+};
+
+// 나이 표시 헬퍼 (이미 "세"가 포함되어 있으면 그대로, 아니면 추가)
+const formatAge = (age) => {
+  if (!age) return '나이 미상';
+  if (typeof age === 'string' && age.includes('세')) return age;
+  if (typeof age === 'number') return `${age}세`;
+  return age;
+};
+
+// 성별 표시 헬퍼 (색상 포함)
+const formatGender = (gender) => {
+  if (!gender) return null;
+  const isMale = gender === 'M' || gender === 'male' || gender === '수컷' || gender === '♂';
+  const isFemale = gender === 'F' || gender === 'female' || gender === '암컷' || gender === '♀';
+  
+  if (isMale) {
+    return <span className="text-blue-600 font-semibold">♂</span>;
+  } else if (isFemale) {
+    return <span className="text-red-600 font-semibold">♀</span>;
+  }
+  return gender;
+};
+
 // 로컬 스토리지 키
 const BOOKINGS_KEY = 'petMedical_bookings';
 const DIAGNOSES_KEY = 'petMedical_diagnoses';
@@ -299,11 +334,12 @@ function EnhancedBookingCard({ booking, onSelectBooking, onConfirm, onComplete }
           />
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-slate-900">
-            {booking.petName} {petProfile.breed && `(${petProfile.breed}, ${petProfile.age || '나이 미상'})`}
+          <h3 className="text-sm font-semibold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis">
+            {booking.petName} {petProfile.breed && `(${SPECIES_LABELS[petProfile.species] || petProfile.speciesLabelKo || petProfile.species || '기타'}, ${formatAge(petProfile.age)})`}
+            {petProfile.sex && <span className="ml-1">{formatGender(petProfile.sex)}</span>}
           </h3>
           <p className="text-sm text-slate-500">
-            보호자: {booking.ownerName || '정보 없음'} · {booking.ownerPhone || '연락처 없음'}
+            보호자: {booking.ownerDisplayName || booking.ownerName || '정보 없음'} · {booking.ownerPhone || '연락처 없음'}
           </p>
         </div>
       </div>
@@ -687,7 +723,7 @@ function MonthlyCalendar({ bookings, selectedDay, onSelectDay, onSelectBooking, 
                         </span>
                       </div>
                       <div className="text-xs text-slate-500">
-                        보호자: {booking.ownerName || '정보 없음'}
+                        보호자: {booking.ownerDisplayName || booking.ownerName || '정보 없음'}
                       </div>
                     </div>
                   </div>
@@ -787,8 +823,9 @@ function PatientRecordCard({ pet }) {
           {petEmoji}
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-slate-900">
-            {pet.petName} ({pet.petProfile?.breed || '품종 미상'}, {pet.petProfile?.age || '나이 미상'})
+          <h3 className="text-sm font-bold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis">
+            {pet.petName} ({SPECIES_LABELS[pet.petProfile?.species] || pet.petProfile?.speciesLabelKo || pet.petProfile?.species || '기타'}, {formatAge(pet.petProfile?.age)})
+            {pet.petProfile?.sex && <span className="ml-1">{formatGender(pet.petProfile.sex)}</span>}
           </h3>
           <p className="text-sm text-slate-500">
             방문 {pet.visitCount}회 · 최근 {pet.lastVisit || '기록 없음'}
@@ -814,7 +851,7 @@ function PatientRecordCard({ pet }) {
             <div className="text-sm text-green-700 mb-3 space-y-1">
               {ourRecords.slice(0, 2).map((record, i) => (
                 <div key={i}>
-                  • {new Date(record.createdAt).toLocaleDateString('ko-KR')} {record.diagnosis}
+                  • {new Date(record.createdAt).toLocaleDateString('ko-KR')} {typeof record.diagnosis === 'string' ? record.diagnosis : (record.diagnosis?.name || '진단 정보')}
                 </div>
               ))}
             </div>
@@ -1049,7 +1086,7 @@ function BookingDetailModal({ booking, onClose, onUpdateStatus, onStartVisit }) 
                 {petProfile.age && (
                   <div>
                     <span className="text-slate-500 text-xs">나이</span>
-                    <p className="font-medium text-slate-800">{petProfile.age}</p>
+                    <p className="font-medium text-slate-800">{formatAge(petProfile.age)} {petProfile.sex && formatGender(petProfile.sex)}</p>
                   </div>
                 )}
                 {petProfile.sex && (

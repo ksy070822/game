@@ -52,19 +52,27 @@ export function getProfileImage(species = 'dog') {
 }
 
 /**
- * 반려동물 데이터에서 이미지 가져오기 (프로필 이미지 우선, 없으면 기본 이미지)
+ * 반려동물 데이터에서 이미지 가져오기
+ * - 기본값: 동물 종류에 따른 캐릭터 이미지 (main-image 또는 profile_background_less)
+ * - 관리자가 별도로 입력한 유효한 URL이 있을 경우에만 해당 이미지 사용
  */
 export function getPetImage(petData, useMainImage = false) {
   if (!petData) return useMainImage ? getMainCharacterImage() : getProfileImage();
-  
-  // 사용자가 등록한 프로필 이미지가 있으면 우선 사용
-  if (petData.profileImage) {
+
+  // 동물 종류에 따른 기본 이미지
+  const species = petData.species || 'dog';
+  const defaultImage = useMainImage ? getMainCharacterImage(species) : getProfileImage(species);
+
+  // 관리자가 별도로 입력한 프로필 이미지가 있을 경우에만 해당 이미지 사용
+  // 빈 문자열, null, undefined는 무시하고 기본 캐릭터 이미지 사용
+  if (petData.profileImage &&
+      typeof petData.profileImage === 'string' &&
+      petData.profileImage.trim() !== '' &&
+      (petData.profileImage.startsWith('http') || petData.profileImage.startsWith('data:'))) {
     return petData.profileImage;
   }
-  
-  // 기본 이미지 사용
-  const species = petData.species || 'dog';
-  return useMainImage ? getMainCharacterImage(species) : getProfileImage(species);
+
+  return defaultImage;
 }
 
 

@@ -77,14 +77,16 @@ export async function sendNotificationToClinicStaff(clinicId, title, body, data 
       where('clinicId', '==', clinicId),
       where('isActive', '==', true)
     );
-    
+
     const staffSnapshot = await getDocs(staffQuery);
     const tokens = [];
-    
+    const staffUserIds = [];
+
     for (const staffDoc of staffSnapshot.docs) {
       const staffData = staffDoc.data();
+      staffUserIds.push(staffData.userId);
       const userDoc = await getDoc(doc(db, 'users', staffData.userId));
-      
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData.fcmToken) {
@@ -92,12 +94,7 @@ export async function sendNotificationToClinicStaff(clinicId, title, body, data 
         }
       }
     }
-    
-    if (tokens.length === 0) {
-      console.warn('푸시 알림을 받을 스태프가 없습니다.');
-      return { success: false, message: '푸시 알림을 받을 스태프가 없습니다.' };
-    }
-    
+
     // FCM Admin SDK를 사용해야 하므로, 여기서는 Firestore에 알림 데이터 저장
     // 실제 푸시는 백엔드에서 처리하거나 Cloud Functions 사용
     const notificationData = {
@@ -107,16 +104,23 @@ export async function sendNotificationToClinicStaff(clinicId, title, body, data 
       body,
       data,
       tokens,
+      staffUserIds, // 스태프 userId 목록 (대시보드 알림용)
       createdAt: new Date().toISOString(),
-      sent: false
+      sent: false,
+      read: false // 읽음 상태 추가
     };
-    
-    // 알림 큐에 저장 (백엔드에서 처리)
+
+    // 알림 큐에 저장 (FCM 토큰 유무와 관계없이 항상 저장)
     await addDoc(collection(db, 'notificationQueue'), notificationData);
-    
+
+    if (tokens.length === 0) {
+      console.log('📋 알림 저장됨 (푸시 토큰 없음 - 대시보드에서 확인 가능)');
+      return { success: true, tokensCount: 0, message: '알림이 저장되었습니다 (푸시 토큰 없음)' };
+    }
+
     console.log(`푸시 알림 큐에 추가: ${tokens.length}명에게 전송 예정`);
     return { success: true, tokensCount: tokens.length };
-    
+
   } catch (error) {
     console.error('병원 스태프 푸시 알림 전송 오류:', error);
     return { success: false, error: error.message };

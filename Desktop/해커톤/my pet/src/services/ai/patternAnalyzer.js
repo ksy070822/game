@@ -77,7 +77,12 @@ ${JSON.stringify(recentLogs, null, 2)}
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API 오류: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      if (response.status === 400 && errorData.error?.message?.includes('API key not valid')) {
+        console.error('[Pattern Analyzer] Gemini API 키가 유효하지 않습니다:', errorData.error?.message);
+        throw new Error('Gemini API 키가 유효하지 않습니다. 관리자에게 문의하세요.');
+      }
+      throw new Error(`Gemini API 오류: ${response.status} - ${errorData.error?.message || '알 수 없는 오류'}`);
     }
 
     const data = await response.json();

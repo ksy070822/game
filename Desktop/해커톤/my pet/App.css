@@ -110,17 +110,19 @@ body {
 .registration-container {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
+  padding-bottom: 100px;
+  overflow-y: auto;
 }
 
 .registration-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  max-width: 500px;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .header-gradient {
@@ -142,6 +144,7 @@ body {
 
 .registration-form {
   padding: 30px;
+  padding-bottom: 120px;
 }
 
 /* 프로필 사진/캐릭터 선택 */
@@ -317,10 +320,10 @@ body {
 }
 
 .species-label {
-  font-size: 11px;
-  color: #64748b;
+  font-size: 13px;
+  color: #374151;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .species-btn.active .species-label {
@@ -1714,6 +1717,148 @@ body {
   display: flex;
   gap: 15px;
   margin-top: 30px;
+}
+
+/* 직접 치료하기 모바일 반응형 */
+@media (max-width: 640px) {
+  .treatment-container {
+    padding: 12px;
+  }
+
+  .treatment-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .treatment-header h1 {
+    font-size: 18px;
+  }
+
+  .treatment-content {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .treatment-intro {
+    margin-bottom: 20px;
+  }
+
+  .pet-info-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .pet-icon-large {
+    font-size: 40px;
+  }
+
+  .pet-info-card h2 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .diagnosis-summary {
+    font-size: 13px;
+  }
+
+  .treatment-steps {
+    margin-bottom: 20px;
+  }
+
+  .treatment-steps h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .treatment-step-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .step-content h4 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .step-content p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .treatment-info {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .treatment-info h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .recovery-time {
+    font-size: 18px;
+  }
+
+  .treatment-warnings {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .treatment-warnings h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .treatment-warnings li {
+    font-size: 12px;
+    padding: 6px 0;
+    padding-left: 22px;
+    line-height: 1.5;
+  }
+
+  .treatment-checklist {
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+
+  .checklist-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .checklist-header h3 {
+    font-size: 14px;
+  }
+
+  .checklist-progress {
+    font-size: 12px;
+  }
+
+  .checklist-items label {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .checklist-items input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+
+  .treatment-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
 }
 
 .hospital-container,

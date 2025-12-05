@@ -144,7 +144,7 @@ export function AICareConsultation({ petData, onBack, onHome }) {
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
       {/* 헤더 */}
-      <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-4 py-6">
+      <div className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={onBack} className="p-2 -ml-2 rounded-lg hover:bg-white/10">
             ← 뒤로
@@ -157,55 +157,67 @@ export function AICareConsultation({ petData, onBack, onHome }) {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* 샘플 데이터 안내 */}
-        {usingSampleData && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-amber-800 mb-1">샘플 데이터로 분석 중</h3>
-                <p className="text-sm text-amber-700 mb-3">
-                  아직 충분한 케어 기록이 없어서 샘플 데이터로 기능을 보여드립니다.
-                  매일 케어 기록을 입력하면 실제 데이터로 분석해드려요!
-                </p>
-                <button
-                  onClick={saveSampleAsReal}
-                  className="text-sm bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600"
-                >
-                  샘플 데이터로 시작하기
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 7일 케어 기록 요약 */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-          <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span className="text-xl">📊</span>
-            최근 7일 케어 기록
-          </h2>
-
-          <div className="space-y-2">
-            {careLogs.map((log, idx) => (
-              <div key={idx} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                <span className="text-xs text-slate-400 w-20">{log.date}</span>
-                <div className="flex-1 flex gap-3 text-sm">
-                  <span>🍚 {log.mealCount || 0}</span>
-                  <span>💧 {log.waterCount || 0}</span>
-                  <span>🚶 {log.walkCount || 0}</span>
-                  <span>💩 {log.poopCount || 0}</span>
-                  {log.weight && <span className="text-slate-500">⚖️ {log.weight}kg</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* AI 분석 결과 */}
+        {/* AI 분석 결과 - 상단 배치 */}
         {analysis && (
           <>
-            {/* 건강 상태 플래그 */}
+            {/* 1. 패턴 분석 */}
+            {analysis.patterns && analysis.patterns.length > 0 && (
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <span className="text-xl">📈</span>
+                  패턴 분석
+                </h2>
+                <ul className="space-y-2">
+                  {analysis.patterns.map((pattern, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
+                      <span className="text-sky-500">•</span>
+                      {pattern}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 2. 위험도 동향 */}
+            {analysis.risk_changes && (
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <span className="text-xl">📉</span>
+                  위험도 동향
+                </h2>
+                <div className="flex items-center gap-3">
+                  <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                    analysis.risk_changes.trend === 'up' ? 'bg-red-100 text-red-700' :
+                    analysis.risk_changes.trend === 'down' ? 'bg-green-100 text-green-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {analysis.risk_changes.trend === 'up' ? '↑ 상승' :
+                     analysis.risk_changes.trend === 'down' ? '↓ 하강' : '→ 안정'}
+                  </div>
+                  <span className="text-sm text-slate-600">{analysis.risk_changes.description}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 3. AI 권장사항 */}
+            {analysis.predictions && analysis.predictions.length > 0 && (
+              <div className="bg-gradient-to-br from-sky-50 to-sky-100 rounded-2xl p-5 border border-sky-100">
+                <h2 className="font-bold text-sky-800 mb-4 flex items-center gap-2">
+                  <span className="text-xl">🔮</span>
+                  AI 권장사항
+                </h2>
+                <ul className="space-y-2">
+                  {analysis.predictions.map((pred, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-sky-700">
+                      <span className="text-sky-500">→</span>
+                      {pred}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 4. 건강 상태 체크 */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
               <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="text-xl">🏥</span>
@@ -244,73 +256,71 @@ export function AICareConsultation({ petData, onBack, onHome }) {
                 </div>
               </div>
             </div>
-
-            {/* 패턴 분석 */}
-            {analysis.patterns && analysis.patterns.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-                <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <span className="text-xl">📈</span>
-                  패턴 분석
-                </h2>
-                <ul className="space-y-2">
-                  {analysis.patterns.map((pattern, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                      <span className="text-violet-500">•</span>
-                      {pattern}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* 예측 및 권장사항 */}
-            {analysis.predictions && analysis.predictions.length > 0 && (
-              <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-5 border border-violet-100">
-                <h2 className="font-bold text-violet-800 mb-4 flex items-center gap-2">
-                  <span className="text-xl">🔮</span>
-                  AI 권장사항
-                </h2>
-                <ul className="space-y-2">
-                  {analysis.predictions.map((pred, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-violet-700">
-                      <span className="text-violet-500">→</span>
-                      {pred}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* 위험도 변화 */}
-            {analysis.risk_changes && (
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-                <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <span className="text-xl">📉</span>
-                  위험도 동향
-                </h2>
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                    analysis.risk_changes.trend === 'up' ? 'bg-red-100 text-red-700' :
-                    analysis.risk_changes.trend === 'down' ? 'bg-green-100 text-green-700' :
-                    'bg-slate-100 text-slate-700'
-                  }`}>
-                    {analysis.risk_changes.trend === 'up' ? '↑ 상승' :
-                     analysis.risk_changes.trend === 'down' ? '↓ 하강' : '→ 안정'}
-                  </div>
-                  <span className="text-sm text-slate-600">{analysis.risk_changes.description}</span>
-                </div>
-              </div>
-            )}
           </>
         )}
 
-        {/* 다시 분석하기 버튼 */}
-        <button
-          onClick={loadAndAnalyze}
-          className="w-full py-3 bg-violet-500 hover:bg-violet-600 text-white font-bold rounded-xl transition-colors"
-        >
-          다시 분석하기
-        </button>
+        {/* 5. 7일 케어 기록 요약 - 하단 배치 */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-slate-800 flex items-center gap-2">
+              <span className="text-xl">📊</span>
+              최근 7일 케어 기록
+            </h2>
+            <span className="text-xs text-slate-400">
+              {careLogs[0]?.date} ~ {careLogs[careLogs.length - 1]?.date}
+            </span>
+          </div>
+
+          {/* 케어 아이콘 범례 */}
+          <div className="grid grid-cols-5 gap-2 mb-4 pb-4 border-b border-slate-100">
+            {[
+              { icon: '🍚', label: '식사' },
+              { icon: '💧', label: '물' },
+              { icon: '🩴', label: '산책' },
+              { icon: '💩', label: '배변' },
+              { icon: '⚖️', label: '체중' }
+            ].map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-lg">{item.icon}</span>
+                </div>
+                <span className="text-[10px] font-medium text-slate-500 mt-1">{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 일별 기록 */}
+          <div className="space-y-2">
+            {careLogs.map((log, idx) => (
+              <div key={idx} className="flex items-center gap-2 py-2.5 px-3 bg-slate-50 rounded-xl">
+                <span className="text-xs font-medium text-slate-500 w-24">{log.date}</span>
+                <div className="flex-1 grid grid-cols-5 gap-2 text-sm">
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">🍚</span>
+                    <span className="font-medium text-slate-700">{log.mealCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">💧</span>
+                    <span className="font-medium text-blue-600">{log.waterCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">🩴</span>
+                    <span className="font-medium text-green-600">{log.walkCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">💩</span>
+                    <span className="font-medium text-amber-600">{log.poopCount || 0}</span>
+                  </span>
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="text-xs">⚖️</span>
+                    <span className="font-medium text-slate-600">{log.weight || '-'}kg</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
