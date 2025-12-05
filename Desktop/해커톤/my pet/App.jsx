@@ -944,7 +944,6 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
     grooming: 0,
     play: 0
   });
-  const [latestBooking, setLatestBooking] = useState(null);
   const [randomMessage, setRandomMessage] = useState(null);
 
   // 랜덤 유의사항 메시지 로드
