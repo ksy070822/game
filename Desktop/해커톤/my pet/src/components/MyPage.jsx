@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getPetImage, getProfileImage } from '../utils/imagePaths';
 import { clinicResultService, bookingService } from '../services/firestore';
 
@@ -195,7 +195,12 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
 
   }, [userId]);
 
-  // 병원 진료 기록 로드 (pets가 로드된 후)
+  // pets 배열의 ID 목록을 메모이제이션 (실제 변경만 감지)
+  const petIds = useMemo(() => {
+    return pets.map(p => p.id).filter(Boolean).sort().join(',');
+  }, [pets]);
+
+  // 병원 진료 기록 로드 (pets가 로드된 후) - pets ID가 실제로 변경될 때만 실행
   useEffect(() => {
     const loadClinicResults = async () => {
       if (pets.length === 0) return;
@@ -227,7 +232,7 @@ export function MyPage({ onBack, onSelectPet, onViewDiagnosis, onAddPet, onClini
     };
 
     loadClinicResults();
-  }, [pets]);
+  }, [petIds, pets.length]);
 
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('ko-KR', {
