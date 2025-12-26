@@ -1266,7 +1266,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
   // 현재 반려동물의 메인 캐릭터 이미지 가져오기
   const getMainCharacterImagePath = () => {
     if (!petData) {
-      return getMainCharacterImage('dog');
+      return getMainCharacterImage('other');
     }
 
     // 동물 종류에 따라 기본 이미지 반환 (기본값)
@@ -1301,9 +1301,13 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
     return petData.sex === 'M' ? '♂' : '♀';
   };
 
+  // PC 레이아웃은 currentView가 null이고 로딩이 완료되었을 때만 표시
+  const showPCLayout = !currentView && !isLoadingPets && userMode === 'guardian';
+  
   return (
     <div className="min-h-screen bg-slate-100">
       {/* PC 레이아웃 (lg 이상에서 표시) */}
+      {showPCLayout && (
       <div className="hidden lg:flex lg:min-h-screen">
         {/* 좌측: 모바일 화면 미리보기 */}
         <div className="flex-shrink-0 flex items-center justify-center">
@@ -1340,15 +1344,41 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
               <div className="px-4 pt-4 pb-4">
                 {/* 반려동물 등록 카드 */}
                 {!petData ? (
-                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h3>
-                    <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
-                    <button
-                      onClick={() => onNavigate('profile-registration')}
-                      className="w-full py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
-                    >
-                      반려동물 등록하기
-                    </button>
+                  <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
+                    <div className="relative flex items-stretch gap-3">
+                      {/* 캐릭터 이미지 - 기타동물 */}
+                      <div className="flex-shrink-0 w-28 h-36 rounded-2xl overflow-hidden">
+                        <img
+                          src={getMainCharacterImagePath()}
+                          alt="Pet Character"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            if (e.target.dataset.retryAttempted === 'true') {
+                              console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                              e.target.style.display = 'none';
+                              return;
+                            }
+                            console.error('이미지 로드 실패:', e.target.src);
+                            e.target.dataset.retryAttempted = 'true';
+                            const fallbackImage = getMainCharacterImage('other');
+                            if (e.target.src !== fallbackImage) {
+                              e.target.src = fallbackImage;
+                            } else {
+                              e.target.style.display = 'none';
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center items-center py-2 min-w-0">
+                        <button
+                          onClick={() => onNavigate('profile-registration')}
+                          className="text-base sm:text-lg text-amber-800 font-bold bg-amber-100 px-6 py-4 rounded-full border-2 border-amber-300 hover:bg-amber-200 transition-colors shadow-md w-full max-w-xs"
+                        >
+                          내 반려동물 등록하기
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -1716,6 +1746,7 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
           </div>
         </main>
       </div>
+      )}
 
       {/* 태블릿/모바일 레이아웃 (lg 미만) */}
       <div className="lg:hidden md:flex md:items-center md:justify-center md:p-8 md:min-h-screen">
@@ -1759,15 +1790,41 @@ function Dashboard({ petData, pets, onNavigate, onSelectPet, onLogout }) {
       <div className="px-4 pt-4 pb-4">
         {/* 반려동물 등록 카드 */}
         {!petData ? (
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">반려동물을 등록해주세요</h3>
-            <p className="text-sm text-slate-500 mb-4">사용자님만의 반려동물 정보를 등록하면 맞춤형 건강을 시작하세요</p>
-            <button
-              onClick={() => onNavigate('profile-registration')}
-              className="w-full py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
-            >
-              반려동물 등록하기
-            </button>
+          <div className="bg-white rounded-2xl p-5 shadow-lg border border-slate-100 relative overflow-hidden mb-4">
+            <div className="relative flex items-stretch gap-3">
+              {/* 캐릭터 이미지 - 기타동물 */}
+              <div className="flex-shrink-0 w-28 h-36 rounded-2xl overflow-hidden">
+                <img
+                  src={getMainCharacterImagePath()}
+                  alt="Pet Character"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    if (e.target.dataset.retryAttempted === 'true') {
+                      console.warn('이미지 로드 최종 실패, 기본 이미지 사용 중단');
+                      e.target.style.display = 'none';
+                      return;
+                    }
+                    console.error('이미지 로드 실패:', e.target.src);
+                    e.target.dataset.retryAttempted = 'true';
+                    const fallbackImage = getMainCharacterImage('other');
+                    if (e.target.src !== fallbackImage) {
+                      e.target.src = fallbackImage;
+                    } else {
+                      e.target.style.display = 'none';
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex-1 flex flex-col justify-center items-center py-2 min-w-0">
+                <button
+                  onClick={() => onNavigate('profile-registration')}
+                  className="text-base sm:text-lg text-amber-800 font-bold bg-amber-100 px-6 py-4 rounded-full border-2 border-amber-300 hover:bg-amber-200 transition-colors shadow-md w-full max-w-xs"
+                >
+                  내 반려동물 등록하기
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <>
@@ -5285,6 +5342,7 @@ function App() {
   const [lastDiagnosis, setLastDiagnosis] = useState(null);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [hospitalPacket, setHospitalPacket] = useState(null);
+  const [isLoadingPets, setIsLoadingPets] = useState(true); // 반려동물 데이터 로딩 상태
 
   // 모드 변경 함수
   const handleModeSwitch = (mode) => {
@@ -5309,7 +5367,7 @@ function App() {
     // 기존 로그인 세션 확인
     const loadSession = async () => {
       const savedSession = await getAuthSession();
-    if (savedSession) {
+      if (savedSession) {
       setCurrentUser(savedSession);
 
         // 실제 병원 데이터가 있는지 확인
@@ -5346,13 +5404,39 @@ function App() {
 
       setAuthScreen(null);
 
-      // 로그인된 사용자의 반려동물 데이터 로드
-      const userPets = getPetsForUser(savedSession.uid);
-      setPets(userPets);
-      if (userPets.length > 0) {
-        setPetData(userPets[0]);
+      // 로그인된 사용자의 반려동물 데이터 로드 (Firestore 우선)
+      setIsLoadingPets(true);
+      try {
+        // Firestore에서 동물 데이터 가져오기
+        const petsResult = await petService.getPetsByUser(savedSession.uid);
+        if (petsResult.success && petsResult.data && petsResult.data.length > 0) {
+          const userPets = petsResult.data;
+          // localStorage에도 저장 (오프라인 지원)
+          savePetsForUser(savedSession.uid, userPets);
+          setPets(userPets);
+          setPetData(userPets[0]);
+        } else {
+          // Firestore에 데이터가 없으면 localStorage 확인
+          const userPets = getPetsForUser(savedSession.uid);
+          setPets(userPets);
+          if (userPets.length > 0) {
+            setPetData(userPets[0]);
+          }
         }
+      } catch (error) {
+        console.error('반려동물 데이터 로드 오류:', error);
+        // 오류 발생 시 localStorage에서 로드
+        const userPets = getPetsForUser(savedSession.uid);
+        setPets(userPets);
+        if (userPets.length > 0) {
+          setPetData(userPets[0]);
+        }
+      } finally {
+        setIsLoadingPets(false);
       }
+    } else {
+      // 로그인 세션이 없으면 로딩 완료
+      setIsLoadingPets(false);
     }
     // 등록 화면 없이 바로 대시보드로 (등록은 마이페이지에서)
     setCurrentTab('care');
@@ -5390,68 +5474,12 @@ function App() {
       }
     };
     
-    // 테스트 계정 반려동물 정리 함수 (뿌꾸, 몽미, 도마만 유지)
-    window.cleanupTestPets = async (userId = null) => {
-      try {
-        const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
-        const { db } = await import('./src/lib/firebase');
-        
-        const targetUserId = userId || currentUser?.uid;
-        if (!targetUserId) {
-          console.error('❌ 사용자 ID가 필요합니다.');
-          return;
-        }
-        
-        const KEEP_PETS = ['뿌꾸', '몽미', '도마'];
-        const petsRef = collection(db, 'pets');
-        const petsQuery = query(petsRef, where('userId', '==', targetUserId));
-        const petsSnapshot = await getDocs(petsQuery);
-        
-        if (petsSnapshot.empty) {
-          console.log('✅ 삭제할 반려동물이 없습니다.');
-          return;
-        }
-        
-        console.log(`\n📋 총 ${petsSnapshot.size}마리의 반려동물 발견\n`);
-        
-        const petsToDelete = [];
-        petsSnapshot.forEach((petDoc) => {
-          const petData = petDoc.data();
-          const petName = petData.petName || petData.name || '';
-          const petId = petDoc.id;
-          
-          if (!KEEP_PETS.includes(petName)) {
-            petsToDelete.push({ id: petId, name: petName });
-            console.log(`  ❌ 삭제 예정: ${petName} (${petData.species || '종류 미상'})`);
-          } else {
-            console.log(`  ✅ 유지: ${petName} (${petData.species || '종류 미상'})`);
-          }
-        });
-        
-        if (petsToDelete.length > 0) {
-          console.log(`\n🗑️  ${petsToDelete.length}마리 삭제 중...\n`);
-          for (const pet of petsToDelete) {
-            try {
-              await deleteDoc(doc(db, 'pets', pet.id));
-              console.log(`  ✅ 삭제 완료: ${pet.name}`);
-            } catch (error) {
-              console.error(`  ❌ 삭제 실패: ${pet.name}`, error.message);
-            }
-          }
-          console.log(`\n✅ 정리 완료!`);
-        } else {
-          console.log(`\n✅ 삭제할 반려동물이 없습니다.`);
-        }
-      } catch (error) {
-        console.error('❌ 정리 오류:', error);
-        throw error;
-      }
-    };
-    
     console.log('💡 테스트 데이터 시드 함수가 등록되었습니다.');
     console.log('   사용법: const user = window.auth.currentUser; await window.seedGuardianData(user.uid, user.email);');
     console.log('   약물 처방 정보 추가: await window.seedMedicationData(user.uid);');
-    console.log('   반려동물 정리 (뿌꾸, 몽미, 도마만 유지): await window.cleanupTestPets();');
+    };
+    
+    loadSession();
   }, []);
 
   // 로그인 성공 핸들러
@@ -5484,13 +5512,38 @@ function App() {
     // userMode를 localStorage에 저장
     localStorage.setItem('petMedical_userMode', mode);
 
-    // 로그인한 사용자의 반려동물 데이터 로드
-    const userPets = getPetsForUser(user.uid);
-    setPets(userPets);
-    if (userPets.length > 0) {
-      setPetData(userPets[0]);
-    } else {
-      setPetData(null);
+    // 로그인한 사용자의 반려동물 데이터 로드 (Firestore 우선)
+    setIsLoadingPets(true);
+    try {
+      const petsResult = await petService.getPetsByUser(user.uid);
+      if (petsResult.success && petsResult.data && petsResult.data.length > 0) {
+        const userPets = petsResult.data;
+        // localStorage에도 저장 (오프라인 지원)
+        savePetsForUser(user.uid, userPets);
+        setPets(userPets);
+        setPetData(userPets[0]);
+      } else {
+        // Firestore에 데이터가 없으면 localStorage 확인
+        const userPets = getPetsForUser(user.uid);
+        setPets(userPets);
+        if (userPets.length > 0) {
+          setPetData(userPets[0]);
+        } else {
+          setPetData(null);
+        }
+      }
+    } catch (error) {
+      console.error('반려동물 데이터 로드 오류:', error);
+      // 오류 발생 시 localStorage에서 로드
+      const userPets = getPetsForUser(user.uid);
+      setPets(userPets);
+      if (userPets.length > 0) {
+        setPetData(userPets[0]);
+      } else {
+        setPetData(null);
+      }
+    } finally {
+      setIsLoadingPets(false);
     }
 
     // 푸시 알림 권한 요청 및 토큰 저장
@@ -5617,6 +5670,7 @@ function App() {
         localStorage.setItem('petMedical_userMode', mode);
 
         // 로그인한 사용자의 반려동물 데이터 로드 (Firestore 우선)
+        setIsLoadingPets(true);
         let userPets = [];
         try {
           // Firestore에서 동물 데이터 가져오기
@@ -5625,7 +5679,6 @@ function App() {
             userPets = petsResult.data;
             // localStorage에도 저장 (오프라인 지원)
             savePetsForUser(user.uid, userPets);
-            console.log(`✅ Firestore에서 ${userPets.length}마리 반려동물 로드 완료`);
           } else {
             // Firestore에 데이터가 없으면 localStorage 확인
             userPets = getPetsForUser(user.uid);
@@ -5791,6 +5844,8 @@ function App() {
         } catch (error) {
           console.warn('푸시 알림 설정 실패:', error);
         }
+        
+        setIsLoadingPets(false);
       } else {
         // 로그인 실패 시 게스트 모드로 fallback
         console.warn('테스트 계정 로그인 실패, 게스트 모드로 전환:', loginResult.error);
@@ -5803,6 +5858,7 @@ function App() {
         setCurrentUser(guestUser);
         setUserMode(selectedMode);
         setAuthScreen(null);
+        setIsLoadingPets(false);
       }
     } catch (error) {
       console.error('테스트 계정 로그인 오류:', error);
@@ -5816,6 +5872,7 @@ function App() {
       setCurrentUser(guestUser);
       setUserMode(selectedMode);
       setAuthScreen(null);
+      setIsLoadingPets(false);
     }
   };
 
@@ -5839,19 +5896,70 @@ function App() {
     );
   }
 
-  const handleRegistrationComplete = (data) => {
-    // 현재 사용자의 반려동물 데이터 로드
+  const handleRegistrationComplete = async (data) => {
+    // Firestore에서 최신 반려동물 데이터 로드
     if (currentUser?.uid) {
-      const updatedPets = getPetsForUser(currentUser.uid);
-      setPets(updatedPets);
+      try {
+        const petsResult = await petService.getPetsByUser(currentUser.uid);
+        if (petsResult.success && petsResult.data && petsResult.data.length > 0) {
+          const updatedPets = petsResult.data;
+          // localStorage에도 저장 (오프라인 지원)
+          savePetsForUser(currentUser.uid, updatedPets);
+          setPets(updatedPets);
+          // 가장 최근에 등록된 반려동물 선택
+          setPetData(updatedPets[0]);
+        } else {
+          // Firestore에 데이터가 없으면 localStorage 확인
+          const updatedPets = getPetsForUser(currentUser.uid);
+          setPets(updatedPets);
+          if (updatedPets.length > 0) {
+            setPetData(updatedPets[0]);
+          } else {
+            setPetData(data);
+          }
+        }
+      } catch (error) {
+        console.error('반려동물 데이터 로드 오류:', error);
+        // 오류 발생 시 localStorage에서 로드
+        const updatedPets = getPetsForUser(currentUser.uid);
+        setPets(updatedPets);
+        setPetData(data);
+      }
+    } else {
+      setPetData(data);
     }
-    setPetData(data);
     setCurrentView(null);
     setCurrentTab('care');
   };
 
-  const handleSelectPet = (pet) => {
-    setPetData(pet);
+  const handleSelectPet = async (pet) => {
+    // Firestore에서 최신 반려동물 데이터 확인
+    if (currentUser?.uid && pet?.id) {
+      try {
+        const petsResult = await petService.getPetsByUser(currentUser.uid);
+        if (petsResult.success && petsResult.data && petsResult.data.length > 0) {
+          // Firestore에서 해당 반려동물 찾기
+          const updatedPet = petsResult.data.find(p => p.id === pet.id || p.firestoreId === pet.id);
+          if (updatedPet) {
+            setPetData(updatedPet);
+            // localStorage에도 저장 (오프라인 지원)
+            const updatedPets = petsResult.data;
+            savePetsForUser(currentUser.uid, updatedPets);
+            setPets(updatedPets);
+          } else {
+            setPetData(pet);
+          }
+        } else {
+          setPetData(pet);
+        }
+      } catch (error) {
+        console.error('반려동물 데이터 로드 오류:', error);
+        setPetData(pet);
+      }
+    } else {
+      setPetData(pet);
+    }
+    
     setCurrentView(null);
     setCurrentTab('care');
 
