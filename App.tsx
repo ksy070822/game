@@ -68,7 +68,15 @@ const App: React.FC = () => {
 
       setAiTip(response.text || "데이터 동기화 에너지가 충만합니다!");
     } catch (error) {
-      setAiTip("보안 프로토콜을 우회하여 새로운 정보를 탐색 중입니다...");
+      // Fallback messages for when API is unavailable (e.g. GitHub Pages env vars issue)
+      const fallbackTips: Record<number, string> = {
+        1: "파편화된 도구들은 마치 인벤토리 정리가 안 된 상태와 같습니다. 통합이 시급합니다!",
+        2: "자동화 장화(Boots)를 장착하셨군요! 이제 걷지 말고 날아다닐 시간입니다.",
+        3: "API 허브는 마치 마을의 포털과 같습니다. 어디로든 순식간에 이동할 수 있죠.",
+        4: "리포트 봇은 당신의 든든한 파트너입니다. 당신이 잠든 사이에도 데이터를 지킵니다.",
+        5: "AI 스킬을 개방하셨군요! 이제 단순 반복 몬스터들은 한 방에 정리될 것입니다."
+      };
+      setAiTip(fallbackTips[currentSlideIndex] || "시스템이 최적화 경로를 계산 중입니다...");
     } finally {
       setIsAiLoading(false);
     }
