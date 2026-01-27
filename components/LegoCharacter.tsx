@@ -10,8 +10,8 @@ interface LegoCharacterProps {
 
 const LegoCharacter: React.FC<LegoCharacterProps> = ({ skills, isLevelingUp, isEnding }) => {
   const levelIndex = skills.length;
-  // Limit to max level 4 image if for some reason skills go beyond
-  const safeIndex = Math.min(levelIndex, 4);
+  // Support level 0-5 (6 images total)
+  const safeIndex = Math.min(levelIndex, 5);
   const imagePath = `${import.meta.env.BASE_URL}characters/level${safeIndex}.png`;
 
   return (

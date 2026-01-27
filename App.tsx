@@ -3,6 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { slides } from './data/slides';
 import { CharacterState, SkillType } from './types';
 import LegoCharacter from './components/LegoCharacter';
+import SkillAcquisition from './components/SkillAcquisition';
+import BossBattle from './components/BossBattle';
+import EndingScene from './components/EndingScene';
+import AcquisitionMark, { AcquisitionMarksDisplay } from './components/AcquisitionMark';
 import { GoogleGenAI } from "@google/genai";
 
 // Typing component for AI Quest Master
@@ -37,17 +41,62 @@ const App: React.FC = () => {
   const [isLevelingUp, setIsLevelingUp] = useState(false);
   const [aiTip, setAiTip] = useState<string>("새로운 퀘스트를 시작할 준비가 되셨나요?");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [showBossBattle, setShowBossBattle] = useState(false);
+  const [showSkillAcquisition, setShowSkillAcquisition] = useState(false);
+  const [showEndingScene, setShowEndingScene] = useState(false);
+  const [showAcquisitionMark, setShowAcquisitionMark] = useState(false);
+  const [acquiredItemName, setAcquiredItemName] = useState<string>('');
 
   const currentSlide = slides[currentSlideIndex];
+
+  // Handle Boss Battle Display
+  useEffect(() => {
+    if (currentSlide.isBossBattle && currentSlide.bossData) {
+      setShowBossBattle(true);
+    } else {
+      setShowBossBattle(false);
+    }
+  }, [currentSlideIndex]);
+
+  // Handle Skill Acquisition Display
+  useEffect(() => {
+    if (currentSlide.isSkillAcquisition && currentSlide.levelUp) {
+      // Show skill acquisition screen after a short delay
+      const timer = setTimeout(() => {
+        setShowSkillAcquisition(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSkillAcquisition(false);
+    }
+  }, [currentSlideIndex]);
+
+  // Handle Ending Scene Display
+  useEffect(() => {
+    if (currentSlide.isEnding) {
+      const timer = setTimeout(() => {
+        setShowEndingScene(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowEndingScene(false);
+    }
+  }, [currentSlideIndex]);
 
   // Handle Level Up Logic
   useEffect(() => {
     if (currentSlide.levelUp && !characterState.skills.includes(currentSlide.levelUp)) {
       setIsLevelingUp(true);
+      const skillName = currentSlide.levelUp;
       setCharacterState(prev => ({
         level: prev.level + 1,
-        skills: [...prev.skills, currentSlide.levelUp!]
+        skills: [...prev.skills, skillName]
       }));
+      
+      // Show acquisition mark
+      setAcquiredItemName(skillName);
+      setShowAcquisitionMark(true);
+      
       setTimeout(() => setIsLevelingUp(false), 2500);
     }
   }, [currentSlideIndex]);
@@ -102,10 +151,73 @@ const App: React.FC = () => {
     }
   };
 
+  const handleBossVictory = () => {
+    setShowBossBattle(false);
+    handleNext();
+  };
+
+  const handleSkillAcquisitionContinue = () => {
+    setShowSkillAcquisition(false);
+    handleNext();
+  };
+
+  const handleEndingRestart = () => {
+    setShowEndingScene(false);
+    setCurrentSlideIndex(0);
+    setCharacterState({ level: 1, skills: [] });
+  };
+
+  const handleAcquisitionMarkComplete = () => {
+    setShowAcquisitionMark(false);
+  };
+
   const progress = ((currentSlideIndex + 1) / slides.length) * 100;
+
+  // Don't render main UI if showing special screens
+  if (showBossBattle && currentSlide.bossData) {
+    return (
+      <BossBattle
+        bossName={currentSlide.bossData.name}
+        bossHp={currentSlide.bossData.hp}
+        maxHp={currentSlide.bossData.maxHp}
+        problems={currentSlide.bossData.problems}
+        onVictory={handleBossVictory}
+        onBack={handlePrev}
+      />
+    );
+  }
+
+  if (showSkillAcquisition && currentSlide.levelUp) {
+    const skillNumber = characterState.skills.length + 1;
+    return (
+      <SkillAcquisition
+        skill={currentSlide.levelUp}
+        skillNumber={skillNumber}
+        onContinue={handleSkillAcquisitionContinue}
+        onBack={handlePrev}
+      />
+    );
+  }
+
+  if (showEndingScene) {
+    return (
+      <EndingScene
+        characterLevel={characterState.level}
+        skills={characterState.skills}
+        onRestart={handleEndingRestart}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4 overflow-hidden font-['Noto_Sans_KR']">
+      {/* Acquisition Mark */}
+      {showAcquisitionMark && (
+        <AcquisitionMark
+          itemName={acquiredItemName}
+          onComplete={handleAcquisitionMarkComplete}
+        />
+      )}
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
         <div className="grid grid-cols-12 h-full gap-2">
@@ -140,9 +252,9 @@ const App: React.FC = () => {
           <div className="flex items-center gap-8">
             {/* 진행도 게이지 */}
             <div className="flex flex-col items-end gap-2">
-              <span className="text-[10px] text-slate-400 font-bold pixel-font">PROGRESS {Math.round(progress)}%</span>
+              <span className="text-[10px] text-slate-400 font-bold pixel-font">QUEST PROGRESS {currentSlideIndex + 1}/{slides.length}</span>
               <div className="h-4 w-48 bg-slate-900 rounded-full overflow-hidden border-2 border-slate-700">
-                <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-300 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-300 transition-all duration-1000 glow-yellow" style={{ width: `${progress}%` }}></div>
               </div>
             </div>
 
@@ -239,8 +351,8 @@ const App: React.FC = () => {
         {/* 하단 네비게이션 보조 */}
         <div className="h-10 bg-[#0f172a] flex items-center justify-between px-10 text-[10px] text-slate-500 font-bold border-t border-slate-800">
           <button onClick={handlePrev} className={`hover:text-white transition-colors ${currentSlideIndex === 0 ? 'invisible' : ''}`}>PREV STAGE</button>
-          <div className="flex gap-4">
-            {characterState.skills.map(s => <span key={s} className="text-yellow-600">● {s}</span>)}
+          <div className="flex gap-2">
+            <AcquisitionMarksDisplay acquiredItems={characterState.skills} />
           </div>
           <span className="pixel-font">KAKAO MOBILITY CX SYNERGY</span>
         </div>

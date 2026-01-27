@@ -16,6 +16,14 @@ export interface SlideContent {
   content: React.ReactNode;
   levelUp?: SkillType;
   isEnding?: boolean;
+  isBossBattle?: boolean;
+  isSkillAcquisition?: boolean;
+  bossData?: {
+    name: string;
+    hp: number;
+    maxHp: number;
+    problems: Array<{ name: string; hp: number; icon: string }>;
+  };
 }
 
 export interface CharacterState {
