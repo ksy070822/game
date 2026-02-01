@@ -393,65 +393,112 @@ body {
 }
 .player-sprite {
   position: absolute;
-  width: 52px;
-  height: 52px;
-  margin-left: -26px;
-  margin-top: -26px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid var(--jrpg-gold);
-  box-shadow: 0 0 16px rgba(212,175,55,0.5);
+  width: 64px;
+  height: 96px;
+  margin-left: -32px;
+  margin-top: -96px;
+  overflow: visible;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   z-index: 10;
   transition: left 0.05s linear, top 0.05s linear;
+  pointer-events: none;
 }
-.player-sprite img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.player-sprite-img {
+  width: 64px;
+  height: 96px;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  transition: transform 0.08s ease-out;
+}
+.player-sprite-img.flip-x {
+  transform: scaleX(-1);
+}
+.player-sprite-shadow {
+  position: absolute;
+  bottom: -4px;
+  width: 40px;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 70%);
+  border-radius: 50%;
 }
 .player-sprite .player-icon {
-  font-size: 1.8rem;
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
 }
-.player-sprite.moving {
-  animation: playerBob 0.2s ease infinite;
+.player-sprite.moving .player-sprite-img {
+  animation: playerBob 0.18s ease-in-out infinite alternate;
 }
 @keyframes playerBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
+}
+.player-sprite.moving.flip-x .player-sprite-img {
+  animation: playerBobFlip 0.18s ease-in-out infinite alternate;
+}
+@keyframes playerBobFlip {
+  0% { transform: scaleX(-1) translateY(0); }
+  100% { transform: scaleX(-1) translateY(-4px); }
 }
 .ally-npc {
   position: absolute;
-  width: 44px;
-  height: 44px;
-  margin-left: -22px;
-  margin-top: -22px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.2);
+  width: 56px;
+  height: 80px;
+  margin-left: -28px;
+  margin-top: -80px;
+  overflow: visible;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   z-index: 8;
-  transition: box-shadow 0.3s;
+  transition: transform 0.3s, filter 0.3s;
+}
+.ally-npc::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  width: 32px;
+  height: 10px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, transparent 70%);
+  border-radius: 50%;
 }
 .ally-npc img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 56px;
+  height: 80px;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
 }
 .ally-npc .npc-icon {
-  font-size: 1.4rem;
+  font-size: 2rem;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
 }
 .ally-npc.unlocked {
-  border-color: var(--success);
-  box-shadow: 0 0 16px rgba(46,204,113,0.5);
+  filter: none;
+}
+.ally-npc.unlocked::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 2px solid var(--success);
+  border-radius: 12px;
+  animation: ally-glow 1.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes ally-glow {
+  from { box-shadow: 0 0 10px rgba(46,204,113,0.4); }
+  to { box-shadow: 0 0 20px rgba(46,204,113,0.7); }
 }
 .ally-npc.recruited {
   opacity: 0.5;
   filter: grayscale(0.7);
+}
+.ally-npc.recruited::after {
+  display: none;
 }
 .talk-hint {
   position: absolute;
@@ -814,11 +861,18 @@ body {
   transition: transform 0.08s ease-out;
 }
 .village-player-moving .village-player-sprite {
-  animation: village-player-bob 0.2s ease-in-out infinite alternate;
+  animation: village-player-bob 0.18s ease-in-out infinite alternate;
+}
+.village-player-moving .village-player-sprite[style*="scaleX(-1)"] {
+  animation: village-player-bob-flip 0.18s ease-in-out infinite alternate;
 }
 @keyframes village-player-bob {
   from { transform: translateY(0); }
   to { transform: translateY(-4px); }
+}
+@keyframes village-player-bob-flip {
+  from { transform: scaleX(-1) translateY(0); }
+  to { transform: scaleX(-1) translateY(-4px); }
 }
 
 /* ========== 인트로 시네마틱 시퀀스 ========== */
@@ -832,7 +886,7 @@ body {
   background: #000;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 15;
 }
 .intro-fade-black.intro-fade-black-visible {
@@ -853,19 +907,19 @@ body {
   background-color: #0a0a0f;
 }
 .intro-bg-wrap.intro-bg-fade-in .intro-bg {
-  animation: intro-bg-fade-in 1.2s ease-out forwards;
+  animation: intro-bg-fade-in 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes intro-bg-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  0% { opacity: 0; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .intro-darken {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
   opacity: 0;
-  transition: opacity 1s ease;
+  transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 .intro-darken.intro-darken-visible {
@@ -884,37 +938,72 @@ body {
   pointer-events: none;
 }
 .intro-shake-wrap.intro-shake {
-  animation: intro-screen-shake 0.15s ease-in-out infinite alternate;
+  animation: intro-screen-shake 0.08s ease-in-out 6;
 }
 @keyframes intro-screen-shake {
-  from { transform: translateX(-3px); }
-  to { transform: translateX(3px); }
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px) translateY(1px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px) translateY(-1px); }
 }
 
 .intro-portraits {
   display: none;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding: 0 24px;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 40px;
+  padding: 32px 48px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.85) 100%);
+  border-radius: 20px;
+  position: relative;
+}
+.intro-portraits::before {
+  content: '다섯 영웅의 소집';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 1.5rem;
+  color: var(--jrpg-gold);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  white-space: nowrap;
 }
 .intro-portrait-item {
-  width: 72px;
-  height: 72px;
+  width: 100px;
+  height: 140px;
   border-radius: 12px;
   background-size: cover;
-  background-position: center;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-position: top center;
+  background-color: rgba(30, 25, 20, 0.9);
   opacity: 0;
-  border: 2px solid rgba(255, 229, 0, 0.4);
+  border: 3px solid var(--jrpg-gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 8px 24px rgba(0,0,0,0.5);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.intro-portrait-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
 }
 .intro-portrait-item.intro-portrait-fade-in {
-  animation: intro-portrait-fade-in 0.6s ease-out forwards;
+  animation: intro-portrait-fade-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+.intro-portrait-item:nth-child(1) { animation-delay: 0s; }
+.intro-portrait-item:nth-child(2) { animation-delay: 0.15s; }
+.intro-portrait-item:nth-child(3) { animation-delay: 0.3s; }
+.intro-portrait-item:nth-child(4) { animation-delay: 0.45s; }
+.intro-portrait-item:nth-child(5) { animation-delay: 0.6s; }
 @keyframes intro-portrait-fade-in {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+  0% { opacity: 0; transform: translateY(40px) scale(0.7); }
+  70% { opacity: 1; transform: translateY(-8px) scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .intro-text-wrap {

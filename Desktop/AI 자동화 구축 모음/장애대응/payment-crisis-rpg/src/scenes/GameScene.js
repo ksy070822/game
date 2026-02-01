@@ -305,10 +305,12 @@ export class GameScene {
     this.playerX = (villageWrap.offsetWidth || 400) / 2 - PLAYER_HALF;
     this.playerY = (villageWrap.offsetHeight || 300) / 2 - PLAYER_HALF;
 
-    const playerSrc = role?.imagePath ?? '';
-    const playerHtml = playerSrc
-      ? `<img src="${playerSrc}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><span class="player-icon" style="display:none">${role?.icon ?? '📜'}</span>`
-      : `<span class="player-icon">${role?.icon ?? '📜'}</span>`;
+    // 캐릭터 전신 이미지 사용 (idle.png)
+    const char = CHARACTERS[job];
+    const playerIdleSrc = char?.sprites?.idle ?? '';
+    const playerHtml = playerIdleSrc
+      ? `<div class="player-sprite-shadow"></div><img src="${playerIdleSrc}" alt="${role?.name ?? ''}" class="player-sprite-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><span class="player-icon" style="display:none">${role?.icon ?? '📜'}</span>`
+      : `<div class="player-sprite-shadow"></div><span class="player-icon">${role?.icon ?? '📜'}</span>`;
 
     const player = document.createElement('div');
     player.className = 'player-sprite';
@@ -318,6 +320,10 @@ export class GameScene {
     player.style.top = this.playerY + 'px';
     villageWrap.appendChild(player);
     this._playerEl = player;
+    this._playerImg = player.querySelector('.player-sprite-img');
+    this._playerChar = char;
+    this._facing = 'idle';
+    this._flipX = false;
 
     const allyMap = { tech_comm: 0, reporter: 1, control_tower: 2, tech_lead: 3, biz_lead: 4 };
     allies.forEach((ally, i) => {
@@ -692,17 +698,67 @@ export class GameScene {
       if (this._villageWrap && this._playerEl) {
         const w = this._villageWrap.offsetWidth || 400;
         const h = this._villageWrap.offsetHeight || 300;
-        if (this.keys['ArrowLeft']) this.playerX = Math.max(PLAYER_HALF, this.playerX - PLAYER_SPEED);
-        if (this.keys['ArrowRight']) this.playerX = Math.min(w - PLAYER_HALF, this.playerX + PLAYER_SPEED);
-        if (this.keys['ArrowUp']) this.playerY = Math.max(PLAYER_HALF, this.playerY - PLAYER_SPEED);
-        if (this.keys['ArrowDown']) this.playerY = Math.min(h - PLAYER_HALF, this.playerY + PLAYER_SPEED);
+        let dx = 0, dy = 0;
+        if (this.keys['ArrowLeft']) { dx = -1; this.playerX = Math.max(PLAYER_HALF, this.playerX - PLAYER_SPEED); }
+        if (this.keys['ArrowRight']) { dx = 1; this.playerX = Math.min(w - PLAYER_HALF, this.playerX + PLAYER_SPEED); }
+        if (this.keys['ArrowUp']) { dy = -1; this.playerY = Math.max(PLAYER_HALF, this.playerY - PLAYER_SPEED); }
+        if (this.keys['ArrowDown']) { dy = 1; this.playerY = Math.min(h - PLAYER_HALF, this.playerY + PLAYER_SPEED); }
+
+        const isMoving = dx !== 0 || dy !== 0;
+
+        // 방향 결정
+        if (dy < 0) this._facing = 'Up';
+        else if (dy > 0) this._facing = 'Down';
+        else if (dx < 0) this._facing = 'Left';
+        else if (dx > 0) this._facing = 'Right';
+        else this._facing = 'idle';
+
+        // 스프라이트 업데이트
+        this._updateGamePlayerSprite(isMoving);
+
         this._playerEl.style.left = this.playerX + 'px';
         this._playerEl.style.top = this.playerY + 'px';
-        this._playerEl.classList.toggle('moving', this.keys['ArrowLeft'] || this.keys['ArrowRight'] || this.keys['ArrowUp'] || this.keys['ArrowDown']);
+        this._playerEl.classList.toggle('moving', isMoving);
         this._updateNearHint();
       }
     };
     loop();
+  }
+
+  _updateGamePlayerSprite(isMoving) {
+    const char = this._playerChar;
+    if (!char?.sprites || !this._playerImg) return;
+
+    let spriteKey = 'idle';
+    this._flipX = false;
+
+    if (this._facing !== 'idle' && isMoving) {
+      if (this._facing === 'Up') {
+        spriteKey = 'walkUp';
+      } else if (this._facing === 'Down') {
+        spriteKey = 'walkDown';
+      } else if (this._facing === 'Left') {
+        if (char.sprites.walkLeft && char.sprites.walkLeft !== char.sprites.idle) {
+          spriteKey = 'walkLeft';
+        } else {
+          spriteKey = 'walkRight';
+          this._flipX = true;
+        }
+      } else if (this._facing === 'Right') {
+        spriteKey = 'walkRight';
+      }
+    }
+
+    const src = char.sprites[spriteKey] || char.sprites.idle;
+    const currentSrc = (this._playerImg.src || '').split('#')[0].split('?')[0];
+    const newSrc = src.split('#')[0].split('?')[0];
+
+    if (currentSrc !== newSrc && !currentSrc.endsWith(newSrc)) {
+      this._playerImg.src = src;
+    }
+
+    this._playerImg.style.transform = this._flipX ? 'scaleX(-1)' : '';
+    this._playerImg.classList.toggle('flip-x', this._flipX);
   }
 
   _updateNearHint() {
