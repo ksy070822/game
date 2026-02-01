@@ -48,20 +48,21 @@ export class VillageScene {
       <p class="village-keys" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.6);font-size:14px;">← → ↑ ↓ 이동 · 문 앞에서 Space</p>
     `;
     this.playerEl = this.domRoot.querySelector('#village-player');
-    this.playerEl.style.cssText = `position:absolute;left:${this.playerX}px;top:${this.playerY}px;width:48px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transition:left 0.05s, top 0.05s;pointer-events:none;`;
+    this.playerEl.style.cssText = `position:absolute;left:${this.playerX}px;top:${this.playerY}px;width:64px;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transition:left 0.05s, top 0.05s;pointer-events:none;`;
     this._playerShadow = document.createElement('div');
     this._playerShadow.className = 'village-player-shadow';
-    this._playerShadow.style.cssText = 'width:28px;height:10px;background:rgba(0,0,0,0.35);border-radius:50%;margin-bottom:-4px;flex-shrink:0;';
+    this._playerShadow.style.cssText = 'position:absolute;bottom:-4px;width:40px;height:12px;background:radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 70%);border-radius:50%;';
     this.playerEl.appendChild(this._playerShadow);
     this._playerImg = document.createElement('img');
     this._playerImg.alt = char?.name || '';
     this._playerImg.className = 'village-player-sprite';
-    this._playerImg.style.cssText = 'width:48px;height:64px;object-fit:contain;object-position:bottom;display:block;';
+    this._playerImg.style.cssText = 'width:64px;height:96px;object-fit:contain;object-position:bottom;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));transition:transform 0.08s ease-out;';
     this._playerImg.onerror = () => { this._playerImg.style.display = 'none'; };
     this.playerEl.appendChild(this._playerImg);
     this._playerChar = char;
     this._facing = 'idle';
     this._moving = false;
+    this._flipX = false;
     this._updatePlayerSprite();
     overlay.appendChild(this.domRoot);
     this._bindKeys();
@@ -71,9 +72,41 @@ export class VillageScene {
   _updatePlayerSprite() {
     const char = this._playerChar;
     if (!char?.sprites || !this._playerImg) return;
-    const key = this._facing === 'idle' ? 'idle' : 'walk' + this._facing;
-    const src = char.sprites[key] || char.sprites.idle;
-    if (this._playerImg.src !== src && (this._playerImg.src || '').split('#')[0] !== src) this._playerImg.src = src;
+
+    // 방향에 따른 스프라이트 키 결정
+    let spriteKey = 'idle';
+    this._flipX = false;
+
+    if (this._facing !== 'idle') {
+      if (this._facing === 'Up') {
+        spriteKey = 'walkUp';
+      } else if (this._facing === 'Down') {
+        spriteKey = 'walkDown';  // 없으면 idle 폴백
+      } else if (this._facing === 'Left') {
+        // walk_left가 없으면 walk_right를 좌우반전
+        if (char.sprites.walkLeft && char.sprites.walkLeft !== char.sprites.idle) {
+          spriteKey = 'walkLeft';
+        } else {
+          spriteKey = 'walkRight';
+          this._flipX = true;
+        }
+      } else if (this._facing === 'Right') {
+        spriteKey = 'walkRight';
+      }
+    }
+
+    const src = char.sprites[spriteKey] || char.sprites.idle;
+    const currentSrc = (this._playerImg.src || '').split('#')[0].split('?')[0];
+    const newSrc = src.split('#')[0].split('?')[0];
+
+    if (currentSrc !== newSrc && !currentSrc.endsWith(newSrc)) {
+      this._playerImg.src = src;
+    }
+
+    // 좌우반전 처리
+    this._playerImg.style.transform = this._flipX ? 'scaleX(-1)' : '';
+
+    // 이동 중일 때 bouncing 애니메이션 클래스 토글
     this.playerEl?.classList.toggle('village-player-moving', this._moving);
   }
 
