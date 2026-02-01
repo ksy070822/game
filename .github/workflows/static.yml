@@ -31,16 +31,12 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        working-directory: './Desktop/해커톤/my pet'
+        working-directory: './Desktop/AI 자동화 구축 모음/장애대응/payment-crisis-rpg'
         run: npm install
 
       - name: Build
-        working-directory: './Desktop/해커톤/my pet'
+        working-directory: './Desktop/AI 자동화 구축 모음/장애대응/payment-crisis-rpg'
         run: npm run build
-        env:
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
-          VITE_ANTHROPIC_API_KEY: ${{ secrets.VITE_ANTHROPIC_API_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -48,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './Desktop/해커톤/my pet/dist'
+          path: './Desktop/AI 자동화 구축 모음/장애대응/payment-crisis-rpg/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
