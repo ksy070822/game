@@ -108,7 +108,7 @@ export class TitleScene {
   }
 
   startGame() {
-    this.game.switchScene('village');
+    this.game.switchScene('game');
   }
 
   async exit() {

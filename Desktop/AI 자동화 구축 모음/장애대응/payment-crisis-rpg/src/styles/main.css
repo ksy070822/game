@@ -990,3 +990,75 @@ body {
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
 }
+
+/* 인트로 추가 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bossPulse {
+  0%, 100% {
+    box-shadow: 0 0 60px #FF0000;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 100px #FF0000, 0 0 40px #8B0000;
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+.intro-boss {
+  animation: bossPulse 2s infinite ease-in-out;
+}
+
+.intro-villager-lines {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* 캐릭터 선택 UI 스타일 */
+.intro-character-select {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+}
+
+/* 보스씬 파티클 애니메이션 */
+@keyframes particleFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(0.5);
+  }
+}
+
+/* 엔딩 씬 추가 스타일 */
+.ending-screen .ending-villagers {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.ending-screen .villager-card {
+  text-align: center;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.ending-screen .villager-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.ending-screen .villager-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+}

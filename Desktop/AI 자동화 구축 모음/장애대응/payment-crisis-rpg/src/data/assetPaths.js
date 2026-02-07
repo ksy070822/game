@@ -1,14 +1,16 @@
 /**
- * Central asset paths under public/assets (ASCII-only).
+ * Central asset paths under public/assets.
  * Character IDs: communicator, techLeader, techCommunicator, controlTower, reporter.
  * Folder names: communicator, tech_leader, tech_communicator, control_tower, reporter.
- * BASE_URL ensures correct paths in dev and production build.
+ * 기본 이미지: idle.png (서 있는 모습)
  */
 const BASE = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL
   ? import.meta.env.BASE_URL.replace(/\/$/, '')
   : '';
 const A = `${BASE}/assets`;
+const IMG = `${BASE}/image`;
 
+// 영문 ID → 영문 폴더명 매핑
 const CHAR_ID_TO_FOLDER = {
   communicator: 'communicator',
   techLeader: 'tech_leader',
@@ -22,46 +24,55 @@ export function getCharacterAssetDir(id) {
   return `${A}/characters/${folder}`;
 }
 
-/** 캐릭터 포즈: idle, walk_up, walk_down, walk_left, walk_right — 없으면 idle 폴백 */
-const WALK_POSE_FILES = {
-  idle: 'idle.png',
-  walk_up: 'walk_up.png',
-  walk_down: 'walk_down.png',
-  walk_left: 'walk_left.png',
-  walk_right: 'walk_right.png',
-};
+/** 캐릭터 메인 이미지 (idle.png - 서 있는 모습) */
+export function getCharacterMainImage(charId) {
+  const folder = CHAR_ID_TO_FOLDER[charId];
+  if (folder) {
+    return `${A}/characters/${folder}/idle.png`;
+  }
+  return null;
+}
 
+/** 캐릭터 포즈별 스프라이트 URL */
 export function getCharacterSpriteUrl(charId, pose) {
   const dir = getCharacterAssetDir(charId);
-  const file = WALK_POSE_FILES[pose] || WALK_POSE_FILES.idle;
+  const poseFiles = {
+    idle: 'idle.png',
+    portrait: 'portrait.png',
+    walk_up: 'walk_up.png',
+    walk_down: 'idle.png',
+    walk_left: 'walk_left.png',
+    walk_right: 'walk_right.png',
+  };
+  const file = poseFiles[pose] || 'idle.png';
   return `${dir}/${file}`;
 }
 
-/** stageLevel 1–5: 1=green, 2=yellow, 3=orange, 4=red, 5=recovering */
-const VILLAGE_STAGE_NAMES = {
-  1: 'stage_1_green',
-  2: 'stage_2_yellow',
-  3: 'stage_3_orange',
-  4: 'stage_4_red',
-  5: 'stage_5_recovering',
+/** stageLevel 1–5: 배경 이미지 (public/image/캐릭터/배경/) */
+const VILLAGE_BG_FILES = {
+  1: 'green_실내.jpeg',      // 평화로운 상태
+  2: 'yellow_실내.jpeg',     // 주의 상태
+  3: 'orenge_실내.jpeg',     // 위기 상태
+  4: 'red_실내.jpeg',        // 심각 상태
+  5: 'green-2_실내.jpeg',    // 복구 완료
 };
 
 export function getVillageBg(stageLevel = 1) {
-  const name = VILLAGE_STAGE_NAMES[Math.min(5, Math.max(1, stageLevel))] || 'stage_1_green';
-  return `${A}/maps/village/${name}.png`;
+  const file = VILLAGE_BG_FILES[Math.min(5, Math.max(1, stageLevel))] || 'green_실내.jpeg';
+  return `${IMG}/캐릭터/배경/${file}`;
 }
 
-/** stageLevel 1–4 for guild */
-const GUILD_STAGE_NAMES = {
-  1: 'stage_1_green',
-  2: 'stage_2_yellow',
-  3: 'stage_3_orange',
-  4: 'stage_4_red',
+/** stageLevel 1–4 for guild (인트로용 배경) */
+const GUILD_BG_FILES = {
+  1: 'Green.jpg',
+  2: 'yellow.jpeg',
+  3: 'orenge.jpeg',
+  4: 'red.jpeg',
 };
 
 export function getGuildBg(stageLevel = 1) {
-  const name = GUILD_STAGE_NAMES[Math.min(4, Math.max(1, stageLevel))] || 'stage_1_green';
-  return `${A}/maps/guild/${name}.png`;
+  const file = GUILD_BG_FILES[Math.min(4, Math.max(1, stageLevel))] || 'Green.jpg';
+  return `${IMG}/캐릭터/배경/${file}`;
 }
 
 /** riskLevel 0–3: idle, angry, weakened, defeated */
@@ -85,6 +96,15 @@ export function getStageLevelFromAllyIndex(currentAllyIndex) {
   return Math.min(5, Math.max(1, currentAllyIndex + 1));
 }
 
+// 영문 ID → 영문 폴더명 (items용)
+const CHAR_ID_TO_ITEM_FOLDER = {
+  communicator: 'communicator',
+  techLeader: 'tech_leader',
+  techCommunicator: 'tech_communicator',
+  controlTower: 'control_tower',
+  reporter: 'reporter',
+};
+
 const ITEM_BASE_NAMES = {
   communicator: 'base_scroll',
   tech_leader: 'base_tablet',
@@ -94,7 +114,7 @@ const ITEM_BASE_NAMES = {
 };
 
 export function getItemImage(charId, slotIndex) {
-  const folder = CHAR_ID_TO_FOLDER[charId] || charId;
+  const folder = CHAR_ID_TO_ITEM_FOLDER[charId] || charId;
   if (slotIndex === 0) {
     const base = ITEM_BASE_NAMES[folder] || 'base_scroll';
     return `${A}/items/${folder}/${base}.png`;

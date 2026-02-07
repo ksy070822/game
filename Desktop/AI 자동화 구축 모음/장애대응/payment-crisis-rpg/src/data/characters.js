@@ -1,18 +1,20 @@
 /**
  * 캐릭터 데이터 (v3) — 5직업, 인트로 순서, 동료 상담 순서
- * 스프라이트/초상화 경로는 assetPaths 기반 (public/assets, ASCII-only)
+ * 스프라이트/초상화 경로는 public/assets/characters/ 폴더 사용
+ * 기본 이미지: idle.png (서 있는 모습)
  */
 import { getCharacterAssetDir } from './assetPaths.js';
 
 function buildSprites(charId) {
   const dir = getCharacterAssetDir(charId);
-  const hasWalkLeft = ['techCommunicator', 'controlTower', 'reporter'].includes(charId);
+  // walk_left가 없는 캐릭터는 walk_right를 fallback으로 사용
+  const hasWalkLeft = !['communicator', 'techLeader'].includes(charId);
   return {
     idle: `${dir}/idle.png`,
     portrait: `${dir}/portrait.png`,
     walkUp: `${dir}/walk_up.png`,
     walkDown: `${dir}/idle.png`,
-    walkLeft: hasWalkLeft ? `${dir}/walk_left.png` : `${dir}/idle.png`,
+    walkLeft: hasWalkLeft ? `${dir}/walk_left.png` : `${dir}/walk_right.png`,
     walkRight: `${dir}/walk_right.png`,
   };
 }

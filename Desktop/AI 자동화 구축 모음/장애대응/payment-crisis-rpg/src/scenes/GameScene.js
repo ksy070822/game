@@ -58,6 +58,45 @@ export class GameScene {
     return this;
   }
 
+  _showLoadWarning(mapError, dialogueError) {
+    const overlay = document.getElementById('dom-overlay');
+    if (!overlay) return;
+
+    const warning = document.createElement('div');
+    warning.className = 'load-warning';
+    warning.style.cssText = `
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(180, 80, 0, 0.9);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 100;
+      max-width: 300px;
+      animation: fadeIn 0.3s ease-out;
+    `;
+
+    let msg = '일부 게임 데이터를 불러오지 못했습니다.';
+    if (mapError && dialogueError) {
+      msg = '맵과 대화 데이터를 불러오지 못했습니다. 기본 모드로 진행합니다.';
+    } else if (mapError) {
+      msg = '맵 데이터를 불러오지 못했습니다.';
+    } else if (dialogueError) {
+      msg = '대화 데이터를 불러오지 못했습니다.';
+    }
+    warning.textContent = msg;
+    overlay.appendChild(warning);
+
+    // 5초 후 자동 제거
+    setTimeout(() => {
+      warning.style.opacity = '0';
+      warning.style.transition = 'opacity 0.3s';
+      setTimeout(() => warning.remove(), 300);
+    }, 5000);
+  }
+
   async enter() {
     const job = this.engine.state.get('selectedJob');
     if (!job) {
@@ -84,19 +123,21 @@ export class GameScene {
     this.playerY = 0;
     this.keys = {};
 
-    const stageNum = this.stageManager.getCurrentStage();
+    let stageNum = this.stageManager.getCurrentStage();
     const stageId = 'S' + stageNum;
+    let mapLoadError = false;
     try {
       const res = await fetch('/data/maps.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       this.mapsData = await res.json();
-    } catch (_) {
+    } catch (err) {
+      console.warn('[GameScene] 맵 데이터 로드 실패:', err.message);
+      mapLoadError = true;
       this.mapsData = { maps: {} };
     }
     const mapData = this.mapsData?.maps?.[stageId] ?? this.mapsData?.maps?.S1 ?? { width: 800, height: 600, playerStart: { x: 400, y: 500 }, npcs: [], objects: [] };
-    const stageNum = this.stageManager.getCurrentStage();
     mapData.background = getVillageBg(stageNum);
     this.gameMap = new GameMap(mapData);
-    const job = this.engine.state.get('selectedJob');
     this.player = new Player(4, job);
     this.player.x = mapData.playerStart?.x ?? 400;
     this.player.y = mapData.playerStart?.y ?? 500;
@@ -117,11 +158,20 @@ export class GameScene {
       this.npcs.push(npc);
     });
 
+    let dialogueLoadError = false;
     try {
       const dialRes = await fetch('/data/dialogues.json');
+      if (!dialRes.ok) throw new Error(`HTTP ${dialRes.status}`);
       this.dialoguesData = await dialRes.json();
-    } catch (_) {
+    } catch (err) {
+      console.warn('[GameScene] 대화 데이터 로드 실패:', err.message);
+      dialogueLoadError = true;
       this.dialoguesData = { dialogues: {} };
+    }
+
+    // 데이터 로드 실패 시 사용자에게 알림
+    if (mapLoadError || dialogueLoadError) {
+      this._showLoadWarning(mapLoadError, dialogueLoadError);
     }
     this.dialogueManager = new DialogueManager(this.dialoguesData, this.engine.state);
     this.dialogueBox = new DialogueBox(null);
@@ -952,7 +1002,8 @@ export class GameScene {
   _goToEnding() {
     const grade = this.endingEvaluator.evaluate();
     this.engine.state.set({ endingGrade: grade });
-    this.engine.sceneManager.goTo('ending');
+    // 보스전 씬으로 먼저 이동
+    this.engine.sceneManager.goTo('boss');
   }
 
   async exit() {

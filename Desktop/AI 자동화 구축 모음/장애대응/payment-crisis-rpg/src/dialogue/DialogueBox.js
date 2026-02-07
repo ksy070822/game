@@ -26,7 +26,7 @@ export class DialogueBox {
     if (this.container && !this.el.parentNode) this.container.appendChild(this.el);
 
     const fullText = String(text ?? '');
-    const speed = 25;
+    const speed = 50;  // 글자당 50ms (느린 타이핑)
     let i = 0;
     if (this._typingId) clearTimeout(this._typingId);
     const type = () => {
